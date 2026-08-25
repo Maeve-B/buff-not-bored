@@ -17,9 +17,12 @@
 import { COOLDOWN_PLAN } from "../data/cooldown.js";
 import { PROGRAMME_TEMPLATE } from "../data/programme-template.js";
 import { WARMUP_PLAN } from "../data/warmup.js";
+import { isExerciseAllowed, type OptimisationConstraints } from "../entities/constraints.js";
 import type { Exercise } from "../entities/exercise.js";
-import { PROGRAMME_ORDER, type ProgrammeTemplate } from "../entities/programme.js";
+import { PROGRAMME_ORDER, type ProgrammeTemplate, type WorkoutAllocation } from "../entities/programme.js";
 import type { DurationRange, PlannedExercise, WorkoutSession } from "../entities/workout-session.js";
+import { reduceExerciseCount, type ReductionResult } from "./reduction-engine.js";
+import { refreshWorkout, type RefreshResult } from "./refresh-engine.js";
 
 /** Target total session duration per spec §9: 45-50 minutes (an estimate, not a hard constraint). */
 export const TARGET_SESSION_DURATION: DurationRange = { minMinutes: 45, maxMinutes: 50 };
@@ -71,3 +74,58 @@ export function buildDefaultSession(library: Exercise[]): WorkoutSession {
 
 /** Re-exported for convenience so callers building sessions don't need a second import. */
 export { PROGRAMME_ORDER };
+
+export interface BuildWorkoutOptions {
+  /** Per-session count override, e.g. { legs: 3, core: 2 } — see reduceExerciseCount. */
+  allocation?: WorkoutAllocation;
+  constraints?: OptimisationConstraints;
+}
+
+export interface BuildWorkoutResult {
+  session: WorkoutSession;
+  /** Present only when `options.allocation` actually reduced at least one group. */
+  reduction?: ReductionResult;
+  /** Present only when a hard-constraint violation forced a substitution. */
+  refresh?: RefreshResult;
+}
+
+/**
+ * The top-level "generate the most efficient valid workout" entry point:
+ * assembles the authored template, applies any requested count reduction,
+ * then force-fixes any exercise that violates a hard constraint (e.g. an
+ * excluded exercise still sitting in the template). With no options, this
+ * reproduces the authored programme exactly — soft preferences alone never
+ * trigger a substitution; that's what `refreshWorkout` ("I'm bored") is for.
+ *
+ * Each stage is a separate, independently-tested engine — this function
+ * only sequences them; it makes no optimisation decisions of its own. Use
+ * `buildWorkoutWithDetails` for the full trace of what each stage did.
+ */
+export function buildWorkoutWithDetails(
+  library: Exercise[],
+  template: ProgrammeTemplate,
+  options: BuildWorkoutOptions = {},
+): BuildWorkoutResult {
+  let session = buildSessionFromTemplate(library, template);
+  let reduction: ReductionResult | undefined;
+  let refresh: RefreshResult | undefined;
+
+  if (options.allocation) {
+    reduction = reduceExerciseCount(session, options.allocation, { soft: options.constraints?.soft });
+    session = reduction.session;
+  }
+
+  const hard = options.constraints?.hard;
+  const hasViolation = session.mainExercises.some((pe) => pe.role === "main" && !isExerciseAllowed(pe.exercise, hard));
+  if (hard && hasViolation) {
+    refresh = refreshWorkout(session, library, options.constraints, { targetExerciseIds: [] });
+    session = refresh.session;
+  }
+
+  return { session, reduction, refresh };
+}
+
+/** Convenience wrapper over `buildWorkoutWithDetails` returning just the resulting session. */
+export function buildWorkout(library: Exercise[], template: ProgrammeTemplate, options: BuildWorkoutOptions = {}): WorkoutSession {
+  return buildWorkoutWithDetails(library, template, options).session;
+}

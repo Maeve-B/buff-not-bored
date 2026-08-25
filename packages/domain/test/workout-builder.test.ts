@@ -5,6 +5,8 @@ import { PROGRAMME_ORDER } from "../src/entities/programme.js";
 import {
   buildDefaultSession,
   buildSessionFromTemplate,
+  buildWorkout,
+  buildWorkoutWithDetails,
   TARGET_SESSION_DURATION,
   WorkoutBuilderError,
 } from "../src/engine/workout-builder.js";
@@ -86,6 +88,49 @@ describe("buildDefaultSession", () => {
   it("is deterministic: rebuilding from the same library yields an equivalent session", () => {
     const again = buildDefaultSession(EXERCISES);
     expect(again).toEqual(session);
+  });
+});
+
+describe("buildWorkout — Phase 2 orchestration entry point", () => {
+  it("with no options, reproduces the current programme exactly (same as buildDefaultSession)", () => {
+    const viaBuildWorkout = buildWorkout(EXERCISES, PROGRAMME_TEMPLATE);
+    const viaDefault = buildDefaultSession(EXERCISES);
+    expect(viaBuildWorkout).toEqual(viaDefault);
+  });
+
+  it("with only soft preferences and no allocation/hard constraints, still reproduces the programme exactly", () => {
+    // Soft preferences alone must never trigger unsolicited substitution — that's refreshWorkout's job.
+    const result = buildWorkout(EXERCISES, PROGRAMME_TEMPLATE, {
+      constraints: { soft: { preferredLocation: "bench", minimizeEquipmentChanges: true } },
+    });
+    expect(result).toEqual(buildDefaultSession(EXERCISES));
+  });
+
+  it("applies an allocation override via the reduction engine", () => {
+    const result = buildWorkout(EXERCISES, PROGRAMME_TEMPLATE, { allocation: { legs: 3 } });
+    const legsMain = result.mainExercises.filter((pe) => pe.exercise.programmeGroup === "legs" && pe.role === "main");
+    expect(legsMain).toHaveLength(3);
+  });
+
+  it("force-fixes a hard-constraint violation present in the authored template", () => {
+    const { session, refresh } = buildWorkoutWithDetails(EXERCISES, PROGRAMME_TEMPLATE, {
+      constraints: { hard: { excludedExerciseIds: ["squats"] } },
+    });
+    expect(session.mainExercises.some((pe) => pe.exercise.id === "squats")).toBe(false);
+    expect(refresh).toBeDefined();
+    expect(refresh!.decisions.some((d) => d.previousExerciseId === "squats")).toBe(true);
+  });
+
+  it("buildWorkoutWithDetails exposes the reduction trace when an allocation override is applied", () => {
+    const { reduction } = buildWorkoutWithDetails(EXERCISES, PROGRAMME_TEMPLATE, { allocation: { core: 2 } });
+    expect(reduction).toBeDefined();
+    expect(reduction!.decisions.some((d) => d.programmeGroup === "core")).toBe(true);
+  });
+
+  it("buildWorkoutWithDetails omits reduction/refresh when nothing triggered them", () => {
+    const { reduction, refresh } = buildWorkoutWithDetails(EXERCISES, PROGRAMME_TEMPLATE);
+    expect(reduction).toBeUndefined();
+    expect(refresh).toBeUndefined();
   });
 });
 

@@ -277,28 +277,34 @@ CI: domain + db + action tests run on every push (fast, cheap); Playwright suite
 
 **Phase 0 — this document.** Review and sign-off before any code is written.
 
-**Phase 1 — Domain package, no app around it.**
-`packages/domain` entities/types + the seeded §5/§6 exercise library as static data + `workout-builder` producing the fixed-order default session. Full unit test suite. Deliverable: `pnpm test` proves the default session matches §9 of the spec, runnable from a script with no UI/DB.
+**Phase 1 — Domain package, no app around it. ✅ Done.**
+`packages/domain` entities/types + the seeded §5/§6 exercise library as static data + `workout-builder` producing the fixed-order default session. Full unit test suite. Deliverable: `pnpm test` proves the default session matches §9 of the spec, runnable from a script with no UI/DB. Followed by two correction passes: the programme-model correction (library vs. explicit template vs. configurable allocation, replacing the original array-order-derived template) and the muscle-taxonomy correction (retiring generic `back`/`shoulders`, adding `trapezius`/`lats`/`quads`) — both captured in `EXERCISE_AUDIT.md`.
 
-**Phase 2 — Persistence.**
-`packages/db`: Prisma schema per §4 above, migration, seed script that loads the same exercise library into Postgres and creates the one seeded user + programme template (§2). Repository functions with tests.
+**Phase 2 — Deterministic optimisation engine. ✅ Done.** *(Re-scoped from the original plan below — persistence turned out not to be a Phase 1 dependency, so this phase covers the engine originally spread across Phases 4–6, still with zero persistence.)*
+Built entirely inside `packages/domain`, still framework-independent and side-effect-free:
+- `entities/constraints.ts` — the shared hard/soft constraint vocabulary (§7's rule — hard constraints never traded against soft scores — is enforced here once, not reimplemented per engine).
+- `entities/muscle-coverage.ts` — extended with `calculateMuscleCoverage`, an explainable report (which exercises contribute to each muscle, at which role) that composes for future weekly/two-session coverage with no new type needed.
+- `engine/equipment-optimiser.ts` — pure scoring/ranking by equipment/location/weight alignment, shared by both engines below rather than duplicated.
+- `engine/refresh-engine.ts` — `refreshWorkout` (the boredom engine, §12): default one-exercise-per-group replacement, or targeted replacement of specific exercises; auto-detects and (where possible) fixes any hard-constraint violation already sitting in the session.
+- `engine/reduction-engine.ts` — `reduceExerciseCount` (§10): FILTER → SCORE → SELECT → VALIDATE, scoring by *minimum* backup coverage across an exercise's primary muscles (not an average — see the module's doc comment for why that distinction matters), throwing a descriptive `ReductionError` rather than silently producing a coverage gap.
+- `engine/progression-engine.ts` — `recommendProgression` (§11): per-exercise `progressionPercentage`, never a hard-coded global rate; explicitly downgrades confidence (never silently trusts) `needsReview` exercises.
+- `engine/workout-builder.ts` — extended with `buildWorkout`/`buildWorkoutWithDetails`, a thin orchestrator sequencing the above (template → reduction if requested → forced-fix of any hard-constraint violation); soft preferences alone never trigger unsolicited substitution.
 
-**Phase 3 — Minimal usable app.**
-`apps/web`: view today's session, log sets fast (weight/reps/feedback, minimal taps per §10), view session history. No boredom, no progression yet — this is "the app works end to end" milestone.
+122 unit tests total, `tsc --noEmit` clean. No UI, no database, no AI — per the constraint this phase was built under.
 
-**Phase 4 — Boredom engine.**
-`boredom` module + "I'm bored" action in the UI, wired to real `Preference`/`ExerciseHistory` data. Implicit preference tracking (completed/skipped/replaced) starts here; explicit avoid/prefer as a UI affordance.
+**Phase 3 — Persistence.**
+`packages/db`: Prisma schema per §4 above, migration, seed script that loads the same exercise library into Postgres and creates the one seeded user + programme template (§2), including `ProgrammeAllocation`/`WorkoutAllocation` rows per the corrected data model. Repository functions with tests.
 
-**Phase 5 — Progression engine (V1 rule table).**
-`progression` module implementing §11's literal rule table, surfaced as a suggested-weight prompt at next session start, user-confirmable rather than auto-applied.
+**Phase 4 — Minimal usable app.**
+`apps/web`: view today's session (built via `buildWorkout`), log sets fast (weight/reps/feedback, minimal taps per §10), view session history. This is "the app works end to end" milestone — the Phase 2 engine already exists to call into.
 
-**Phase 6 — Equipment optimisation as tie-breaker.**
-`equipment-optimiser` scoring wired into the boredom engine's ranking step (§13), still not reordering full sessions.
+**Phase 5 — Wire the engine into the UI.**
+"I'm bored" action calling `refreshWorkout`; a "shorter workout" control calling `reduceExerciseCount` (surfacing `ReductionError` gaps to the user rather than swallowing them); a suggested-weight prompt at next session start from `recommendProgression`, user-confirmable rather than auto-applied. Implicit preference tracking (completed/skipped/replaced) starts here, feeding `SoftPreferences.preferenceWeights` — the hook Phase 2 already left for it.
 
-**Phase 7 — AI natural-language layer (optional/stretch).**
-`packages/ai`: intent parser → `RefreshConstraints`, per §8/§15 above. Explicitly scoped so it can be dropped without touching Phases 1–6.
+**Phase 6 — AI natural-language layer (optional/stretch).**
+`packages/ai`: intent parser → `OptimisationConstraints`/`WorkoutAllocation`, per §8/§15 above, calling straight into the Phase 2 engine's existing public API. Explicitly scoped so it can be dropped without touching any earlier phase.
 
-**Phase 8 — Out of scope for this project's V1, noted for completeness.**
-Multi-user auth/onboarding, session reordering optimization, mobile app. Not started unless requirements change (§2).
+**Phase 7 — Out of scope for this project's V1, noted for completeness.**
+Multi-user auth/onboarding, session reordering optimisation, mobile app. Not started unless requirements change (§2).
 
-Each phase after Phase 1 is shippable and demoable on its own — useful for a portfolio project, since the repo shows working, incrementally-committed history rather than one large drop.
+Each phase is shippable and demoable on its own — useful for a portfolio project, since the repo shows working, incrementally-committed history rather than one large drop.
