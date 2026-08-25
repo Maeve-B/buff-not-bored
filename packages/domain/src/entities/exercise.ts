@@ -24,19 +24,31 @@ export type ProgrammeGroup = (typeof PROGRAMME_GROUPS)[number];
  * This is deliberately a *separate* concept from ProgrammeGroup — spec §3 is
  * explicit that an exercise's programme group (organisational) and its actual
  * muscles (physiological) can diverge, e.g. the Bulgarian Split Squat is
- * grouped under "chest" for equipment/setup reasons but trains quads/glutes.
+ * grouped under "legs" physiologically regardless of any equipment-driven
+ * organisational placement.
+ *
+ * Per the 2026 taxonomy correction: `ProgrammeGroup` (Legs/Back/Chest/
+ * Triceps/Shoulders/Biceps/Core — programme/body-area categories) and
+ * `Muscle` (physiological coverage) must never share generic values that
+ * compete with more specific ones. Generic `back` and `shoulders` were
+ * removed from this list for exactly that reason — they collided with the
+ * more specific `lats`/`upper_back`/`trapezius` and `lateral_deltoids`/
+ * `anterior_deltoids` values, which is exactly what optimisation questions
+ * like "have I trained my lats twice this week?" need to be unambiguous.
+ * Kept at moderate, programming-useful granularity — no anatomical
+ * subdivisions (e.g. no upper/middle/lower trapezius) unless a distinction
+ * materially affects exercise selection.
  */
 export const MUSCLES = [
-  "quadriceps",
+  "quads",
   "glutes",
   "adductors",
   "hamstrings",
   "calves",
   "spinal_erectors",
-  "back",
-  "upper_back",
   "lats",
-  "shoulders",
+  "upper_back",
+  "trapezius",
   "lateral_deltoids",
   "anterior_deltoids",
   "chest",
@@ -109,10 +121,13 @@ export interface Exercise {
   notes?: string;
 
   /**
-   * True when this exercise's data (typically startingWeight/prescribedReps/
-   * equipment/location) is a placeholder estimate rather than a confirmed
-   * value from the user's actual programme — set on newly-added library
-   * entries pending review. Absent/false means the data is confirmed.
+   * True when some part of this exercise's data — typically startingWeight/
+   * prescribedReps/equipment/location, but occasionally muscle
+   * classification (e.g. Overhead Press, reclassified as a side effect of
+   * retiring the generic "shoulders" muscle value) — is a placeholder/
+   * assumed value rather than one confirmed by the user. See the `notes`
+   * field on the same exercise for which part is unconfirmed. Absent/false
+   * means the data is confirmed.
    */
   needsReview?: boolean;
 }

@@ -18,7 +18,7 @@ export const EXERCISES: Exercise[] = [
     id: "squats",
     name: "Squats",
     programmeGroup: "legs",
-    primaryMuscles: ["quadriceps"],
+    primaryMuscles: ["quads"],
     secondaryMuscles: ["glutes", "adductors"],
     movementPatterns: ["squat"],
     exerciseType: "compound",
@@ -35,7 +35,7 @@ export const EXERCISES: Exercise[] = [
     id: "squat-pulse",
     name: "Squat Pulse",
     programmeGroup: "legs",
-    primaryMuscles: ["quadriceps"],
+    primaryMuscles: ["quads"],
     secondaryMuscles: ["glutes"],
     movementPatterns: ["squat"],
     exerciseType: "compound",
@@ -53,7 +53,7 @@ export const EXERCISES: Exercise[] = [
     id: "lunges",
     name: "Lunges (Alternating)",
     programmeGroup: "legs",
-    primaryMuscles: ["quadriceps", "glutes"],
+    primaryMuscles: ["quads", "glutes"],
     secondaryMuscles: ["hamstrings", "adductors"],
     movementPatterns: ["unilateral leg", "lunge"],
     exerciseType: "compound",
@@ -67,16 +67,16 @@ export const EXERCISES: Exercise[] = [
     active: true,
     needsReview: true,
     notes:
-      "PLACEHOLDER: equipment, location, starting weight, reps and progression are estimated " +
-      "(consistent with the barbell/rack pattern of the other Legs exercises) and not yet " +
-      "confirmed against the user's actual programme.",
+      "Muscle classification confirmed by user. PLACEHOLDER: equipment, location, starting " +
+      "weight, reps and progression are still estimated and not yet confirmed against the " +
+      "user's actual programme.",
   },
   {
     id: "sumo-squats",
     name: "Sumo Squats",
     programmeGroup: "legs",
     primaryMuscles: ["glutes", "adductors"],
-    secondaryMuscles: ["quadriceps"],
+    secondaryMuscles: ["quads"],
     movementPatterns: ["squat"],
     exerciseType: "compound",
     equipment: "barbell",
@@ -92,7 +92,7 @@ export const EXERCISES: Exercise[] = [
     id: "squat-calf-raise",
     name: "Squat + Calf Raise",
     programmeGroup: "legs",
-    primaryMuscles: ["quadriceps"],
+    primaryMuscles: ["quads"],
     secondaryMuscles: ["glutes", "calves"],
     movementPatterns: ["squat", "calf raise"],
     exerciseType: "compound",
@@ -109,7 +109,7 @@ export const EXERCISES: Exercise[] = [
     id: "bodyweight-squat-pulses",
     name: "Bodyweight Squat Pulses",
     programmeGroup: "legs",
-    primaryMuscles: ["quadriceps"],
+    primaryMuscles: ["quads"],
     secondaryMuscles: ["glutes"],
     movementPatterns: ["squat"],
     exerciseType: "bodyweight",
@@ -125,7 +125,7 @@ export const EXERCISES: Exercise[] = [
     name: "Deadlifts",
     programmeGroup: "back",
     primaryMuscles: ["hamstrings", "glutes"],
-    secondaryMuscles: ["spinal_erectors", "back"],
+    secondaryMuscles: ["spinal_erectors", "lats"],
     movementPatterns: ["hinge"],
     exerciseType: "compound",
     equipment: "barbell",
@@ -143,7 +143,7 @@ export const EXERCISES: Exercise[] = [
     name: "RDL to Upright Row",
     programmeGroup: "back",
     primaryMuscles: ["hamstrings", "glutes"],
-    secondaryMuscles: ["upper_back", "shoulders"],
+    secondaryMuscles: ["upper_back", "lateral_deltoids", "trapezius"],
     movementPatterns: ["hinge", "full-body combination"],
     exerciseType: "compound",
     equipment: "barbell",
@@ -195,9 +195,8 @@ export const EXERCISES: Exercise[] = [
     active: true,
     needsReview: true,
     notes:
-      "PLACEHOLDER: muscle classification mirrors Bent-Over Row (same movement pattern, " +
-      "unilateral) by analogy, not explicitly confirmed. Equipment, location, weight, reps and " +
-      "progression are all estimated and not yet confirmed.",
+      "Muscle classification confirmed by user. PLACEHOLDER: equipment, location, weight, reps " +
+      "and progression are still estimated and not yet confirmed.",
   },
   {
     id: "good-mornings",
@@ -217,9 +216,8 @@ export const EXERCISES: Exercise[] = [
     active: true,
     needsReview: true,
     notes:
-      "PLACEHOLDER: muscle classification estimated (posterior-chain hinge, consistent with " +
-      "Deadlifts/RDL). Equipment, location, weight, reps and progression are all estimated and " +
-      "not yet confirmed.",
+      "Muscle classification confirmed by user. PLACEHOLDER: equipment, location, weight, reps " +
+      "and progression are still estimated and not yet confirmed.",
   },
   {
     id: "superman-holds",
@@ -254,8 +252,9 @@ export const EXERCISES: Exercise[] = [
     active: true,
     needsReview: true,
     notes:
-      "PLACEHOLDER: starting weight/reps/progression estimated (barbell variant, distinct from " +
-      "the dumbbell 'flat-db-press' entry) and not yet confirmed against the user's actual programme.",
+      "Muscle classification confirmed by user. PLACEHOLDER: starting weight/reps/progression " +
+      "estimated (barbell variant, distinct from the dumbbell 'flat-db-press' entry) and not " +
+      "yet confirmed against the user's actual programme.",
   },
   {
     id: "bench-flyes",
@@ -275,8 +274,8 @@ export const EXERCISES: Exercise[] = [
     active: true,
     needsReview: true,
     notes:
-      "PLACEHOLDER: starting weight/reps/progression estimated and not yet confirmed against " +
-      "the user's actual programme.",
+      "Muscle classification confirmed by user. PLACEHOLDER: starting weight/reps/progression " +
+      "estimated and not yet confirmed against the user's actual programme.",
   },
   {
     id: "flat-db-press",
@@ -316,7 +315,7 @@ export const EXERCISES: Exercise[] = [
     id: "bulgarian-split-squat",
     name: "Bulgarian Split Squat",
     programmeGroup: "legs",
-    primaryMuscles: ["glutes", "quadriceps"],
+    primaryMuscles: ["glutes", "quads"],
     secondaryMuscles: ["hamstrings", "adductors"],
     movementPatterns: ["unilateral leg"],
     exerciseType: "compound",
@@ -370,8 +369,8 @@ export const EXERCISES: Exercise[] = [
     id: "close-grip-bench-press",
     name: "Close-Grip Bench Press",
     programmeGroup: "triceps",
-    primaryMuscles: ["triceps"],
-    secondaryMuscles: ["chest"],
+    primaryMuscles: ["triceps", "chest"],
+    secondaryMuscles: ["anterior_deltoids"],
     movementPatterns: ["horizontal push"],
     exerciseType: "compound",
     equipment: "barbell",
@@ -384,8 +383,9 @@ export const EXERCISES: Exercise[] = [
     active: true,
     needsReview: true,
     notes:
-      "PLACEHOLDER: starting weight/reps/progression estimated (barbell variant, distinct from " +
-      "the bodyweight 'close-grip-push-ups' entry) and not yet confirmed.",
+      "Muscle classification confirmed by user. PLACEHOLDER: starting weight/reps/progression " +
+      "estimated (barbell variant, distinct from the bodyweight 'close-grip-push-ups' entry) " +
+      "and not yet confirmed.",
   },
   {
     id: "close-grip-push-ups",
@@ -458,8 +458,8 @@ export const EXERCISES: Exercise[] = [
     id: "upright-row",
     name: "Upright Row",
     programmeGroup: "shoulders",
-    primaryMuscles: ["lateral_deltoids"],
-    secondaryMuscles: ["shoulders", "biceps"],
+    primaryMuscles: ["lateral_deltoids", "trapezius"],
+    secondaryMuscles: ["biceps", "upper_back"],
     movementPatterns: ["vertical pull"],
     exerciseType: "compound",
     equipment: "dumbbell",
@@ -472,15 +472,16 @@ export const EXERCISES: Exercise[] = [
     active: true,
     needsReview: true,
     notes:
-      "PLACEHOLDER: muscle classification, equipment, weight, reps and progression are estimated " +
-      "(distinct from the combined 'rdl-upright-row' library alternate) and not yet confirmed.",
+      "Muscle classification confirmed by user. PLACEHOLDER: equipment, weight, reps and " +
+      "progression are still estimated (distinct from the combined 'rdl-upright-row' library " +
+      "alternate) and not yet confirmed.",
   },
   {
     id: "overhead-press",
     name: "Overhead Press",
     programmeGroup: "shoulders",
-    primaryMuscles: ["shoulders"],
-    secondaryMuscles: ["triceps"],
+    primaryMuscles: ["anterior_deltoids"],
+    secondaryMuscles: ["lateral_deltoids", "triceps"],
     movementPatterns: ["vertical push"],
     exerciseType: "compound",
     equipment: "dumbbell",
@@ -491,6 +492,13 @@ export const EXERCISES: Exercise[] = [
     repsUnit: "reps",
     progressionPercentage: 2.5,
     active: true,
+    needsReview: true,
+    notes:
+      "Muscle classification updated as a consequence of retiring the generic 'shoulders' " +
+      "muscle value (taxonomy correction) — not explicitly given by the user for this exercise. " +
+      "Standard classification for a compound vertical dumbbell press (anterior deltoid primary, " +
+      "lateral deltoid + triceps secondary); flagged for confirmation like the other assumed " +
+      "classifications, though weight/reps/progression here are the user's original confirmed values.",
   },
 
   // ---- BICEPS ----
