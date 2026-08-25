@@ -127,17 +127,35 @@ Preference      (user_id, exercise_id, state, source, updated_at)
                                                       — source: explicit | inferred
                                                          (explicit always outranks inferred, per §4.4/§14)
 
-ProgrammeTemplate (id, user_id, name)                — the twice-weekly full-body structure (§3)
-ProgrammeTemplateSlot (template_id, programme_group, order)
-                                                      — "this session needs one exercise from
-                                                         Legs, one from Back, ..." — the skeleton
-                                                         the engine fills
+ProgrammeTemplate (id, user_id, name)                — the current normal structure (§3) —
+                                                         explicit, hand-authored; NEVER inferred
+                                                         from Exercise array order or count
+ProgrammeTemplateSlot (template_id, programme_group,
+                        exercise_id, role, order)    — role: main | finisher — a specific
+                                                         exercise chosen for a specific slot;
+                                                         finishers don't count toward allocation
+                                                         and can attach to any programme group
+
+ProgrammeAllocation (template_id, programme_group, count)
+                                                      — the configurable target exercise count
+                                                         per group (e.g. legs: 5, chest: 3) — a
+                                                         standalone value, not derived from the
+                                                         template or hard-coded on Exercise/
+                                                         ProgrammeGroup, so "reduce legs to 3" is
+                                                         a data edit here, not a code change
 
 WorkoutSession   (id, user_id, date, template_id, status)
+WorkoutAllocation (session_id, programme_group, count)
+                                                      — optional per-session override of
+                                                         ProgrammeAllocation (e.g. "make this
+                                                         shorter"); groups without an override
+                                                         fall back to the standing allocation
 PlannedExercise  (session_id, exercise_id, slot_order,
-                  prescribed_weight, prescribed_reps, is_warmup, is_cooldown)
+                  prescribed_weight, prescribed_reps, role, is_warmup, is_cooldown)
                                                       — warm-up/cool-down flagged and excluded
-                                                         from coverage + progression per §7/§8
+                                                         from coverage + progression per §7/§8;
+                                                         role (main|finisher) carried through
+                                                         from the template slot that produced it
 
 SetLog           (planned_exercise_id, actual_weight, actual_reps,
                    completed, feedback, logged_at)
@@ -149,7 +167,9 @@ ExerciseHistory  (materialized/query view over SetLog+PlannedExercise)
 ```
 
 Notes:
-- `Exercise.programme_group` and `ExerciseMuscle` are deliberately separate tables/columns — this is the concrete enforcement of the spec's Bulgarian Split Squat example (§3).
+- `Exercise.programme_group` and `ExerciseMuscle` are deliberately separate tables/columns — this is the concrete enforcement of the spec's Bulgarian Split Squat example (§3). (The exercise's *actual* current programme group is `legs`, per the 2026-08 programme model correction — it was previously, incorrectly, grouped under `chest`; that cross-group special case has been removed entirely, not special-cased around.)
+- **Exercise library ≠ current programme.** `Exercise` rows are a superset of what any `ProgrammeTemplate` currently uses — the library holds alternates (e.g. Concentration Curl, Front Raises, the dumbbell Flat DB Press) that aren't in today's template but remain available as future boredom-substitution candidates. Which exercises are "current" is entirely determined by `ProgrammeTemplateSlot` rows, never by an exercise's position or existence in the library.
+- **Counts are configurable, not structural.** `ProgrammeAllocation` and `WorkoutAllocation` are separate from both the library and the template on purpose: editing "how many" never requires editing "which ones," and a one-off shorter workout never mutates the standing programme.
 - Warm-up and cool-down exercises are represented as `PlannedExercise` rows with a flag, not a separate schema, so logging UI stays uniform — but the domain layer filters them out before any coverage/progression calculation, per §7/§8 of the spec.
 - Multi-user is one nullable-free column away (`user_id` is already present) but no auth is built in V1, per §2.
 
@@ -159,12 +179,16 @@ Notes:
 
 These live in `packages/domain/src/entities` and `types`, expressed as plain TypeScript types/interfaces (not classes with behavior baked in — see §7):
 
-- **Exercise** — the full structured record from §5 of the spec.
+- **Exercise** — the full structured record from §5 of the spec; carries an optional `needsReview` flag for newly-added library entries whose weight/reps/equipment are estimates pending confirmation, not yet the user's actual programme data.
 - **MuscleCoverage** — a normalized `{ muscle: primary | secondary }[]` view, always derived from `ExerciseMuscle`, never from `programme_group`.
 - **ProgrammeGroup** — enum: Legs, Back, Chest, Triceps, Shoulders, Biceps, Core.
-- **ProgrammeSlot** — "this session needs one exercise from group X."
-- **WorkoutSession** — an ordered list of `PlannedExercise` (warm-up → 7 groups → cool-down).
-- **PlannedExercise** — an `Exercise` plus a prescription (weight, reps/duration) for one session.
+- **ExerciseLibrary** — `Exercise[]`, everything the system knows about; a superset of any given template.
+- **ProgrammeSlot** — a specific `(programmeGroup, exerciseId, role)` choice — "group X's Nth exercise today is this one"; `role` is `main` or `finisher`, required (never defaulted), since nothing in this model is inferred.
+- **ProgrammeTemplate** — the current normal structure: an explicit, hand-authored list of `ProgrammeSlot`s.
+- **ProgrammeAllocation** — the configurable target exercise count per group (`main` slots only), independent of both the library and the template.
+- **WorkoutAllocation** — a per-session override of `ProgrammeAllocation` (e.g. a "shorter workout" request); groups not overridden fall back to the standing allocation.
+- **WorkoutSession** — warm-up, an ordered list of `PlannedExercise` grouped by programme group in the fixed §9 order (each group may hold multiple exercises, per its allocation, plus any finishers), and cool-down.
+- **PlannedExercise** — an `Exercise` plus a prescription (weight, reps/duration) and its slot `role` for one session.
 - **SetResult** — the logged outcome of a `PlannedExercise` (actual weight/reps, completion, feedback).
 - **PreferenceState** — `preferred | neutral | disliked | avoid`, with `explicit | inferred` provenance.
 - **RefreshConstraints** — the structured intent object from §15 (`mode`, `location_preference`, `variety`, etc.) — this is the *only* shape the AI layer is allowed to produce.
@@ -178,8 +202,8 @@ These live in `packages/domain/src/entities` and `types`, expressed as plain Typ
 Enforced at three levels, not just by convention:
 
 1. **Package boundary.** `packages/domain` has no dependency on `next`, `react`, or `@prisma/client`. It cannot physically import UI or persistence code. Its public API is a small set of pure functions:
-   - `buildDefaultSession(catalog, template): WorkoutSession`
-   - `refreshWorkout(session, catalog, preferences, history, constraints): WorkoutSession`
+   - `buildSessionFromTemplate(library, template): WorkoutSession` / `buildDefaultSession(library): WorkoutSession`
+   - `refreshWorkout(session, library, preferences, history, constraints): WorkoutSession`
    - `recommendProgression(exercise, history): ProgressionRecommendation`
    - `scoreEquipmentTransitions(session): number`
 2. **Server Actions are translators, not decision-makers.** An action like `logSet(...)` or `requestRefresh(...)` does: parse/validate input (Zod) → load data via `packages/db` → call the relevant `packages/domain` function → persist the result via `packages/db` → return a DTO. No branching on training logic (which exercise to swap, how much to increase weight) is allowed to live in `apps/web`.

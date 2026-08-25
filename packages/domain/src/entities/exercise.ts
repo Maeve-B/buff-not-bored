@@ -35,6 +35,7 @@ export const MUSCLES = [
   "spinal_erectors",
   "back",
   "upper_back",
+  "lats",
   "shoulders",
   "lateral_deltoids",
   "anterior_deltoids",
@@ -106,4 +107,12 @@ export interface Exercise {
 
   active: boolean;
   notes?: string;
+
+  /**
+   * True when this exercise's data (typically startingWeight/prescribedReps/
+   * equipment/location) is a placeholder estimate rather than a confirmed
+   * value from the user's actual programme — set on newly-added library
+   * entries pending review. Absent/false means the data is confirmed.
+   */
+  needsReview?: boolean;
 }

@@ -8,6 +8,7 @@ export * from "./entities/workout-session.js";
 export { EXERCISES } from "./data/exercises.js";
 export { WARMUP_PLAN } from "./data/warmup.js";
 export { COOLDOWN_PLAN } from "./data/cooldown.js";
+export { PROGRAMME_TEMPLATE, PROGRAMME_ALLOCATION } from "./data/programme-template.js";
 
 // Validation
 export { exerciseSchema, validateCatalog, CatalogValidationError } from "./validation/exercise.schema.js";

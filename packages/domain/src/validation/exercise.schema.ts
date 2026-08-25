@@ -35,6 +35,7 @@ export const exerciseSchema = z
     progressionPercentage: z.number().min(0).max(100).optional(),
     active: z.boolean(),
     notes: z.string().optional(),
+    needsReview: z.boolean().optional(),
   })
   .superRefine((exercise, ctx) => {
     // Every exercise is either rep-prescribed or duration-prescribed (never neither).

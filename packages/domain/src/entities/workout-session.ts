@@ -4,6 +4,7 @@
  */
 
 import type { Exercise, RepsUnit } from "./exercise.js";
+import type { SlotRole } from "./programme.js";
 
 export interface DurationRange {
   minMinutes: number;
@@ -29,6 +30,11 @@ export interface WarmupPlan {
  * Cool-down (spec §8) is target areas + duration only — it explicitly does not
  * participate in workout optimisation, so target areas are free-form labels,
  * not typed against the `Muscle` enum used for coverage calculations.
+ *
+ * `targetAreas` is a flat list by design: more areas (or, later, named
+ * stretches) can be appended without a shape change. If specific per-area
+ * stretches are introduced later, this can grow a `StretchStep[]` alongside
+ * (mirroring `WarmupStep`) without breaking existing callers.
  */
 export interface CooldownPlan {
   targetAreas: string[];
@@ -44,6 +50,8 @@ export interface CooldownPlan {
  */
 export interface PlannedExercise {
   exercise: Exercise;
+  /** "main" counts toward the group's ProgrammeAllocation; "finisher" is an uncounted addendum. */
+  role: SlotRole;
   prescribedWeight?: number;
   prescribedReps?: number;
   repsUnit?: RepsUnit;
@@ -52,7 +60,12 @@ export interface PlannedExercise {
 
 export interface WorkoutSession {
   warmup: WarmupPlan;
-  /** One exercise per programme group, in the fixed order from spec §9 (Legs -> ... -> Core). */
+  /**
+   * Every exercise in the session's main programme, grouped by programme
+   * group in the fixed order from spec §9 (Legs -> ... -> Core); each group
+   * may contain multiple exercises (per its ProgrammeAllocation) plus any
+   * finisher slots.
+   */
   mainExercises: PlannedExercise[];
   cooldown: CooldownPlan;
   targetSessionDuration: DurationRange;

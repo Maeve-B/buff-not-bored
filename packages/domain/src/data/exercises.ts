@@ -47,6 +47,29 @@ export const EXERCISES: Exercise[] = [
     repsUnit: "reps",
     progressionPercentage: 5,
     active: true,
+    notes: "Performed through the bottom quarter range of motion.",
+  },
+  {
+    id: "lunges",
+    name: "Lunges (Alternating)",
+    programmeGroup: "legs",
+    primaryMuscles: ["quadriceps", "glutes"],
+    secondaryMuscles: ["hamstrings", "adductors"],
+    movementPatterns: ["unilateral leg", "lunge"],
+    exerciseType: "compound",
+    equipment: "barbell",
+    location: "rack",
+    startingWeight: 20,
+    weightUnit: "kg",
+    prescribedReps: 16,
+    repsUnit: "reps",
+    progressionPercentage: 5,
+    active: true,
+    needsReview: true,
+    notes:
+      "PLACEHOLDER: equipment, location, starting weight, reps and progression are estimated " +
+      "(consistent with the barbell/rack pattern of the other Legs exercises) and not yet " +
+      "confirmed against the user's actual programme.",
   },
   {
     id: "sumo-squats",
@@ -134,6 +157,71 @@ export const EXERCISES: Exercise[] = [
     notes: "Current working range: 20-25kg.",
   },
   {
+    id: "bent-over-row",
+    name: "Bent-Over Row",
+    programmeGroup: "back",
+    primaryMuscles: ["lats"],
+    secondaryMuscles: ["upper_back", "biceps"],
+    movementPatterns: ["horizontal pull", "row"],
+    exerciseType: "compound",
+    equipment: "barbell",
+    location: "rack",
+    startingWeight: 20,
+    weightUnit: "kg",
+    prescribedReps: 16,
+    repsUnit: "reps",
+    progressionPercentage: 5,
+    active: true,
+    needsReview: true,
+    notes:
+      "Muscle classification confirmed by user. PLACEHOLDER: equipment, location, starting " +
+      "weight, reps and progression are estimated and not yet confirmed.",
+  },
+  {
+    id: "single-arm-dumbbell-row",
+    name: "Single-Arm Dumbbell Row",
+    programmeGroup: "back",
+    primaryMuscles: ["lats"],
+    secondaryMuscles: ["upper_back", "biceps"],
+    movementPatterns: ["horizontal pull", "unilateral row"],
+    exerciseType: "compound",
+    equipment: "dumbbell",
+    location: "bench",
+    startingWeight: 8,
+    weightUnit: "kg",
+    prescribedReps: 12,
+    repsUnit: "per_side",
+    progressionPercentage: 5,
+    active: true,
+    needsReview: true,
+    notes:
+      "PLACEHOLDER: muscle classification mirrors Bent-Over Row (same movement pattern, " +
+      "unilateral) by analogy, not explicitly confirmed. Equipment, location, weight, reps and " +
+      "progression are all estimated and not yet confirmed.",
+  },
+  {
+    id: "good-mornings",
+    name: "Good Mornings",
+    programmeGroup: "back",
+    primaryMuscles: ["hamstrings", "glutes"],
+    secondaryMuscles: ["spinal_erectors"],
+    movementPatterns: ["hinge"],
+    exerciseType: "compound",
+    equipment: "barbell",
+    location: "rack",
+    startingWeight: 20,
+    weightUnit: "kg",
+    prescribedReps: 16,
+    repsUnit: "reps",
+    progressionPercentage: 5,
+    active: true,
+    needsReview: true,
+    notes:
+      "PLACEHOLDER: muscle classification estimated (posterior-chain hinge, consistent with " +
+      "Deadlifts/RDL). Equipment, location, weight, reps and progression are all estimated and " +
+      "not yet confirmed.",
+  },
+  {
     id: "superman-holds",
     name: "Superman Holds",
     programmeGroup: "back",
@@ -148,6 +236,48 @@ export const EXERCISES: Exercise[] = [
   },
 
   // ---- CHEST ----
+  {
+    id: "flat-bench-press",
+    name: "Flat Bench Press",
+    programmeGroup: "chest",
+    primaryMuscles: ["chest"],
+    secondaryMuscles: ["triceps", "anterior_deltoids"],
+    movementPatterns: ["horizontal push"],
+    exerciseType: "compound",
+    equipment: "barbell",
+    location: "bench",
+    startingWeight: 20,
+    weightUnit: "kg",
+    prescribedReps: 16,
+    repsUnit: "reps",
+    progressionPercentage: 2.5,
+    active: true,
+    needsReview: true,
+    notes:
+      "PLACEHOLDER: starting weight/reps/progression estimated (barbell variant, distinct from " +
+      "the dumbbell 'flat-db-press' entry) and not yet confirmed against the user's actual programme.",
+  },
+  {
+    id: "bench-flyes",
+    name: "Bench Flyes",
+    programmeGroup: "chest",
+    primaryMuscles: ["chest"],
+    secondaryMuscles: ["anterior_deltoids"],
+    movementPatterns: ["fly"],
+    exerciseType: "isolation",
+    equipment: "dumbbell",
+    location: "bench",
+    startingWeight: 6,
+    weightUnit: "kg",
+    prescribedReps: 16,
+    repsUnit: "reps",
+    progressionPercentage: 2.5,
+    active: true,
+    needsReview: true,
+    notes:
+      "PLACEHOLDER: starting weight/reps/progression estimated and not yet confirmed against " +
+      "the user's actual programme.",
+  },
   {
     id: "flat-db-press",
     name: "Flat DB Press",
@@ -185,8 +315,8 @@ export const EXERCISES: Exercise[] = [
   {
     id: "bulgarian-split-squat",
     name: "Bulgarian Split Squat",
-    programmeGroup: "chest",
-    primaryMuscles: ["quadriceps", "glutes"],
+    programmeGroup: "legs",
+    primaryMuscles: ["glutes", "quadriceps"],
     secondaryMuscles: ["hamstrings", "adductors"],
     movementPatterns: ["unilateral leg"],
     exerciseType: "compound",
@@ -199,9 +329,9 @@ export const EXERCISES: Exercise[] = [
     progressionPercentage: 2.5,
     active: true,
     notes:
-      "Programme classification (chest) exists for equipment/workout organisation only — " +
-      "this exercise currently shares equipment/setup with the chest exercises. Its actual " +
-      "muscle classification is lower body; see primaryMuscles/secondaryMuscles, not programmeGroup.",
+      "Library alternate, not currently in the main template. Programme group corrected to " +
+      "legs (physiologically a lower-body movement) — a prior version incorrectly grouped this " +
+      "under chest for equipment/setup reasons; that special case has been removed entirely.",
   },
   {
     id: "push-ups",
@@ -235,6 +365,27 @@ export const EXERCISES: Exercise[] = [
     repsUnit: "reps",
     progressionPercentage: 2.5,
     active: true,
+  },
+  {
+    id: "close-grip-bench-press",
+    name: "Close-Grip Bench Press",
+    programmeGroup: "triceps",
+    primaryMuscles: ["triceps"],
+    secondaryMuscles: ["chest"],
+    movementPatterns: ["horizontal push"],
+    exerciseType: "compound",
+    equipment: "barbell",
+    location: "bench",
+    startingWeight: 20,
+    weightUnit: "kg",
+    prescribedReps: 16,
+    repsUnit: "reps",
+    progressionPercentage: 2.5,
+    active: true,
+    needsReview: true,
+    notes:
+      "PLACEHOLDER: starting weight/reps/progression estimated (barbell variant, distinct from " +
+      "the bodyweight 'close-grip-push-ups' entry) and not yet confirmed.",
   },
   {
     id: "close-grip-push-ups",
@@ -304,6 +455,27 @@ export const EXERCISES: Exercise[] = [
     active: true,
   },
   {
+    id: "upright-row",
+    name: "Upright Row",
+    programmeGroup: "shoulders",
+    primaryMuscles: ["lateral_deltoids"],
+    secondaryMuscles: ["shoulders", "biceps"],
+    movementPatterns: ["vertical pull"],
+    exerciseType: "compound",
+    equipment: "dumbbell",
+    location: "standing",
+    startingWeight: 6,
+    weightUnit: "kg",
+    prescribedReps: 16,
+    repsUnit: "reps",
+    progressionPercentage: 2.5,
+    active: true,
+    needsReview: true,
+    notes:
+      "PLACEHOLDER: muscle classification, equipment, weight, reps and progression are estimated " +
+      "(distinct from the combined 'rdl-upright-row' library alternate) and not yet confirmed.",
+  },
+  {
     id: "overhead-press",
     name: "Overhead Press",
     programmeGroup: "shoulders",
@@ -322,6 +494,27 @@ export const EXERCISES: Exercise[] = [
   },
 
   // ---- BICEPS ----
+  {
+    id: "barbell-curl",
+    name: "Barbell Curl",
+    programmeGroup: "biceps",
+    primaryMuscles: ["biceps"],
+    secondaryMuscles: [],
+    movementPatterns: ["elbow flexion"],
+    exerciseType: "isolation",
+    equipment: "barbell",
+    location: "rack",
+    startingWeight: 15,
+    weightUnit: "kg",
+    prescribedReps: 16,
+    repsUnit: "reps",
+    progressionPercentage: 2.5,
+    active: true,
+    needsReview: true,
+    notes:
+      "PLACEHOLDER: starting weight/reps/progression estimated and not yet confirmed against " +
+      "the user's actual programme.",
+  },
   {
     id: "concentration-curl",
     name: "Concentration Curl",
