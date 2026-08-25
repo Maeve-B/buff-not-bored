@@ -1,6 +1,11 @@
 # Buff, Not Bored — Proposed Architecture
 
-Status: **DRAFT — for review. Nothing in this document has been built yet.**
+Status: **Approved for Phase 1, with two amendments below.**
+
+## Approved amendments
+
+1. **No Postgres/Prisma in Phase 1.** This is a single-user MVP — persistence starts as the simplest thing that works (in-memory/static data), introduced only when a phase actually needs it (Phase 2+). The domain layer must stay database-agnostic: it depends on plain TypeScript data structures passed in as arguments, never on a specific storage mechanism, so a real database can be added later without changing `packages/domain`.
+2. **Avoid unnecessary infrastructure or abstractions.** No repository interfaces, DI containers, or persistence abstractions are introduced until a phase actually requires persistence. Phase 1 builds the smallest clean implementation that satisfies the domain requirements — the tech stack and phase descriptions below (originally proposed) are the target shape as more phases land, not a Phase 1 checklist.
 
 This proposal is derived from `PRODUCT_SPEC.md`. Where the spec is explicit (e.g. "the optimisation should be based on explicit scoring rather than subjective AI judgement," "the exact progression algorithm must be designed and tested separately"), this document treats that as a hard constraint on the architecture, not a suggestion.
 
