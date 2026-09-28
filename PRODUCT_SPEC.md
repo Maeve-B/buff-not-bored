@@ -1215,3 +1215,6 @@ AI should translate this into structured constraints such as:
   "location_preference": "bench",
   "variety": "high"
 }
+```
+
+The deterministic engine remains solely responsible for validating and applying these constraints. The AI layer never writes directly to the workout, the exercise database, or progression state.
