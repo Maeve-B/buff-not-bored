@@ -128,6 +128,7 @@ export const useAppStore = create<AppState>((set) => ({
         id: `workout-${completedAt}`,
         dateIso: new Date(completedAt).toISOString(),
         workoutName: WORKOUT_NAME,
+        workoutType: "circuit",
         durationMs: completedAt - (state.startedAt ?? completedAt),
         totalExercises: mainExercises.length,
         exercisesCompleted,

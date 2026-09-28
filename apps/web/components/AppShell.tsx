@@ -5,9 +5,10 @@ import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
 const NAV_ITEMS = [
-  { href: "/", label: "Today", icon: "🏋️" },
+  { href: "/", label: "Home", icon: "🏠" },
   { href: "/history", label: "History", icon: "🗓️" },
   { href: "/progress", label: "Progress", icon: "📈" },
+  { href: "/programmes", label: "Programmes", icon: "📋" },
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {

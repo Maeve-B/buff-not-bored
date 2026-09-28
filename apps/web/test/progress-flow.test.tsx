@@ -22,6 +22,7 @@ describe("Flow 10: View progression", () => {
           id: "workout-1",
           dateIso: new Date("2026-08-24T10:00:00Z").toISOString(),
           workoutName: "Full Body",
+          workoutType: "circuit" as const,
           durationMs: 47 * 60_000,
           totalExercises: 25,
           exercisesCompleted: 2,

@@ -3,16 +3,29 @@ export * from "./entities/constraints.js";
 export * from "./entities/exercise.js";
 export * from "./entities/muscle-coverage.js";
 export * from "./entities/programme.js";
+export * from "./entities/strength.js";
+export * from "./entities/training-programme.js";
+export * from "./entities/weight-adjustment.js";
+export * from "./entities/workout.js";
 export * from "./entities/workout-session.js";
+export * from "./entities/workout-type.js";
 
 // Seed data
 export { EXERCISES } from "./data/exercises.js";
 export { WARMUP_PLAN } from "./data/warmup.js";
 export { COOLDOWN_PLAN } from "./data/cooldown.js";
 export { PROGRAMME_TEMPLATE, PROGRAMME_ALLOCATION } from "./data/programme-template.js";
+export { EIGHT_WEEK_STRENGTH_PROGRAMME, TRAINING_PROGRAMMES } from "./data/training-programme.js";
 
 // Validation
 export { exerciseSchema, validateCatalog, CatalogValidationError } from "./validation/exercise.schema.js";
+export {
+  scheduledWorkoutSchema,
+  trainingProgrammeSchema,
+  trainingProgrammeWeekSchema,
+  validateTrainingProgramme,
+  TrainingProgrammeValidationError,
+} from "./validation/training-programme.schema.js";
 
 // Engine
 export {
@@ -62,3 +75,18 @@ export {
   type ProgressionRecommendation,
   type ProgressionRecommendationType,
 } from "./engine/progression-engine.js";
+
+export {
+  buildDefaultStrengthSession,
+  buildStrengthSessionFromTemplate,
+  DEFAULT_SETS_PER_EXERCISE,
+  DEFAULT_REST_SECONDS,
+  StrengthBuilderError,
+  type BuildStrengthSessionOptions,
+} from "./engine/strength-builder.js";
+
+export {
+  buildWorkoutForScheduledWorkout,
+  resolveTodaysWorkout,
+  ProgrammeResolverError,
+} from "./engine/programme-resolver.js";

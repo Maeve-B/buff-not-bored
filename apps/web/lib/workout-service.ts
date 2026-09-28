@@ -36,9 +36,10 @@ import {
   type WorkoutAllocation,
   type WorkoutSession,
 } from "@buff-not-bored/domain";
-import type { CompletedWorkout, SetLog } from "./types";
+import type { CompletedWorkout, HistoryEntry, SetLog } from "./types";
 
 export const WORKOUT_NAME = "Full Body";
+export const CIRCUIT_WORKOUT_TYPE = "circuit" as const;
 
 /** Today's workout, built directly from the authored programme template — no persistence in this phase. */
 export function getTodayWorkout(): WorkoutSession {
@@ -316,6 +317,18 @@ export function getLatestLoggedPerformances(history: CompletedWorkout[]): { plan
     }
   }
   return Array.from(latest.values());
+}
+
+/** Projects a CompletedWorkout down to the shared shape the History screen merges across workout types. */
+export function toHistoryEntry(workout: CompletedWorkout): HistoryEntry {
+  return {
+    id: workout.id,
+    dateIso: workout.dateIso,
+    workoutName: workout.workoutName,
+    workoutType: workout.workoutType,
+    durationMs: workout.durationMs,
+    completedLabel: `${workout.exercisesCompleted}/${workout.totalExercises} exercises`,
+  };
 }
 
 export { PROGRAMME_ORDER };

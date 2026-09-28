@@ -85,3 +85,10 @@ export function formatDate(iso: string): string {
 export function formatWeightDelta(before: number, after: number): string {
   return `${before}kg → ${after}kg`;
 }
+
+/** "90 sec" / "2 min" — rest periods are usually spoken in minutes once they exceed a minute. */
+export function formatRestPeriod(seconds: number): string {
+  if (seconds < 60) return `${seconds} sec`;
+  const minutes = seconds / 60;
+  return `${minutes % 1 === 0 ? minutes : minutes.toFixed(1)} min`;
+}
