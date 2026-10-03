@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { toDomainLoggedWorkout, toWorkoutCreateInput, type WorkoutRow } from "../src/mappers/workout-mapper.js";
+import { toDomainLoggedWorkout, toWorkoutUpsertInput, type WorkoutRow } from "../src/mappers/workout-mapper.js";
 import type { LoggedWorkoutInput } from "../src/types.js";
 
 const input: LoggedWorkoutInput = {
@@ -26,33 +26,47 @@ const input: LoggedWorkoutInput = {
   ],
 };
 
-describe("toWorkoutCreateInput", () => {
-  it("assigns each exercise a sequential order matching its position in the input array", () => {
+describe("toWorkoutUpsertInput", () => {
+  it("assigns the given id only on the create branch, never the update branch (Prisma forbids updating a primary key)", () => {
+    const { create, update } = toWorkoutUpsertInput("workout-1", input);
+    expect(create.id).toBe("workout-1");
+    expect(update).not.toHaveProperty("id");
+  });
+
+  it("assigns each exercise a sequential order matching its position in the input array, identically on both branches", () => {
     const twoExercise: LoggedWorkoutInput = {
       ...input,
       exercises: [input.exercises[0]!, { ...input.exercises[0]!, exerciseId: "bench-press" }],
     };
-    const created = toWorkoutCreateInput(twoExercise);
-    const creates = created.exercises!.create as Array<{ order: number; exercise: { connect: { id: string } } }>;
-    expect(creates[0]?.order).toBe(0);
-    expect(creates[0]?.exercise.connect.id).toBe("back-squat");
-    expect(creates[1]?.order).toBe(1);
-    expect(creates[1]?.exercise.connect.id).toBe("bench-press");
+    const { create, update } = toWorkoutUpsertInput("workout-1", twoExercise);
+    for (const branch of [create.exercises, update.exercises]) {
+      const creates = branch!.create as Array<{ order: number; exercise: { connect: { id: string } } }>;
+      expect(creates[0]?.order).toBe(0);
+      expect(creates[0]?.exercise.connect.id).toBe("back-squat");
+      expect(creates[1]?.order).toBe(1);
+      expect(creates[1]?.exercise.connect.id).toBe("bench-press");
+    }
   });
 
   it("converts absent optional fields to null, not undefined, for Prisma's optional scalars", () => {
-    const created = toWorkoutCreateInput({ ...input, programmeId: undefined, weekNumber: undefined });
-    expect(created.programmeId).toBeNull();
-    expect(created.weekNumber).toBeNull();
+    const { create } = toWorkoutUpsertInput("workout-1", { ...input, programmeId: undefined, weekNumber: undefined });
+    expect(create.programmeId).toBeNull();
+    expect(create.weekNumber).toBeNull();
   });
 
   it("defaults adjustments to an empty array rather than leaving the JSON column unset", () => {
-    const created = toWorkoutCreateInput({
+    const { create } = toWorkoutUpsertInput("workout-1", {
       ...input,
       exercises: [{ ...input.exercises[0]!, adjustments: undefined }],
     });
-    const creates = created.exercises!.create as Array<{ adjustments: unknown }>;
+    const creates = create.exercises!.create as Array<{ adjustments: unknown }>;
     expect(creates[0]?.adjustments).toEqual([]);
+  });
+
+  it("the update branch replaces all existing exercises/sets (deleteMany) before recreating them", () => {
+    const { update } = toWorkoutUpsertInput("workout-1", input);
+    expect(update.exercises).toHaveProperty("deleteMany");
+    expect(update.exercises).toHaveProperty("create");
   });
 });
 

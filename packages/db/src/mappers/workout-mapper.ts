@@ -23,9 +23,20 @@ function isoDate(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
 
-/** Builds the nested-create input Prisma needs to persist an entire workout (exercises + sets) in one write. */
-export function toWorkoutCreateInput(input: LoggedWorkoutInput): Prisma.WorkoutCreateInput {
-  return {
+/**
+ * Builds the create/update halves of an upsert-by-id write: the same
+ * exercises/sets payload is used for both branches, so a save against an
+ * id that already exists fully replaces its exercises/sets (via the
+ * update branch's `deleteMany` + `create`, see repositories/workout-
+ * repository.ts) rather than appending to them. This is what lets the same
+ * session id be saved repeatedly (start, each logged set, completion)
+ * without ever producing a duplicate row or stale leftover children.
+ */
+export function toWorkoutUpsertInput(
+  id: string,
+  input: LoggedWorkoutInput,
+): { create: Prisma.WorkoutCreateInput; update: Prisma.WorkoutUpdateInput } {
+  const scalars = {
     workoutType: input.workoutType,
     name: input.name,
     status: input.status,
@@ -33,9 +44,12 @@ export function toWorkoutCreateInput(input: LoggedWorkoutInput): Prisma.WorkoutC
     programmeId: input.programmeId ?? null,
     weekNumber: input.weekNumber ?? null,
     scheduledWorkoutId: input.scheduledWorkoutId ?? null,
-    exercises: {
-      create: input.exercises.map((exercise, index) => toWorkoutExerciseCreateInput(exercise, index)),
-    },
+  };
+  const exerciseCreates = input.exercises.map((exercise, index) => toWorkoutExerciseCreateInput(exercise, index));
+
+  return {
+    create: { id, ...scalars, exercises: { create: exerciseCreates } },
+    update: { ...scalars, exercises: { deleteMany: {}, create: exerciseCreates } },
   };
 }
 

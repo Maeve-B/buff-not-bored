@@ -1,8 +1,16 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { TodayScreen } from "@/components/TodayScreen";
 import { getInitialState, useAppStore } from "@/lib/store";
+
+// Persistence is exercised separately (test/save-workout.integration.test.ts,
+// test/store-persistence.test.tsx) — these UI flow tests shouldn't depend on
+// a real database, per ARCHITECTURE.md §9 ("apps/web Server Actions: Vitest,
+// domain/db mocked").
+vi.mock("@/lib/actions/save-workout", () => ({
+  persistWorkoutSnapshot: vi.fn(async () => ({ ok: true, id: "mock-workout-id" })),
+}));
 
 beforeEach(() => {
   useAppStore.setState(getInitialState());

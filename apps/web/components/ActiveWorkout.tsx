@@ -5,6 +5,7 @@ import { useAppStore } from "@/lib/store";
 import { getProgrammeGroupsPresent, WORKOUT_NAME } from "@/lib/workout-service";
 import { CooldownCard } from "./CooldownCard";
 import { ExerciseCard } from "./ExerciseCard";
+import { SaveStatusNote } from "./SaveStatusNote";
 import { SwapBanner } from "./SwapBanner";
 import { Button } from "./ui/Button";
 import { WarmupCard } from "./WarmupCard";
@@ -13,6 +14,8 @@ export function ActiveWorkout() {
   const session = useAppStore((s) => s.session);
   const setLogs = useAppStore((s) => s.setLogs);
   const completeWorkout = useAppStore((s) => s.completeWorkout);
+  const saveStatus = useAppStore((s) => s.saveStatus);
+  const saveError = useAppStore((s) => s.saveError);
 
   const groups = getProgrammeGroupsPresent(session);
   const mainExercises = session.mainExercises;
@@ -31,6 +34,9 @@ export function ActiveWorkout() {
         </div>
         <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-200">
           <div className="h-full rounded-full bg-accent-600 transition-all" style={{ width: `${progressPercent}%` }} />
+        </div>
+        <div className="text-right">
+          <SaveStatusNote status={saveStatus} error={saveError} />
         </div>
       </div>
 

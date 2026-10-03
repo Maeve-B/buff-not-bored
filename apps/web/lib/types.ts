@@ -1,4 +1,4 @@
-import type { StrengthSession, WorkoutSession, WorkoutType } from "@buff-not-bored/domain";
+import type { StrengthSession, WorkoutSession, WorkoutStatus, WorkoutType } from "@buff-not-bored/domain";
 
 /** One exercise's logged performance for a Circuit session (one set per exercise, matching PlannedExercise's shape). */
 export interface SetLog {
@@ -51,3 +51,41 @@ export interface HistoryEntry {
   durationMs: number;
   completedLabel: string; // e.g. "22/25 exercises" or "18/24 sets" — unit differs by type, so it's pre-formatted here
 }
+
+/** Result of persisting a workout snapshot (lib/actions/save-workout.ts) — a typed outcome, never a silent success on failure. */
+export type SaveWorkoutResult = { ok: true; id: string } | { ok: false; error: string };
+
+/** Status of the most recent persistence attempt for the current workout — "idle" before a workout has started. Shared by both stores. */
+export type SaveStatus = "idle" | "saving" | "saved" | "error";
+
+/**
+ * A point-in-time snapshot of the current session, built fresh from live
+ * store state at every meaningful moment (start, each logged set,
+ * completion) and sent to persistence — then discarded. Deliberately NOT
+ * the same type as `CompletedWorkout`/`CompletedStrengthWorkout`: those are
+ * built only once, at real completion, and feed History/Progress display;
+ * mixing an in-progress record into that same shape/array would leak into
+ * display logic this feature isn't touching. `id` is the stable session id
+ * (generated once per workout attempt, at Start) that every snapshot for
+ * that attempt shares — the mechanism that prevents duplicate saves.
+ */
+export interface CircuitWorkoutSnapshot {
+  id: string;
+  dateIso: string;
+  workoutName: string;
+  workoutType: "circuit";
+  status: WorkoutStatus;
+  session: WorkoutSession;
+  setLogs: SetLog[];
+}
+
+export interface StrengthWorkoutSnapshot {
+  id: string;
+  dateIso: string;
+  workoutName: string;
+  workoutType: "classic_strength";
+  status: WorkoutStatus;
+  session: StrengthSession;
+}
+
+export type WorkoutSnapshot = CircuitWorkoutSnapshot | StrengthWorkoutSnapshot;

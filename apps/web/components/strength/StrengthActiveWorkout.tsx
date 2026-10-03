@@ -4,12 +4,15 @@ import { countCompletedSets, PROGRAMME_ORDER } from "@buff-not-bored/domain";
 import { formatProgrammeGroup } from "@/lib/format";
 import { STRENGTH_WORKOUT_NAME } from "@/lib/strength-service";
 import { useStrengthStore } from "@/lib/strength-store";
+import { SaveStatusNote } from "../SaveStatusNote";
 import { Button } from "../ui/Button";
 import { StrengthExerciseCard } from "./StrengthExerciseCard";
 
 export function StrengthActiveWorkout() {
   const session = useStrengthStore((s) => s.session);
   const completeWorkout = useStrengthStore((s) => s.completeWorkout);
+  const saveStatus = useStrengthStore((s) => s.saveStatus);
+  const saveError = useStrengthStore((s) => s.saveError);
 
   const { completed, total } = countCompletedSets(session);
   const progressPercent = total === 0 ? 0 : Math.round((completed / total) * 100);
@@ -26,6 +29,9 @@ export function StrengthActiveWorkout() {
         </div>
         <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-200">
           <div className="h-full rounded-full bg-accent-600 transition-all" style={{ width: `${progressPercent}%` }} />
+        </div>
+        <div className="text-right">
+          <SaveStatusNote status={saveStatus} error={saveError} />
         </div>
       </div>
 
