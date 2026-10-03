@@ -4,3 +4,6 @@ dist/
 .DS_Store
 .next/
 *.tsbuildinfo
+.env
+.env.*
+!.env.example

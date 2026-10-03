@@ -1,0 +1,138 @@
+// Persistence layer for Buff, Not Bored (Phase 4 — database foundation).
+//
+// This schema deliberately stores `workoutType`, `status`, `role` etc. as
+// plain `String` columns rather than native Postgres enums, mirroring
+// `packages/domain`'s own choice to keep those as extensible string unions
+// (see entities/workout-type.ts's doc comment) rather than closed
+// vocabularies. Adding a future workout type (Supersets, HIIT, ...) is then
+// an application-level change (new value + validation), never a migration —
+// so neither Circuit nor Classic Strength is structurally privileged as the
+// database's "core" workout type.
+//
+// One `WorkoutExercise` -> many `WorkoutSet` models both existing session
+// kinds uniformly: Circuit produces exactly one `WorkoutSet` per exercise
+// (one prescription, one logged attempt); Classic Strength produces N. The
+// schema doesn't need to know which — that distinction is an application
+// concern, not a structural one.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// The exercise catalog — mirrors packages/domain's `Exercise` entity
+/// field-for-field. Muscles/movement patterns are native Postgres arrays,
+/// not join tables: nothing queries the database for muscle coverage today
+/// (that's computed in-memory in packages/domain against static seed data),
+/// so a join table here would be schema speculation, not a real need.
+model Exercise {
+  id                    String  @id
+  name                  String
+  programmeGroup        String
+  primaryMuscles        String[]
+  secondaryMuscles      String[]
+  movementPatterns      String[]
+  exerciseType          String
+  equipment             String
+  location               String
+  startingWeight        Float?
+  weightUnit            String?
+  prescribedReps        Int?
+  repsUnit              String?
+  prescribedDuration    Float?
+  progressionPercentage Float?
+  active                Boolean @default(true)
+  notes                 String?
+  needsReview           Boolean @default(false)
+
+  workoutExercises WorkoutExercise[]
+
+  @@map("exercises")
+}
+
+/// A completed (or in-progress) workout/session — the shared envelope for
+/// every workout type, matching packages/domain's `Workout` discriminated
+/// union. `programmeId`/`weekNumber`/`scheduledWorkoutId` are the persisted
+/// form of `WorkoutProgrammeContext` — nullable, since most workouts today
+/// are built ad hoc, not from a scheduled programme. No `TrainingProgramme`
+/// table exists yet: programmes remain code-defined seed data in
+/// packages/domain for this phase (see req. 13 — don't persist what nothing
+/// yet needs to query back out).
+model Workout {
+  id                 String   @id @default(cuid())
+  workoutType        String
+  name               String
+  status             String
+  /// Session-context date (spec convention — see domain WorkoutBase.dateIso), not a precise timestamp log.
+  dateIso            DateTime @db.Date
+  programmeId        String?
+  weekNumber         Int?
+  scheduledWorkoutId String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  exercises WorkoutExercise[]
+
+  @@map("workouts")
+}
+
+/// One exercise performed within a session. Carries the session's
+/// `WeightRecommendation` for this exercise (base -> adjustments -> final) —
+/// preserved distinctly from any set's actually-logged weight, which lives
+/// on `WorkoutSet` below, never here.
+model WorkoutExercise {
+  id         String @id @default(cuid())
+  workoutId  String
+  workout    Workout  @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+  exerciseId String
+  exercise   Exercise @relation(fields: [exerciseId], references: [id])
+
+  /// "main" | "finisher" (packages/domain SlotRole) — plain string for the same reason as workoutType above.
+  role  String
+  /// Explicit ordering: Prisma/Postgres don't otherwise guarantee row order matches the session's original sequence.
+  order Int
+
+  restSeconds Int?
+
+  /// The recommendation's base weight — immutable once set. Absent for bodyweight-only exercises with no weight to recommend.
+  baseWeight Float?
+  /// Ordered list of WeightAdjustment (packages/domain), stored as-is: [{ type: "percentage", percent, reason? }, ...].
+  adjustments Json?
+  /// Always derived from baseWeight + adjustments at write time — never hand-set independently, matching packages/domain's applyWeightAdjustments.
+  finalWeight Float?
+
+  sets WorkoutSet[]
+
+  @@unique([workoutId, order])
+  @@map("workout_exercises")
+}
+
+/// One individual set performed. `target*` is the prescription (a snapshot,
+/// per packages/domain's StrengthSet convention); `actual*` is what the user
+/// actually logged — a completely separate value from `target*`, and from
+/// the WorkoutExercise-level recommendation that produced the target.
+model WorkoutSet {
+  id                String          @id @default(cuid())
+  workoutExerciseId String
+  workoutExercise   WorkoutExercise @relation(fields: [workoutExerciseId], references: [id], onDelete: Cascade)
+
+  setNumber Int
+
+  targetReps     Int?
+  repsUnit       String?
+  targetDuration Float?
+  targetWeight   Float?
+
+  actualWeight   Float?
+  actualReps     Int?
+  actualDuration Float?
+  completed      Boolean   @default(false)
+  loggedAt       DateTime?
+
+  @@unique([workoutExerciseId, setNumber])
+  @@map("workout_sets")
+}
