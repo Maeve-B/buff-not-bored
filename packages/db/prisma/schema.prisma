@@ -62,8 +62,15 @@ model Exercise {
 /// table exists yet: programmes remain code-defined seed data in
 /// packages/domain for this phase (see req. 13 — don't persist what nothing
 /// yet needs to query back out).
+///
+/// `id` is CLIENT-supplied (no @default) — a stable session id generated
+/// once when the user starts a workout, not once per save. Every save for
+/// that session (start, each logged set, completion) upserts the same row
+/// by this id, which is the whole duplicate-prevention mechanism: there is
+/// no way to produce two rows for one workout attempt, because there is
+/// only ever one id for it.
 model Workout {
-  id                 String   @id @default(cuid())
+  id                 String   @id
   workoutType        String
   name               String
   status             String

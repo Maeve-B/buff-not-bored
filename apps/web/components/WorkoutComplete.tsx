@@ -4,6 +4,7 @@ import { formatDurationMinutes } from "@/lib/format";
 import { useAppStore } from "@/lib/store";
 import { computeProgressionForLog } from "@/lib/workout-service";
 import { ProgressionBadge } from "./ProgressionBadge";
+import { SaveStatusNote } from "./SaveStatusNote";
 import { Button } from "./ui/Button";
 import { Card } from "./ui/Card";
 
@@ -13,6 +14,8 @@ export function WorkoutComplete() {
   const startedAt = useAppStore((s) => s.startedAt);
   const completedAt = useAppStore((s) => s.completedAt);
   const startNewWorkout = useAppStore((s) => s.startNewWorkout);
+  const saveStatus = useAppStore((s) => s.saveStatus);
+  const saveError = useAppStore((s) => s.saveError);
 
   const mainExercises = session.mainExercises.filter((pe) => pe.role === "main");
   const totalExercises = mainExercises.length;
@@ -26,6 +29,7 @@ export function WorkoutComplete() {
       <Card className="p-6 text-center">
         <p className="text-sm font-semibold uppercase tracking-wide text-emerald-600">Workout Complete</p>
         <h1 className="mt-1 text-3xl font-extrabold text-slate-900">Nice work 💪</h1>
+        <SaveStatusNote status={saveStatus} error={saveError} />
         <div className="mt-4 grid grid-cols-2 gap-4">
           <div>
             <p className="text-2xl font-bold text-slate-900">{formatDurationMinutes(durationMs)}</p>
