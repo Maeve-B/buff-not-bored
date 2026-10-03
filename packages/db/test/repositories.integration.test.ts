@@ -7,9 +7,11 @@
  */
 
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
-import type { Exercise } from "@buff-not-bored/domain";
+import type { Exercise, ExerciseCapabilityInput } from "@buff-not-bored/domain";
+import { CapabilityValidationError } from "@buff-not-bored/domain";
 import { prisma } from "../src/client.js";
 import { findExerciseById, listExercises, upsertExercise } from "../src/repositories/exercise-repository.js";
+import { getExerciseCapability, upsertExerciseCapability } from "../src/repositories/exercise-capability-repository.js";
 import {
   getWorkoutById,
   listWorkoutSummaries,
@@ -41,6 +43,7 @@ async function resetTables(): Promise<void> {
   await prisma.workoutSet.deleteMany();
   await prisma.workoutExercise.deleteMany();
   await prisma.workout.deleteMany();
+  await prisma.exerciseCapability.deleteMany();
   await prisma.exercise.deleteMany();
 }
 
@@ -252,5 +255,78 @@ describe("workout repository", () => {
       const saved = await saveWorkoutSnapshot("integration-regress-5", { ...workoutInput, status: "in_progress" });
       expect(saved.status).toBe("in_progress");
     });
+  });
+});
+
+describe("exercise capability repository", () => {
+  beforeEach(async () => {
+    await upsertExercise(testExercise);
+  });
+
+  it("returns undefined when no capability has ever been set", async () => {
+    const found = await getExerciseCapability(testExercise.id);
+    expect(found).toBeUndefined();
+  });
+
+  it("upserts a capability and reads it back, with updatedAt populated by the database", async () => {
+    const input: ExerciseCapabilityInput = {
+      exerciseId: testExercise.id,
+      weight: 8,
+      weightUnit: "kg",
+      reps: 12,
+      repsUnit: "reps",
+      source: "manual",
+      note: "felt strong today",
+    };
+
+    const saved = await upsertExerciseCapability(input);
+    expect(saved).toMatchObject(input);
+    expect(saved.updatedAt).toBeTruthy();
+
+    const found = await getExerciseCapability(testExercise.id);
+    expect(found).toEqual(saved);
+  });
+
+  it("can exist with zero workout history — nothing in the workouts tables is touched", async () => {
+    await upsertExerciseCapability({ exerciseId: testExercise.id, reps: 15, repsUnit: "reps", source: "manual" });
+    const workoutCount = await prisma.workout.count();
+    expect(workoutCount).toBe(0);
+  });
+
+  it("upsert replaces the existing capability rather than creating a second row", async () => {
+    await upsertExerciseCapability({ exerciseId: testExercise.id, weight: 8, weightUnit: "kg", reps: 12, repsUnit: "reps", source: "manual" });
+    await upsertExerciseCapability({ exerciseId: testExercise.id, weight: 10, weightUnit: "kg", reps: 10, repsUnit: "reps", source: "manual" });
+
+    const found = await getExerciseCapability(testExercise.id);
+    expect(found?.weight).toBe(10);
+    expect(found?.reps).toBe(10);
+
+    const count = await prisma.exerciseCapability.count({ where: { exerciseId: testExercise.id } });
+    expect(count).toBe(1);
+  });
+
+  it("preserves source: manual vs source: progression distinctly", async () => {
+    await upsertExerciseCapability({ exerciseId: testExercise.id, weight: 8, weightUnit: "kg", source: "manual" });
+    let found = await getExerciseCapability(testExercise.id);
+    expect(found?.source).toBe("manual");
+
+    await upsertExerciseCapability({ exerciseId: testExercise.id, weight: 8.5, weightUnit: "kg", source: "progression" });
+    found = await getExerciseCapability(testExercise.id);
+    expect(found?.source).toBe("progression");
+  });
+
+  it("rejects an empty capability before writing anything", async () => {
+    const invalid = { exerciseId: testExercise.id, source: "manual" } as ExerciseCapabilityInput;
+    await expect(upsertExerciseCapability(invalid)).rejects.toThrow(CapabilityValidationError);
+
+    const found = await getExerciseCapability(testExercise.id);
+    expect(found).toBeUndefined();
+  });
+
+  it("is kept in a completely separate table from Exercise — the exercise row itself is unaffected by a capability write", async () => {
+    await upsertExerciseCapability({ exerciseId: testExercise.id, weight: 65, weightUnit: "kg", source: "manual" });
+
+    const exercise = await findExerciseById(testExercise.id);
+    expect(exercise?.startingWeight).toBe(60); // the catalog's own startingWeight, untouched by the personal capability write
   });
 });

@@ -17,6 +17,7 @@ export { loggedWorkoutSchema, validateLoggedWorkout, LoggedWorkoutValidationErro
 // Mappers (exported for testing / advanced callers; repositories are the normal entry point)
 export { toDomainExercise, toExerciseRow } from "./mappers/exercise-mapper.js";
 export { toDomainLoggedWorkout, toWorkoutUpsertInput } from "./mappers/workout-mapper.js";
+export { toDomainExerciseCapability, toExerciseCapabilityRow } from "./mappers/exercise-capability-mapper.js";
 
 // Repositories
 export { upsertExercise, findExerciseById, listExercises } from "./repositories/exercise-repository.js";
@@ -26,3 +27,4 @@ export {
   listWorkoutSummaries,
   WorkoutStatusRegressionError,
 } from "./repositories/workout-repository.js";
+export { upsertExerciseCapability, getExerciseCapability } from "./repositories/exercise-capability-repository.js";

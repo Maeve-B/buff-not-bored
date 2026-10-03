@@ -50,8 +50,44 @@ model Exercise {
   needsReview           Boolean @default(false)
 
   workoutExercises WorkoutExercise[]
+  capability       ExerciseCapability?
 
   @@map("exercises")
+}
+
+/// The user's current personal working ability for an exercise —
+/// independent of any workout. A third, distinct concept from `Exercise`
+/// (shared catalog/reference data, curated rarely) and from
+/// `WorkoutExercise`/`WorkoutSet` (one session's recommendation and actual
+/// performance, scoped to that session): this is "what do I currently
+/// believe I can do," personal state that changes as the user gets
+/// stronger and can exist even with zero workout history. See
+/// packages/domain's entities/exercise-capability.ts for the full
+/// rationale, including why `source` is never set automatically.
+///
+/// `exerciseId` is unique: exactly one current capability row per exercise
+/// in this single-user MVP. Ready for multi-user by adding a `userId`
+/// column and changing the unique constraint to `[userId, exerciseId]` —
+/// not added now, since no auth/User model exists yet.
+model ExerciseCapability {
+  id         String   @id @default(cuid())
+  exerciseId String   @unique
+  exercise   Exercise @relation(fields: [exerciseId], references: [id])
+
+  weight     Float?
+  weightUnit String?
+  reps       Int?
+  repsUnit   String?
+  duration   Float?
+
+  /// "manual" | "progression" — plain string, same extensible-vocabulary convention as workoutType/role/status elsewhere in this schema.
+  source String
+  note   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("exercise_capabilities")
 }
 
 /// A completed (or in-progress) workout/session — the shared envelope for
