@@ -1,6 +1,7 @@
 // Entities
 export * from "./entities/constraints.js";
 export * from "./entities/exercise.js";
+export * from "./entities/exercise-capability.js";
 export * from "./entities/muscle-coverage.js";
 export * from "./entities/programme.js";
 export * from "./entities/strength.js";
@@ -19,6 +20,12 @@ export { EIGHT_WEEK_STRENGTH_PROGRAMME, TRAINING_PROGRAMMES } from "./data/train
 
 // Validation
 export { exerciseSchema, validateCatalog, CatalogValidationError } from "./validation/exercise.schema.js";
+export {
+  exerciseCapabilitySchema,
+  validateExerciseCapability,
+  CapabilityValidationError,
+  type ExerciseCapabilityInput,
+} from "./validation/exercise-capability.schema.js";
 export {
   scheduledWorkoutSchema,
   trainingProgrammeSchema,
