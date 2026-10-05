@@ -32,9 +32,13 @@ export function AppShell({ children }: { children: ReactNode }) {
               </Link>
             ))}
           </nav>
-          <button aria-label="Settings" className="rounded-full p-2 text-lg text-slate-500 hover:bg-slate-100">
+          <Link
+            href="/exercises"
+            aria-label="Exercises"
+            className="rounded-full p-2 text-lg text-slate-500 hover:bg-slate-100"
+          >
             ⚙️
-          </button>
+          </Link>
         </div>
       </header>
 

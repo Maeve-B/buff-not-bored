@@ -1,4 +1,4 @@
-import type { StrengthSession, WorkoutSession, WorkoutStatus, WorkoutType } from "@buff-not-bored/domain";
+import type { ExerciseCapability, StrengthSession, WorkoutSession, WorkoutStatus, WorkoutType } from "@buff-not-bored/domain";
 
 /** One exercise's logged performance for a Circuit session (one set per exercise, matching PlannedExercise's shape). */
 export interface SetLog {
@@ -54,6 +54,9 @@ export interface HistoryEntry {
 
 /** Result of persisting a workout snapshot (lib/actions/save-workout.ts) — a typed outcome, never a silent success on failure. */
 export type SaveWorkoutResult = { ok: true; id: string } | { ok: false; error: string };
+
+/** Result of saving an exercise capability edit (lib/actions/exercise-capability.ts) — same typed-outcome convention as SaveWorkoutResult. */
+export type SaveCapabilityResult = { ok: true; capability: ExerciseCapability } | { ok: false; error: string };
 
 /** Status of the most recent persistence attempt for the current workout — "idle" before a workout has started. Shared by both stores. */
 export type SaveStatus = "idle" | "saving" | "saved" | "error";
