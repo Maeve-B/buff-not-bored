@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { REPS_UNITS, WEIGHT_UNITS, type Exercise, type ExerciseCapability, type ExerciseCapabilityInput } from "@buff-not-bored/domain";
 import { saveExerciseCapability } from "@/lib/actions/exercise-capability";
 import type { SaveStatus } from "@/lib/store";
@@ -21,6 +22,7 @@ export function ExerciseCapabilityForm({
   exercise: Exercise;
   initialCapability: ExerciseCapability | undefined;
 }) {
+  const router = useRouter();
   const [weight, setWeight] = useState(initialCapability?.weight?.toString() ?? "");
   const [weightUnit, setWeightUnit] = useState(initialCapability?.weightUnit ?? WEIGHT_UNITS[0]);
   const [reps, setReps] = useState(initialCapability?.reps?.toString() ?? "");
@@ -53,6 +55,7 @@ export function ExerciseCapabilityForm({
     const result = await saveExerciseCapability(input);
     if (result.ok) {
       setStatus("saved");
+      router.refresh(); // re-fetches the page's loadExerciseWeightHistory so the merged history below picks up this save without a manual reload
     } else {
       setStatus("error");
       setError(result.error);

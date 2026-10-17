@@ -11,6 +11,8 @@
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { getWorkoutById, prisma } from "@buff-not-bored/db";
 import { persistWorkoutSnapshot } from "@/lib/actions/save-workout";
+import { saveExerciseCapability } from "@/lib/actions/exercise-capability";
+import { loadExerciseWeightHistory } from "@/lib/actions/exercise-weight-history";
 import type { CircuitWorkoutSnapshot, StrengthWorkoutSnapshot } from "@/lib/types";
 import type { Exercise, PlannedExercise, StrengthExercise, StrengthSession, WorkoutSession } from "@buff-not-bored/domain";
 
@@ -36,6 +38,8 @@ async function resetTables(): Promise<void> {
   await prisma.workoutSet.deleteMany();
   await prisma.workoutExercise.deleteMany();
   await prisma.workout.deleteMany();
+  await prisma.exerciseWeightLog.deleteMany({ where: { exerciseId: testSquats.id } });
+  await prisma.exerciseCapability.deleteMany({ where: { exerciseId: testSquats.id } });
   await prisma.exercise.deleteMany({ where: { id: testSquats.id } });
 }
 
@@ -194,5 +198,34 @@ describe("persistWorkoutSnapshot — real database", () => {
     // The database still shows the workout as completed — the rejected attempt changed nothing.
     const record = await getWorkoutById(id);
     expect(record!.status).toBe("completed");
+  });
+
+  describe("loadExerciseWeightHistory — manual capability log merged with completed-workout history", () => {
+    const completedWorkout = (id: string, dateIso: string, actualWeight: number): CircuitWorkoutSnapshot => ({
+      id,
+      dateIso,
+      workoutName: "Full Body",
+      workoutType: "circuit",
+      status: "completed",
+      session: circuitSession,
+      setLogs: [{ exerciseId: testSquats.id, actualWeight, actualReps: 20, completed: true, loggedAt: Date.now() }],
+    });
+
+    it("returns every manual and workout weight for the exercise in one chronological timeline", async () => {
+      // Workouts dated either side of "now" (when the manual saves get their recordedAt) — the action must actually
+      // SORT the merge, not just concatenate it, for the future-dated entry to end up last.
+      expect((await persistWorkoutSnapshot(completedWorkout("integration-merge-past", "2000-01-01", 20))).ok).toBe(true);
+      expect((await saveExerciseCapability({ exerciseId: testSquats.id, weight: 25, weightUnit: "kg", source: "manual" })).ok).toBe(true);
+      expect((await saveExerciseCapability({ exerciseId: testSquats.id, weight: 27.5, weightUnit: "kg", source: "manual" })).ok).toBe(true);
+      expect((await persistWorkoutSnapshot(completedWorkout("integration-merge-future", "2099-01-01", 30))).ok).toBe(true);
+
+      const history = await loadExerciseWeightHistory(testSquats.id);
+
+      expect(history.map((e) => e.weight)).toEqual([20, 25, 27.5, 30]);
+      expect(history[0]!.dateIso).toBe("2000-01-01");
+      expect(history[3]!.dateIso).toBe("2099-01-01");
+      const dates = history.map((e) => e.dateIso);
+      expect(dates).toEqual([...dates].sort());
+    });
   });
 });

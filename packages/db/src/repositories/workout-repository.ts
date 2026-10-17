@@ -10,7 +10,7 @@
 import { prisma } from "../client.js";
 import { toDomainLoggedWorkout, toWorkoutUpsertInput } from "../mappers/workout-mapper.js";
 import { validateLoggedWorkout } from "../validation/logged-workout.schema.js";
-import type { LoggedWorkoutInput, LoggedWorkoutRecord, LoggedWorkoutSummary } from "../types.js";
+import type { ExerciseWeightHistoryEntry, LoggedWorkoutInput, LoggedWorkoutRecord, LoggedWorkoutSummary } from "../types.js";
 
 const withRelations = {
   exercises: { include: { sets: true }, orderBy: { order: "asc" as const } },
@@ -100,4 +100,45 @@ export async function listWorkoutSummaries(): Promise<LoggedWorkoutSummary[]> {
     status: row.status as LoggedWorkoutSummary["status"],
     dateIso: row.dateIso.toISOString().slice(0, 10),
   }));
+}
+
+/**
+ * Every actual weight ever recorded for an exercise, in chronological
+ * order — one entry per completed set, across completed workouts only. An
+ * in-progress workout (`status !== "completed"`) and an uncompleted set
+ * (`completed: false`, e.g. a set the user bailed on mid-rep) are both
+ * excluded, since neither reflects a real performed weight. A set with no
+ * `actualWeight` (e.g. a bodyweight exercise logged by reps only) is
+ * excluded too — there is nothing to plot for it.
+ */
+export async function getExerciseWeightHistory(exerciseId: string): Promise<ExerciseWeightHistoryEntry[]> {
+  const workouts = await prisma.workout.findMany({
+    where: { status: "completed", exercises: { some: { exerciseId } } },
+    orderBy: { dateIso: "asc" },
+    select: {
+      dateIso: true,
+      exercises: {
+        where: { exerciseId },
+        orderBy: { order: "asc" },
+        select: {
+          sets: {
+            where: { completed: true, actualWeight: { not: null } },
+            orderBy: { setNumber: "asc" },
+            select: { actualWeight: true },
+          },
+        },
+      },
+    },
+  });
+
+  const history: ExerciseWeightHistoryEntry[] = [];
+  for (const workout of workouts) {
+    const dateIso = workout.dateIso.toISOString().slice(0, 10);
+    for (const exercise of workout.exercises) {
+      for (const set of exercise.sets) {
+        history.push({ dateIso, weight: set.actualWeight! });
+      }
+    }
+  }
+  return history;
 }
