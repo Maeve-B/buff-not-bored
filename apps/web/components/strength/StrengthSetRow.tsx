@@ -1,5 +1,6 @@
 "use client";
 
+import { WEIGHT_STEP_KG } from "@buff-not-bored/domain";
 import type { StrengthSet } from "@buff-not-bored/domain";
 import { useState } from "react";
 import { formatTargetVolume } from "@/lib/format";
@@ -47,7 +48,7 @@ export function StrengthSetRow({ exerciseId, set }: { exerciseId: string; set: S
             <input
               type="number"
               inputMode="decimal"
-              step={0.5}
+              step={WEIGHT_STEP_KG}
               value={weight}
               onChange={(e) => setWeight(Number(e.target.value))}
               aria-label={`Set ${set.setNumber} weight`}

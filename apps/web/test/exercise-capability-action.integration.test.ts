@@ -7,12 +7,14 @@
  * (test/exercise-capability-flow.test.tsx); this file deliberately doesn't.
  */
 
+import { EXERCISE_PROFILES } from "@buff-not-bored/domain";
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { prisma, upsertExercise } from "@buff-not-bored/db";
 import type { Exercise } from "@buff-not-bored/domain";
 import { loadExerciseCapability, saveExerciseCapability } from "@/lib/actions/exercise-capability";
 
 const testExercise: Exercise = {
+  ...EXERCISE_PROFILES.squats,
   id: "integration-test-capability-exercise",
   name: "Integration Test Row",
   programmeGroup: "legs",

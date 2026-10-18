@@ -8,6 +8,7 @@
  * real action, the real mapper, and the real repository layer all run.
  */
 
+import { EXERCISE_PROFILES } from "@buff-not-bored/domain";
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { getWorkoutById, prisma } from "@buff-not-bored/db";
 import { persistWorkoutSnapshot } from "@/lib/actions/save-workout";
@@ -17,6 +18,7 @@ import type { CircuitWorkoutSnapshot, StrengthWorkoutSnapshot } from "@/lib/type
 import type { Exercise, PlannedExercise, StrengthExercise, StrengthSession, WorkoutSession } from "@buff-not-bored/domain";
 
 const testSquats: Exercise = {
+  ...EXERCISE_PROFILES.squats,
   id: "integration-test-squats",
   name: "Squats",
   programmeGroup: "legs",

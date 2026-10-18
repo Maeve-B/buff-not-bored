@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { REPS_UNITS, WEIGHT_UNITS, type Exercise, type ExerciseCapability, type ExerciseCapabilityInput } from "@buff-not-bored/domain";
+import { REPS_UNITS, WEIGHT_STEP_KG, WEIGHT_UNITS, type Exercise, type ExerciseCapability, type ExerciseCapabilityInput } from "@buff-not-bored/domain";
 import { saveExerciseCapability } from "@/lib/actions/exercise-capability";
 import type { SaveStatus } from "@/lib/store";
 import { Button } from "./ui/Button";
@@ -71,7 +71,7 @@ export function ExerciseCapabilityForm({
             <input
               type="number"
               inputMode="decimal"
-              step="0.5"
+              step={WEIGHT_STEP_KG}
               value={weight}
               onChange={(e) => setWeight(e.target.value)}
               className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"

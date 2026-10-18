@@ -1,3 +1,4 @@
+import { EXERCISE_PROFILES } from "@buff-not-bored/domain";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -24,6 +25,7 @@ beforeEach(() => {
 });
 
 const backSquat: Exercise = {
+  ...EXERCISE_PROFILES.squats,
   id: "back-squat",
   name: "Back Squat",
   programmeGroup: "legs",

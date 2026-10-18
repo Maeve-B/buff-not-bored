@@ -1,3 +1,4 @@
+import { EXERCISE_PROFILES } from "../src/data/exercise-profiles.js";
 import { describe, expect, it } from "vitest";
 import { EXERCISES } from "../src/data/exercises.js";
 import { PROGRAMME_TEMPLATE } from "../src/data/programme-template.js";
@@ -126,6 +127,7 @@ function makeExercise(overrides: Partial<Exercise> & { id: string }): Exercise {
     active: true,
     prescribedReps: 10,
     repsUnit: "reps",
+    ...EXERCISE_PROFILES.plank,
     ...overrides,
   };
 }

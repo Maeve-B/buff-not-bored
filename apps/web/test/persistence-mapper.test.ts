@@ -1,9 +1,11 @@
+import { EXERCISE_PROFILES, EXERCISES } from "@buff-not-bored/domain";
 import { describe, expect, it } from "vitest";
 import type { Exercise, PlannedExercise, StrengthExercise, StrengthSession, WorkoutSession } from "@buff-not-bored/domain";
-import { toLoggedWorkoutInput } from "@/lib/persistence-mapper";
+import { catalogEntriesFor, toLoggedWorkoutInput } from "@/lib/persistence-mapper";
 import type { CircuitWorkoutSnapshot, SetLog, StrengthWorkoutSnapshot } from "@/lib/types";
 
 const squats: Exercise = {
+  ...EXERCISE_PROFILES.squats,
   id: "squats",
   name: "Squats",
   programmeGroup: "legs",
@@ -22,6 +24,7 @@ const squats: Exercise = {
 };
 
 const plank: Exercise = {
+  ...EXERCISE_PROFILES.plank,
   id: "plank",
   name: "Plank",
   programmeGroup: "core",
@@ -211,5 +214,35 @@ describe("toLoggedWorkoutInput — Classic Strength", () => {
     expect(exercise.baseWeight).toBeUndefined();
     expect(exercise.finalWeight).toBeUndefined();
     expect(exercise.adjustments).toEqual([]);
+  });
+});
+
+describe("catalogEntriesFor", () => {
+  const session = (exercises: Exercise[]): WorkoutSession => ({
+    warmup: { steps: [], targetDuration: { minMinutes: 5, maxMinutes: 10 } },
+    mainExercises: exercises.map((exercise) => ({ exercise, role: "main" as const })),
+    cooldown: { targetAreas: [], targetDuration: { minMinutes: 5, maxMinutes: 10 } },
+    targetSessionDuration: { minMinutes: 45, maxMinutes: 50 },
+  });
+  const snapshotOf = (exercises: Exercise[]): CircuitWorkoutSnapshot => ({
+    id: "workout-1",
+    dateIso: "2026-10-18",
+    workoutName: "Full Body",
+    workoutType: "circuit",
+    status: "in_progress",
+    session: session(exercises),
+    setLogs: [],
+  });
+
+  it("saves the current library entry, not a pre-v2 copy restored from an old session", () => {
+    const libraryPlank = EXERCISES.find((e) => e.id === "plank")!;
+    const { movementPattern, cues, ...oldShape } = libraryPlank;
+    const entries = catalogEntriesFor(snapshotOf([oldShape as Exercise]));
+    expect(entries).toEqual([libraryPlank]);
+  });
+
+  it("saves an exercise the library doesn't know exactly as sent, once per id", () => {
+    const custom: Exercise = { ...squats, id: "not-in-library" };
+    expect(catalogEntriesFor(snapshotOf([custom, custom]))).toEqual([custom]);
   });
 });

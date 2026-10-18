@@ -38,3 +38,9 @@
 ### D-006 · The nudge works from reps until set feedback exists (2026-10-18)
 - Context: Strength logging doesn't capture Easy/Good/… yet; that arrives with set logging in Phase 1.
 - Decision: the S-004 trigger uses the reps rule only for now. The feedback rule is built and tested, but has no input until then.
+
+### D-007 · Weight moves in 0.25 kg steps (2026-10-18, S-001)
+- Context: Maeve wants weight jumps as small as 0.25 kg, and flexible.
+- Decision: every loaded exercise offers jumps starting at 0.25 kg (barbell 0.25/0.5/1/2.5/5, dumbbells 0.25/0.5/1/2/2.5), and every increment is a multiple of 0.25 kg. Typed weight fields (Strength sets, exercise weight form) accept any 0.25 kg step. The circuit's tap-only stepper keeps its larger tap size to protect one-or-two-tap logging (§3.9).
+- Revisit if: the Phase 1 set-logging design sets a different tap size, or the nudge (S-004) needs fewer chips than the options list.
+

@@ -13,18 +13,8 @@
  */
 
 import { saveWorkoutSnapshot as persistSnapshot, upsertExercise } from "@buff-not-bored/db";
-import type { Exercise } from "@buff-not-bored/domain";
-import { toLoggedWorkoutInput } from "@/lib/persistence-mapper";
+import { catalogEntriesFor, toLoggedWorkoutInput } from "@/lib/persistence-mapper";
 import type { SaveWorkoutResult, WorkoutSnapshot } from "@/lib/types";
-
-/** Every exercise referenced by a snapshot's session, deduplicated by id. */
-function exercisesIn(snapshot: WorkoutSnapshot): Exercise[] {
-  const all =
-    snapshot.workoutType === "circuit"
-      ? snapshot.session.mainExercises.map((pe) => pe.exercise)
-      : snapshot.session.exercises.map((se) => se.exercise);
-  return Array.from(new Map(all.map((exercise) => [exercise.id, exercise])).values());
-}
 
 /**
  * Persists the current state of a workout session, identified by
@@ -40,7 +30,7 @@ function exercisesIn(snapshot: WorkoutSnapshot): Exercise[] {
  */
 export async function persistWorkoutSnapshot(snapshot: WorkoutSnapshot): Promise<SaveWorkoutResult> {
   try {
-    for (const exercise of exercisesIn(snapshot)) {
+    for (const exercise of catalogEntriesFor(snapshot)) {
       await upsertExercise(exercise);
     }
     const input = toLoggedWorkoutInput(snapshot);
