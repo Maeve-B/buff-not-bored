@@ -19,7 +19,39 @@
 _Nothing yet._
 
 ## Now (epic R-00 · Phase 0 — Clean-up)
-_Awaiting `/plan-epic` breakdown and approval._
+_Breakdown approved 2026-10-18. Decisions D-002–D-006._
+
+### S-001 · Exercise library in the new shape — status: todo
+- Epic: R-00 · Spec: §9.1, §10.2 (re-tag existing only)
+- Screens: none
+- Design-first: no
+- Depends on: nothing
+- Notes: schema change (escalate at plan). Keep the v1 seven groups alongside the new fields (D-002). New values flagged for review, with a one-page table in the review pack (D-005).
+- Done when: all 33 existing exercises carry the §9.1 fields and pass validation; the existing app behaves as before.
+
+### S-002 · Your weights move out of the library — status: todo
+- Epic: R-00 · Spec: §9.1 (`starting_weight` → user exercise state), §2, §10.1 (blank weights)
+- Screens: Strength workout and exercise detail, in three states: weight set, no weight yet, assisted exercise
+- Design-first: partly. Entering a blank weight is part of set logging, so it's a working skeleton only.
+- Depends on: S-001
+- Notes: schema change (escalate at plan). All weights start blank; nothing carries over from the old seed (D-003).
+- Done when: sessions take your own weight, with a blank weight entered at first use; the library holds no weights.
+
+### S-003 · Correct rep, set and rest defaults — status: todo
+- Epic: R-00 · Spec: §6.3
+- Screens: Strength workout overview and set list
+- Design-first: no
+- Depends on: S-001
+- Notes: Strength mode uses the strength goal (D-004). Circuit keeps its own numbers.
+- Done when: a fresh Strength session shows compound 3 × 5 and isolation 3 × 8–12, with rest per exercise.
+
+### S-004 · Progression becomes a nudge — status: todo
+- Epic: R-00 · Spec: §7.4, §6.5, §3.3
+- Screens: Strength summary and Progress, in two states: ready to go up, not yet ready (placeholder text)
+- Design-first: yes. The real nudge screen comes in Phase 1, so this slice uses plain text only.
+- Depends on: S-003
+- Notes: the trigger uses reps only until set feedback is logged in Phase 1 (D-006). Circuit keeps percentage progression.
+- Done when: no strength screen suggests a weight automatically; the engine reports readiness and increment options.
 
 ## Discovered (untriaged)
 - Weight history has no pagination yet (from PR #6).
