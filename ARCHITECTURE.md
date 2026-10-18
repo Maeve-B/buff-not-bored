@@ -275,6 +275,8 @@ CI: domain + db + action tests run on every push (fast, cheap); Playwright suite
 
 ## 10. Phased Implementation Plan
 
+> **Frozen (2026-10-18).** This section is historical. Direction now lives in `ROADMAP.md` (from `PRODUCT_SPEC.md` v2 §12) and status in `BACKLOG.md`.
+
 **Phase 0 — this document.** Review and sign-off before any code is written.
 
 **Phase 1 — Domain package, no app around it. ✅ Done.**
