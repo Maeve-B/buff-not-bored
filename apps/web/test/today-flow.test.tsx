@@ -2,6 +2,7 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { TodayScreen } from "@/components/TodayScreen";
+import { saveStartingWeight } from "@/lib/actions/exercise-capability";
 import { getInitialState, useAppStore } from "@/lib/store";
 
 // Persistence is exercised separately (test/save-workout.integration.test.ts,
@@ -11,14 +12,23 @@ import { getInitialState, useAppStore } from "@/lib/store";
 vi.mock("@/lib/actions/save-workout", () => ({
   persistWorkoutSnapshot: vi.fn(async () => ({ ok: true, id: "mock-workout-id" })),
 }));
+vi.mock("@/lib/actions/exercise-capability", () => ({
+  saveStartingWeight: vi.fn(async () => ({ ok: true, saved: true })),
+}));
 
 beforeEach(() => {
   useAppStore.setState(getInitialState());
+  vi.mocked(saveStartingWeight).mockClear();
 });
+
+/** The whole exercise card: heading → title row → title block → header row → card. */
+function cardFor(name: string): HTMLElement {
+  return screen.getByRole("heading", { name, level: 3 }).parentElement!.parentElement!.parentElement!.parentElement!;
+}
 
 describe("Flow 1: Open Today", () => {
   it("shows the workout overview with name, duration, muscle groups, and primary actions", () => {
-    render(<TodayScreen />);
+    render(<TodayScreen currentWeights={{}} />);
     expect(screen.getByText("Today")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Full Body" })).toBeInTheDocument();
     expect(screen.getByText(/45–50 min/)).toBeInTheDocument();
@@ -32,7 +42,7 @@ describe("Flow 1: Open Today", () => {
 describe("Flow 2: Start workout", () => {
   it("moves straight into the exercise list — no extra navigation", async () => {
     const user = userEvent.setup();
-    render(<TodayScreen />);
+    render(<TodayScreen currentWeights={{}} />);
     await user.click(screen.getByRole("button", { name: /start workout/i }));
 
     expect(screen.getByRole("heading", { name: "Full Body" })).toBeInTheDocument();
@@ -45,7 +55,7 @@ describe("Flow 2: Start workout", () => {
 describe("Flow 3: Log a set", () => {
   it("logs a set in place, without navigating away, and updates the progress count", async () => {
     const user = userEvent.setup();
-    render(<TodayScreen />);
+    render(<TodayScreen currentWeights={{}} />);
     await user.click(screen.getByRole("button", { name: /start workout/i }));
 
     const logButtons = screen.getAllByRole("button", { name: /log set/i });
@@ -60,10 +70,10 @@ describe("Flow 3: Log a set", () => {
 
   it("supports adjusting weight/reps with the stepper before logging", async () => {
     const user = userEvent.setup();
-    render(<TodayScreen />);
+    render(<TodayScreen currentWeights={{ squats: 20 }} />);
     await user.click(screen.getByRole("button", { name: /start workout/i }));
 
-    // Squats starts at 20kg/20 reps.
+    // Squats starts at your 20kg, 20 reps.
     await user.click(screen.getAllByRole("button", { name: "Increase Weight" })[0]!);
     await user.click(screen.getAllByRole("button", { name: "Increase Reps" })[0]!);
     await user.click(screen.getAllByRole("button", { name: /log set/i })[0]!);
@@ -72,10 +82,78 @@ describe("Flow 3: Log a set", () => {
   });
 });
 
+describe("Your weights (S-002)", () => {
+  it("prescribes your weight, asks for one where you have none, and shows bodyweight work as bodyweight", async () => {
+    const user = userEvent.setup();
+    render(<TodayScreen currentWeights={{ squats: 40 }} />);
+    await user.click(screen.getByRole("button", { name: /start workout/i }));
+
+    expect(within(cardFor("Squats")).getByText(/^40kg ·/)).toBeInTheDocument();
+    expect(within(cardFor("Deadlifts")).getByText(/^Add baseline ·/)).toBeInTheDocument();
+    expect(within(cardFor("Deadlifts")).getByRole("spinbutton", { name: "Deadlifts weight" })).toHaveValue(null);
+    expect(within(cardFor("Superman Holds")).getByText(/^Bodyweight ·/)).toBeInTheDocument();
+  });
+
+  it("saves the first weight you log as your starting weight, in 0.25 kg steps", async () => {
+    const user = userEvent.setup();
+    render(<TodayScreen currentWeights={{}} />);
+    await user.click(screen.getByRole("button", { name: /start workout/i }));
+
+    const deadlifts = within(cardFor("Deadlifts"));
+    await user.type(deadlifts.getByRole("spinbutton", { name: "Deadlifts weight" }), "35.25");
+    await user.click(deadlifts.getByRole("button", { name: /log set/i }));
+
+    expect(deadlifts.getByText(/35\.25kg × 20 reps/)).toBeInTheDocument();
+    expect(saveStartingWeight).toHaveBeenCalledWith("deadlifts", 35.25);
+    expect(useAppStore.getState().currentWeights).toMatchObject({ deadlifts: 35.25 });
+  });
+
+  it("never records a starting weight when you already have one, or when no weight was typed", async () => {
+    const user = userEvent.setup();
+    render(<TodayScreen currentWeights={{ squats: 20 }} />);
+    await user.click(screen.getByRole("button", { name: /start workout/i }));
+
+    await user.click(screen.getAllByRole("button", { name: "Increase Weight" })[0]!); // Squats: 20 -> 22.5 for this session
+    await user.click(within(cardFor("Squats")).getByRole("button", { name: /log set/i }));
+    await user.click(within(cardFor("Deadlifts")).getByRole("button", { name: /log set/i }));
+
+    expect(saveStartingWeight).not.toHaveBeenCalled();
+    expect(useAppStore.getState().currentWeights).toEqual({ squats: 20 });
+  });
+});
+
+describe("Your weights — keeping your session (S-002 review)", () => {
+  it("re-applies your weights to the session you have, so a swap before starting survives a revisit", async () => {
+    const user = userEvent.setup();
+    const { rerender } = render(<TodayScreen currentWeights={{}} />);
+    useAppStore.getState().swap("squats");
+    const idsAfterSwap = useAppStore.getState().session.mainExercises.map((pe) => pe.exercise.id);
+    expect(idsAfterSwap).not.toContain("squats");
+
+    rerender(<TodayScreen currentWeights={{ deadlifts: 60 }} />);
+
+    expect(useAppStore.getState().session.mainExercises.map((pe) => pe.exercise.id)).toEqual(idsAfterSwap);
+    await user.click(screen.getByRole("button", { name: /start workout/i }));
+    expect(within(cardFor("Deadlifts")).getByText(/^60kg ·/)).toBeInTheDocument();
+  });
+
+  it("shows your new weight on the exercise straight after a first-use log", async () => {
+    const user = userEvent.setup();
+    render(<TodayScreen currentWeights={{}} />);
+    await user.click(screen.getByRole("button", { name: /start workout/i }));
+
+    const deadlifts = within(cardFor("Deadlifts"));
+    await user.type(deadlifts.getByRole("spinbutton", { name: "Deadlifts weight" }), "35");
+    await user.click(deadlifts.getByRole("button", { name: /log set/i }));
+
+    expect(deadlifts.getByText(/^35kg ·/)).toBeInTheDocument();
+  });
+});
+
 describe("Flow 4: Swap an exercise", () => {
   it("uses the deterministic engine and shows what changed", async () => {
     const user = userEvent.setup();
-    render(<TodayScreen />);
+    render(<TodayScreen currentWeights={{}} />);
     await user.click(screen.getByRole("button", { name: /start workout/i }));
 
     expect(screen.getByText("Squats")).toBeInTheDocument();
@@ -96,7 +174,7 @@ describe("Flow 4: Swap an exercise", () => {
 describe("Flow 8: Complete a workout", () => {
   it("shows a completion summary with duration, exercises completed, and progression recommendations", async () => {
     const user = userEvent.setup();
-    render(<TodayScreen />);
+    render(<TodayScreen currentWeights={{}} />);
     await user.click(screen.getByRole("button", { name: /start workout/i }));
 
     // Log one set so there's something to show a recommendation for.

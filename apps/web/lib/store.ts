@@ -30,15 +30,18 @@
  * doesn't guarantee.
  */
 
-import type { Exercise, ReplacementDecision, WorkoutSession } from "@buff-not-bored/domain";
+import type { CurrentWeights, Exercise, ReplacementDecision, WorkoutSession } from "@buff-not-bored/domain";
 import { create } from "zustand";
 import { persistWorkoutSnapshot } from "./actions/save-workout";
 import { clearFallbackSnapshotIfRevision, writeFallbackSnapshot } from "./local-fallback";
+import { mergeServerWeights, persistStartingWeight } from "./starting-weight";
 import {
   buildSetLog,
   DEFAULT_REFRESH_CHOICES,
   getTodayWorkout,
+  prescribeWorkoutWeights,
   previewRefresh,
+  startingWeightForLog,
   swapExercise,
   WORKOUT_NAME,
   type RefreshChoices,
@@ -62,6 +65,8 @@ export interface LastSwap {
 interface AppData {
   workoutId: string;
   session: WorkoutSession;
+  /** Your weights, loaded by the page from the server; first-use weights are added here as you log them. */
+  currentWeights: CurrentWeights;
   status: WorkoutStatus;
   setLogs: Record<string, SetLog>;
   startedAt?: number;
@@ -72,9 +77,12 @@ interface AppData {
   lastSwap?: LastSwap;
   saveStatus: SaveStatus;
   saveError?: string;
+  /** Set when a first-use starting weight didn't save. */
+  weightSaveError?: string;
 }
 
 interface AppActions {
+  applyCurrentWeights: (weights: CurrentWeights) => void;
   startWorkout: () => void;
   logSet: (exerciseId: string, input: SetLogInput) => void;
   swap: (exerciseId: string) => void;
@@ -89,10 +97,11 @@ interface AppActions {
 
 type AppState = AppData & AppActions;
 
-function freshData(): AppData {
+function freshData(currentWeights: CurrentWeights = {}): AppData {
   return {
     workoutId: crypto.randomUUID(),
-    session: getTodayWorkout(),
+    session: getTodayWorkout(currentWeights),
+    currentWeights,
     status: "idle",
     setLogs: {},
     startedAt: undefined,
@@ -103,6 +112,7 @@ function freshData(): AppData {
     lastSwap: undefined,
     saveStatus: "idle",
     saveError: undefined,
+    weightSaveError: undefined,
   };
 }
 
@@ -160,8 +170,21 @@ export const useAppStore = create<AppState>((set, get) => {
     });
   }
 
+  async function recordStartingWeight(exerciseName: string, exerciseId: string, weight: number) {
+    const error = await persistStartingWeight(exerciseName, exerciseId, weight);
+    if (error) set({ weightSaveError: error });
+  }
+
   return {
     ...freshData(),
+
+    // Re-prescribes the session you already have (keeping any refresh or swap), never rebuilding it.
+    // A workout in progress only gets blank weights filled in (§3.3).
+    applyCurrentWeights: (weights) =>
+      set((state) => {
+        const currentWeights = mergeServerWeights(state.currentWeights, weights);
+        return { currentWeights, session: prescribeWorkoutWeights(state.session, currentWeights, state.status !== "idle") };
+      }),
 
     startWorkout: () => {
       set({ status: "in_progress", startedAt: Date.now() });
@@ -175,13 +198,23 @@ export const useAppStore = create<AppState>((set, get) => {
         const log = buildSetLog(planned, input);
         return { setLogs: { ...state.setLogs, [exerciseId]: log } };
       });
+      const planned = get().session.mainExercises.find((pe) => pe.exercise.id === exerciseId);
+      const startingWeight = planned ? startingWeightForLog(planned, get().currentWeights, input.actualWeight) : undefined;
+      if (planned && startingWeight !== undefined) {
+        // The exercise now shows your new weight; nothing that already had a weight changes (§3.3).
+        set((state) => {
+          const currentWeights = { ...state.currentWeights, [exerciseId]: startingWeight };
+          return { currentWeights, session: prescribeWorkoutWeights(state.session, currentWeights, true) };
+        });
+        void recordStartingWeight(planned.exercise.name, exerciseId, startingWeight);
+      }
       persistAndTrack("in_progress");
     },
 
     swap: (exerciseId) =>
       set((state) => {
         const previousPlanned = state.session.mainExercises.find((pe) => pe.exercise.id === exerciseId);
-        const { session, decision } = swapExercise(state.session, exerciseId);
+        const { session, decision } = swapExercise(state.session, exerciseId, state.currentWeights);
         const nextPlanned = session.mainExercises.find((pe) => pe.exercise.id === decision.selectedExerciseId);
         const { [exerciseId]: _dropped, ...restLogs } = state.setLogs;
         return {
@@ -196,7 +229,8 @@ export const useAppStore = create<AppState>((set, get) => {
 
     setRefreshChoices: (choices) => set((state) => ({ refreshChoices: { ...state.refreshChoices, ...choices } })),
 
-    generateRefreshPreview: () => set((state) => ({ refreshPreview: previewRefresh(state.session, state.refreshChoices) })),
+    generateRefreshPreview: () =>
+      set((state) => ({ refreshPreview: previewRefresh(state.session, state.refreshChoices, state.currentWeights) })),
 
     acceptRefreshPreview: () =>
       set((state) => {
@@ -232,6 +266,6 @@ export const useAppStore = create<AppState>((set, get) => {
     // an unsynced entry must survive the user moving on, for a future
     // recovery feature. It's only ever removed by its own save succeeding
     // (see persistAndTrack above).
-    startNewWorkout: () => set((state) => ({ ...freshData(), history: state.history })),
+    startNewWorkout: () => set((state) => ({ ...freshData(state.currentWeights), history: state.history })),
   };
 });

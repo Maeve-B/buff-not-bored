@@ -18,6 +18,7 @@ import { COOLDOWN_PLAN } from "../data/cooldown.js";
 import { PROGRAMME_TEMPLATE } from "../data/programme-template.js";
 import { WARMUP_PLAN } from "../data/warmup.js";
 import { isExerciseAllowed, type OptimisationConstraints } from "../entities/constraints.js";
+import { currentWeightFor, type CurrentWeights } from "../entities/current-weights.js";
 import type { Exercise } from "../entities/exercise.js";
 import { PROGRAMME_ORDER, type ProgrammeTemplate, type WorkoutAllocation } from "../entities/programme.js";
 import type { DurationRange, PlannedExercise, WorkoutSession } from "../entities/workout-session.js";
@@ -34,7 +35,11 @@ export class WorkoutBuilderError extends Error {}
  * programme template, preserving the template's slot order (expected to
  * already follow `PROGRAMME_ORDER`).
  */
-export function buildSessionFromTemplate(library: Exercise[], template: ProgrammeTemplate): WorkoutSession {
+export function buildSessionFromTemplate(
+  library: Exercise[],
+  template: ProgrammeTemplate,
+  currentWeights: CurrentWeights = {},
+): WorkoutSession {
   const libraryById = new Map(library.map((exercise) => [exercise.id, exercise]));
 
   const mainExercises: PlannedExercise[] = template.slots.map((slot) => {
@@ -52,7 +57,7 @@ export function buildSessionFromTemplate(library: Exercise[], template: Programm
     return {
       exercise,
       role: slot.role,
-      prescribedWeight: exercise.startingWeight,
+      prescribedWeight: currentWeightFor(exercise, currentWeights),
       prescribedReps: exercise.prescribedReps,
       repsUnit: exercise.repsUnit,
       prescribedDuration: exercise.prescribedDuration,
@@ -67,9 +72,30 @@ export function buildSessionFromTemplate(library: Exercise[], template: Programm
   };
 }
 
+/**
+ * Re-prescribes an existing session from your current weights, keeping its
+ * exercises (so an accepted refresh or swap survives). `"all"` is for a
+ * session that hasn't started; `"blanks"` only fills exercises that have
+ * no weight yet, so a workout in progress never has a prescription changed
+ * (§3.3).
+ */
+export function prescribeCurrentWeights(
+  session: WorkoutSession,
+  currentWeights: CurrentWeights,
+  mode: "all" | "blanks",
+): WorkoutSession {
+  return {
+    ...session,
+    mainExercises: session.mainExercises.map((pe) => {
+      if (mode === "blanks" && pe.prescribedWeight !== undefined) return pe;
+      return { ...pe, prescribedWeight: currentWeightFor(pe.exercise, currentWeights) };
+    }),
+  };
+}
+
 /** Builds the current default session directly from the library, using the authored PROGRAMME_TEMPLATE. */
-export function buildDefaultSession(library: Exercise[]): WorkoutSession {
-  return buildSessionFromTemplate(library, PROGRAMME_TEMPLATE);
+export function buildDefaultSession(library: Exercise[], currentWeights: CurrentWeights = {}): WorkoutSession {
+  return buildSessionFromTemplate(library, PROGRAMME_TEMPLATE, currentWeights);
 }
 
 /** Re-exported for convenience so callers building sessions don't need a second import. */
@@ -79,6 +105,8 @@ export interface BuildWorkoutOptions {
   /** Per-session count override, e.g. { legs: 3, core: 2 } — see reduceExerciseCount. */
   allocation?: WorkoutAllocation;
   constraints?: OptimisationConstraints;
+  /** Your weights, for prescriptions. Exercises without one are prescribed no weight. */
+  currentWeights?: CurrentWeights;
 }
 
 export interface BuildWorkoutResult {
@@ -106,7 +134,7 @@ export function buildWorkoutWithDetails(
   template: ProgrammeTemplate,
   options: BuildWorkoutOptions = {},
 ): BuildWorkoutResult {
-  let session = buildSessionFromTemplate(library, template);
+  let session = buildSessionFromTemplate(library, template, options.currentWeights);
   let reduction: ReductionResult | undefined;
   let refresh: RefreshResult | undefined;
 
@@ -118,7 +146,7 @@ export function buildWorkoutWithDetails(
   const hard = options.constraints?.hard;
   const hasViolation = session.mainExercises.some((pe) => pe.role === "main" && !isExerciseAllowed(pe.exercise, hard));
   if (hard && hasViolation) {
-    refresh = refreshWorkout(session, library, options.constraints, { targetExerciseIds: [] });
+    refresh = refreshWorkout(session, library, options.constraints, { targetExerciseIds: [], currentWeights: options.currentWeights });
     session = refresh.session;
   }
 

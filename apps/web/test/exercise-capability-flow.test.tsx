@@ -35,8 +35,6 @@ const backSquat: Exercise = {
   exerciseType: "compound",
   equipment: "barbell",
   location: "rack",
-  startingWeight: 20,
-  weightUnit: "kg",
   prescribedReps: 8,
   repsUnit: "reps",
   progressionPercentage: 5,
@@ -85,6 +83,19 @@ describe("ExerciseCapabilityForm", () => {
     );
     expect(await screen.findByText("Saved")).toBeInTheDocument();
     expect(refresh).toHaveBeenCalled(); // re-fetches the page so the merged weight history below picks up this save
+  });
+
+  it("has no reps unit to choose: reps are saved the way the exercise counts them", async () => {
+    vi.mocked(saveExerciseCapability).mockResolvedValue({ ok: true, capability: existingCapability });
+    const user = userEvent.setup();
+    const perSide: Exercise = { ...backSquat, repsUnit: "per_side", unilateral: true, perSide: true };
+    render(<ExerciseCapabilityForm exercise={perSide} initialCapability={undefined} />);
+
+    expect(screen.getAllByRole("combobox")).toHaveLength(1); // only the weight unit remains
+    await user.type(screen.getByLabelText("Reps"), "8");
+    await user.click(screen.getByRole("button", { name: /save/i }));
+
+    expect(saveExerciseCapability).toHaveBeenCalledWith(expect.objectContaining({ reps: 8, repsUnit: "per_side" }));
   });
 
   it("omits weight/weightUnit entirely when the weight field is left blank", async () => {

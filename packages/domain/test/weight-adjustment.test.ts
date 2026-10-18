@@ -55,12 +55,13 @@ describe("weight adjustments", () => {
     expect(withSecond.baseWeight).toBe(32.5);
     expect(withSecond.adjustments).toHaveLength(2);
     // 32.5 * 0.8 = 26, then 26 * 1.10 = 28.6
-    expect(withSecond.finalWeight).toBe(28.5); // rounded to nearest 0.5
+    expect(withSecond.finalWeight).toBe(28.5); // rounded to the nearest 0.25 kg step
   });
 
   it("applyWeightAdjustments is a pure function usable standalone", () => {
     expect(applyWeightAdjustments(50, [percentageAdjustment(-20)])).toBe(40);
     expect(applyWeightAdjustments(50, [])).toBe(50);
+    expect(applyWeightAdjustments(20.25, [])).toBe(20.25); // a 0.25 kg step survives (D-007)
   });
 
   it("carries an optional human-readable reason without affecting the math", () => {

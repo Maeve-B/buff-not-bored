@@ -11,10 +11,44 @@
  * value and its history can never disagree.
  */
 
-import { validateExerciseCapability, type ExerciseCapability, type ExerciseCapabilityInput } from "@buff-not-bored/domain";
+import {
+  startingWeightCapability,
+  validateExerciseCapability,
+  type ExerciseCapability,
+  type ExerciseCapabilityInput,
+} from "@buff-not-bored/domain";
 import { prisma } from "../client.js";
 import { toDomainExerciseCapability, toExerciseCapabilityRow } from "../mappers/exercise-capability-mapper.js";
 import type { ExerciseWeightHistoryEntry } from "../types.js";
+
+type TransactionClient = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
+
+/**
+ * Upserts the capability and, if it includes a weight, appends one weight
+ * log row, inside the caller's transaction. `logNote` is the history entry's
+ * note: the capability's own note unless the caller says otherwise.
+ */
+async function writeCapability(tx: TransactionClient, input: ExerciseCapabilityInput, logNote: string | undefined) {
+  const row = toExerciseCapabilityRow(input);
+  const capability = await tx.exerciseCapability.upsert({
+    where: { exerciseId: input.exerciseId },
+    create: row,
+    update: row,
+  });
+  // Validation already guarantees weight/weightUnit are present together — this just narrows the types.
+  if (input.weight !== undefined && input.weightUnit !== undefined) {
+    await tx.exerciseWeightLog.create({
+      data: {
+        exerciseId: input.exerciseId,
+        weight: input.weight,
+        weightUnit: input.weightUnit,
+        source: input.source,
+        note: logNote ?? null,
+      },
+    });
+  }
+  return capability;
+}
 
 /**
  * Creates or replaces the current capability for an exercise. Validates
@@ -25,28 +59,38 @@ import type { ExerciseWeightHistoryEntry } from "../types.js";
  */
 export async function upsertExerciseCapability(input: ExerciseCapabilityInput): Promise<ExerciseCapability> {
   validateExerciseCapability(input);
-  const row = toExerciseCapabilityRow(input);
-  const saved = await prisma.$transaction(async (tx) => {
-    const capability = await tx.exerciseCapability.upsert({
-      where: { exerciseId: input.exerciseId },
-      create: row,
-      update: row,
-    });
-    // Validation already guarantees weight/weightUnit are present together — this just narrows the types.
-    if (input.weight !== undefined && input.weightUnit !== undefined) {
-      await tx.exerciseWeightLog.create({
-        data: {
-          exerciseId: input.exerciseId,
-          weight: input.weight,
-          weightUnit: input.weightUnit,
-          source: input.source,
-          note: input.note ?? null,
-        },
-      });
-    }
-    return capability;
-  });
+  const saved = await prisma.$transaction((tx) => writeCapability(tx, input, input.note));
   return toDomainExerciseCapability(saved);
+}
+
+/** The weight-history note on an entry created by a first-use starting weight. */
+export const STARTING_WEIGHT_LOG_NOTE = "Starting weight (first use)";
+
+/**
+ * Records a first-use starting weight (spec §10.1) unless the exercise
+ * already has a weight, which is never overwritten (§3.3). The read and the
+ * write share one serializable transaction, so two first-use saves racing
+ * for the same exercise can't both write: the loser fails and writes
+ * nothing. Returns whether a weight was saved.
+ */
+export async function recordStartingWeight(exerciseId: string, weight: number): Promise<boolean> {
+  return prisma.$transaction(
+    async (tx) => {
+      const row = await tx.exerciseCapability.findUnique({ where: { exerciseId } });
+      const input = startingWeightCapability(exerciseId, row ? toDomainExerciseCapability(row) : undefined, weight);
+      if (!input) return false;
+      validateExerciseCapability(input);
+      await writeCapability(tx, input, STARTING_WEIGHT_LOG_NOTE);
+      return true;
+    },
+    { isolationLevel: "Serializable" },
+  );
+}
+
+/** Every saved capability, one per exercise that has one — the source of your current weights. */
+export async function listExerciseCapabilities(): Promise<ExerciseCapability[]> {
+  const rows = await prisma.exerciseCapability.findMany({ orderBy: { exerciseId: "asc" } });
+  return rows.map(toDomainExerciseCapability);
 }
 
 /** The current capability for an exercise, or `undefined` if none has ever been set. */

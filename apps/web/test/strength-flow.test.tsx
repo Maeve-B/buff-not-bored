@@ -2,6 +2,7 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { StrengthScreen } from "@/components/strength/StrengthScreen";
+import { saveStartingWeight } from "@/lib/actions/exercise-capability";
 import { getInitialStrengthState, useStrengthStore } from "@/lib/strength-store";
 
 // Persistence is exercised separately (test/save-workout.integration.test.ts,
@@ -11,10 +12,21 @@ import { getInitialStrengthState, useStrengthStore } from "@/lib/strength-store"
 vi.mock("@/lib/actions/save-workout", () => ({
   persistWorkoutSnapshot: vi.fn(async () => ({ ok: true, id: "mock-workout-id" })),
 }));
+vi.mock("@/lib/actions/exercise-capability", () => ({
+  saveStartingWeight: vi.fn(async () => ({ ok: true, saved: true })),
+}));
 
 beforeEach(() => {
   useStrengthStore.setState(getInitialStrengthState());
+  vi.mocked(saveStartingWeight).mockClear();
 });
+
+/** The values in a card's weight boxes, for sets not yet logged ("" = blank). */
+function weightValues(card: HTMLElement): string[] {
+  return within(card)
+    .queryAllByRole("spinbutton", { name: /^Set \d weight$/ })
+    .map((input) => (input as HTMLInputElement).value);
+}
 
 function squatsCard(): HTMLElement {
   return screen.getByRole("heading", { name: "Squats", level: 3 }).closest("div")!.parentElement!;
@@ -22,26 +34,33 @@ function squatsCard(): HTMLElement {
 
 describe("Classic Strength — has proper set-based semantics, distinct from Circuit", () => {
   it("the overview shows exercise and set counts, not a single-set circuit summary", () => {
-    render(<StrengthScreen />);
+    render(<StrengthScreen currentWeights={{}} />);
     expect(screen.getByText("Full Body Strength")).toBeInTheDocument();
     expect(screen.getByText(/\d+ exercises · \d+ sets/)).toBeInTheDocument();
   });
 
   it("starting the workout shows multiple sets per exercise, each with its own target", async () => {
     const user = userEvent.setup();
-    render(<StrengthScreen />);
+    render(<StrengthScreen currentWeights={{ squats: 20 }} />);
     await user.click(screen.getByRole("button", { name: /start workout/i }));
 
     const squats = within(squatsCard());
     expect(squats.getByText("Set 1")).toBeInTheDocument();
     expect(squats.getByText("Set 2")).toBeInTheDocument();
     expect(squats.getByText("Set 3")).toBeInTheDocument();
-    expect(squats.getAllByText(/Target: 20 reps @ 20kg/)).toHaveLength(3); // Squats: 3 sets, same target
+    // Each set: reps first, then weight, each with a small label beneath, pre-filled with the target.
+    expect(squats.getAllByText("reps")).toHaveLength(3);
+    expect(squats.getAllByText("weight (kg)")).toHaveLength(3);
+    expect(squats.getAllByRole("spinbutton", { name: /^Set \d reps$/ }).map((input) => (input as HTMLInputElement).value)).toEqual(["20", "20", "20"]);
+    expect(weightValues(squatsCard())).toEqual(["20", "20", "20"]);
+    const [repsBox, weightBox] = squats.getAllByRole("spinbutton").slice(0, 2);
+    expect(repsBox).toHaveAccessibleName("Set 1 reps");
+    expect(weightBox).toHaveAccessibleName("Set 1 weight");
   });
 
   it("logging one set does not affect the other sets on the same exercise — per-set completion, not per-exercise", async () => {
     const user = userEvent.setup();
-    render(<StrengthScreen />);
+    render(<StrengthScreen currentWeights={{}} />);
     await user.click(screen.getByRole("button", { name: /start workout/i }));
 
     const squats = within(squatsCard());
@@ -55,7 +74,7 @@ describe("Classic Strength — has proper set-based semantics, distinct from Cir
 
   it("finishing the workout shows a completion summary with set counts and progression recommendations", async () => {
     const user = userEvent.setup();
-    render(<StrengthScreen />);
+    render(<StrengthScreen currentWeights={{ squats: 20 }} />);
     await user.click(screen.getByRole("button", { name: /start workout/i }));
 
     await user.click(within(squatsCard()).getByRole("button", { name: "Complete set 1" }));
@@ -70,12 +89,127 @@ describe("Classic Strength — has proper set-based semantics, distinct from Cir
 
   it("'Done' returns to the overview for a fresh session", async () => {
     const user = userEvent.setup();
-    render(<StrengthScreen />);
+    render(<StrengthScreen currentWeights={{}} />);
     await user.click(screen.getByRole("button", { name: /start workout/i }));
     await user.click(within(squatsCard()).getByRole("button", { name: "Complete set 1" }));
     await user.click(screen.getByRole("button", { name: /finish workout/i }));
     await user.click(screen.getByRole("button", { name: /done/i }));
 
     expect(screen.getByRole("button", { name: /start workout/i })).toBeInTheDocument();
+  });
+});
+
+describe("Classic Strength — your weights (S-002)", () => {
+  it("asks for a weight on a loaded exercise you haven't set one for", async () => {
+    const user = userEvent.setup();
+    render(<StrengthScreen currentWeights={{}} />);
+    await user.click(screen.getByRole("button", { name: /start workout/i }));
+
+    const squats = within(squatsCard());
+    expect(squats.getAllByText("weight (kg)")).toHaveLength(3);
+    expect(weightValues(squatsCard())).toEqual(["", "", ""]);
+    expect(squats.getByRole("spinbutton", { name: "Set 1 weight" })).toHaveValue(null);
+  });
+
+  it("turns the first weight you log into the target for the remaining sets and for next time", async () => {
+    const user = userEvent.setup();
+    render(<StrengthScreen currentWeights={{}} />);
+    await user.click(screen.getByRole("button", { name: /start workout/i }));
+
+    await user.type(within(squatsCard()).getByRole("spinbutton", { name: "Set 1 weight" }), "20.25");
+    await user.click(within(squatsCard()).getByRole("button", { name: "Complete set 1" }));
+
+    expect(saveStartingWeight).toHaveBeenCalledWith("squats", 20.25);
+    expect(within(squatsCard()).getByText(/20\.25kg × 20 reps/)).toBeInTheDocument();
+    expect(weightValues(squatsCard())).toEqual(["20.25", "20.25"]);
+
+    await user.click(screen.getByRole("button", { name: /finish workout/i }));
+    await user.click(screen.getByRole("button", { name: /done/i }));
+    await user.click(screen.getByRole("button", { name: /start workout/i }));
+    expect(weightValues(squatsCard())).toEqual(["20.25", "20.25", "20.25"]);
+  });
+
+  it("logs a heavier lift for that session only, never changing your weight (§3.3)", async () => {
+    const user = userEvent.setup();
+    render(<StrengthScreen currentWeights={{ squats: 20 }} />);
+    await user.click(screen.getByRole("button", { name: /start workout/i }));
+
+    const weightBox = within(squatsCard()).getByRole("spinbutton", { name: "Set 1 weight" });
+    await user.clear(weightBox);
+    await user.type(weightBox, "25");
+    await user.click(within(squatsCard()).getByRole("button", { name: "Complete set 1" }));
+
+    expect(saveStartingWeight).not.toHaveBeenCalled();
+    expect(weightValues(squatsCard())).toEqual(["20", "20"]);
+  });
+});
+
+describe("Classic Strength — your weights, edge cases (S-002 review)", () => {
+  it("keeps what you've typed into a later set when the first-use weight fills it in", async () => {
+    const user = userEvent.setup();
+    render(<StrengthScreen currentWeights={{}} />);
+    await user.click(screen.getByRole("button", { name: /start workout/i }));
+
+    const squats = within(squatsCard());
+    await user.type(squats.getByRole("spinbutton", { name: "Set 2 weight" }), "22");
+    await user.type(squats.getByRole("spinbutton", { name: "Set 1 weight" }), "20");
+    await user.click(squats.getByRole("button", { name: "Complete set 1" }));
+
+    expect(squats.getByRole("spinbutton", { name: "Set 2 weight" })).toHaveValue(22);
+    expect(squats.getByRole("spinbutton", { name: "Set 3 weight" })).toHaveValue(20);
+  });
+
+  it("fills in a weight saved elsewhere mid-workout, without changing any existing target", async () => {
+    const user = userEvent.setup();
+    const { rerender } = render(<StrengthScreen currentWeights={{ squats: 20 }} />);
+    await user.click(screen.getByRole("button", { name: /start workout/i }));
+
+    rerender(<StrengthScreen currentWeights={{ squats: 30, deadlifts: 60 }} />);
+
+    expect(weightValues(squatsCard())).toEqual(["20", "20", "20"]);
+    expect(weightValues(screen.getByRole("heading", { name: "Deadlifts", level: 3 }).closest("div")!.parentElement!)).toEqual(["60", "60", "60"]);
+  });
+
+  it("says so if a starting weight doesn't save, and doesn't quietly save the next set instead", async () => {
+    vi.mocked(saveStartingWeight).mockResolvedValueOnce({ ok: false, error: "database down" });
+    const user = userEvent.setup();
+    render(<StrengthScreen currentWeights={{}} />);
+    await user.click(screen.getByRole("button", { name: /start workout/i }));
+
+    const squats = within(squatsCard());
+    await user.type(squats.getByRole("spinbutton", { name: "Set 1 weight" }), "20");
+    await user.click(squats.getByRole("button", { name: "Complete set 1" }));
+    expect(await screen.findByText(/Couldn't save 20kg as your Squats weight/)).toBeInTheDocument();
+
+    const set2 = squats.getByRole("spinbutton", { name: "Set 2 weight" });
+    await user.clear(set2);
+    await user.type(set2, "25");
+    await user.click(squats.getByRole("button", { name: "Complete set 2" }));
+    expect(saveStartingWeight).toHaveBeenCalledTimes(1);
+  });
+
+  it("never logs a zero or negative weight", async () => {
+    const user = userEvent.setup();
+    render(<StrengthScreen currentWeights={{}} />);
+    await user.click(screen.getByRole("button", { name: /start workout/i }));
+
+    const squats = within(squatsCard());
+    await user.type(squats.getByRole("spinbutton", { name: "Set 1 weight" }), "-5");
+    await user.click(squats.getByRole("button", { name: "Complete set 1" }));
+
+    expect(squats.getByText(/^20 reps$/)).toBeInTheDocument();
+    expect(saveStartingWeight).not.toHaveBeenCalled();
+  });
+});
+
+describe("Classic Strength — hold exercises", () => {
+  it("labels a timed hold's box 'seconds' and asks for no weight", async () => {
+    const user = userEvent.setup();
+    render(<StrengthScreen currentWeights={{}} />);
+    await user.click(screen.getByRole("button", { name: /start workout/i }));
+
+    const plank = within(screen.getByRole("heading", { name: "Plank", level: 3 }).closest("div")!.parentElement!);
+    expect(plank.getAllByText("seconds")).toHaveLength(3);
+    expect(plank.queryByText("weight (kg)")).not.toBeInTheDocument();
   });
 });

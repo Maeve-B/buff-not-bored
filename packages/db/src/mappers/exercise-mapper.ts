@@ -24,7 +24,6 @@ import type {
   RepsUnit,
   SkillLevel,
   Station,
-  WeightUnit,
 } from "@buff-not-bored/domain";
 
 /** Prisma stores optional scalars as `null`; the domain type uses `undefined`. */
@@ -93,8 +92,6 @@ export function toDomainExercise(row: ExerciseRow): Exercise {
     exerciseType: row.exerciseType as ExerciseType,
     equipment: row.equipment as Equipment,
     location: row.location as Location,
-    startingWeight: nullToUndefined(row.startingWeight),
-    weightUnit: nullToUndefined(row.weightUnit) as WeightUnit | undefined,
     prescribedReps: nullToUndefined(row.prescribedReps),
     repsUnit: nullToUndefined(row.repsUnit) as RepsUnit | undefined,
     prescribedDuration: nullToUndefined(row.prescribedDuration),
@@ -118,8 +115,6 @@ export function toExerciseRow(exercise: Exercise): Omit<ExerciseRow, never> {
     exerciseType: exercise.exerciseType,
     equipment: exercise.equipment,
     location: exercise.location,
-    startingWeight: exercise.startingWeight ?? null,
-    weightUnit: exercise.weightUnit ?? null,
     prescribedReps: exercise.prescribedReps ?? null,
     repsUnit: exercise.repsUnit ?? null,
     prescribedDuration: exercise.prescribedDuration ?? null,

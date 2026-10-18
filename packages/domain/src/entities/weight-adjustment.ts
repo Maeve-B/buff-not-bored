@@ -23,6 +23,8 @@
  * (type, magnitude, optional reason) rather than folded into an opaque number.
  */
 
+import { WEIGHT_STEP_KG } from "./exercise.js";
+
 export const WEIGHT_ADJUSTMENT_TYPES = ["percentage"] as const;
 export type WeightAdjustmentType = (typeof WEIGHT_ADJUSTMENT_TYPES)[number];
 
@@ -48,8 +50,9 @@ export interface WeightRecommendation {
   finalWeight: number;
 }
 
-function roundToNearestHalf(value: number): number {
-  return Math.round(value * 2) / 2;
+/** Rounds to the app's finest weight step (0.25 kg, DECISIONS.md D-007), so an entered weight like 20.25 kg survives unchanged. */
+function roundToWeightStep(value: number): number {
+  return Math.round(value / WEIGHT_STEP_KG) * WEIGHT_STEP_KG;
 }
 
 function applyOneAdjustment(weight: number, adjustment: WeightAdjustment): number {
@@ -66,7 +69,7 @@ function applyOneAdjustment(weight: number, adjustment: WeightAdjustment): numbe
 /** Applies a list of adjustments to a base weight, in order. Pure — same inputs always produce the same output. */
 export function applyWeightAdjustments(baseWeight: number, adjustments: WeightAdjustment[]): number {
   const raw = adjustments.reduce((weight, adjustment) => applyOneAdjustment(weight, adjustment), baseWeight);
-  return roundToNearestHalf(raw);
+  return roundToWeightStep(raw);
 }
 
 /** Builds a WeightRecommendation with `finalWeight` derived from `baseWeight`/`adjustments` — never hand-set. */

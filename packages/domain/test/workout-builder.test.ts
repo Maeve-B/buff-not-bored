@@ -3,6 +3,7 @@ import { EXERCISES } from "../src/data/exercises.js";
 import { PROGRAMME_ALLOCATION, PROGRAMME_TEMPLATE } from "../src/data/programme-template.js";
 import { PROGRAMME_ORDER } from "../src/entities/programme.js";
 import {
+  prescribeCurrentWeights,
   buildDefaultSession,
   buildSessionFromTemplate,
   buildWorkout,
@@ -74,15 +75,25 @@ describe("buildDefaultSession", () => {
     expect(session.cooldown.targetDuration).toEqual({ minMinutes: 3, maxMinutes: 5 });
   });
 
-  it("carries each exercise's own prescription into the planned exercise", () => {
-    const squats = session.mainExercises.find((pe) => pe.exercise.id === "squats");
+  it("carries each exercise's own prescription, and your weight, into the planned exercise", () => {
+    const withWeights = buildDefaultSession(EXERCISES, { squats: 20 });
+    const squats = withWeights.mainExercises.find((pe) => pe.exercise.id === "squats");
     expect(squats?.prescribedWeight).toBe(20);
     expect(squats?.prescribedReps).toBe(20);
     expect(squats?.repsUnit).toBe("reps");
 
-    const superman = session.mainExercises.find((pe) => pe.exercise.id === "superman-holds");
+    const superman = withWeights.mainExercises.find((pe) => pe.exercise.id === "superman-holds");
     expect(superman?.prescribedWeight).toBeUndefined();
     expect(superman?.prescribedDuration).toBe(30);
+  });
+
+  it("prescribes no weight for a loaded exercise you haven't set one for yet", () => {
+    expect(session.mainExercises.find((pe) => pe.exercise.id === "squats")?.prescribedWeight).toBeUndefined();
+  });
+
+  it("ignores a weight recorded against an unloaded bodyweight exercise", () => {
+    const withStray = buildDefaultSession(EXERCISES, { "superman-holds": 5 });
+    expect(withStray.mainExercises.find((pe) => pe.exercise.id === "superman-holds")?.prescribedWeight).toBeUndefined();
   });
 
   it("is deterministic: rebuilding from the same library yields an equivalent session", () => {
@@ -151,5 +162,26 @@ describe("buildSessionFromTemplate error handling", () => {
       ),
     };
     expect(() => buildSessionFromTemplate(EXERCISES, badTemplate)).toThrow(WorkoutBuilderError);
+  });
+});
+
+describe("prescribeCurrentWeights", () => {
+  const swapped = (() => {
+    const base = buildDefaultSession(EXERCISES);
+    const lunges = EXERCISES.find((e) => e.id === "lunges")!;
+    return { ...base, mainExercises: base.mainExercises.map((pe) => (pe.exercise.id === "squats" ? { ...pe, exercise: lunges } : pe)) };
+  })();
+
+  it("keeps the session's own exercises (an accepted refresh or swap survives)", () => {
+    const after = prescribeCurrentWeights(swapped, { lunges: 30 }, "all");
+    expect(after.mainExercises.map((pe) => pe.exercise.id)).toEqual(swapped.mainExercises.map((pe) => pe.exercise.id));
+    expect(after.mainExercises.find((pe) => pe.exercise.id === "lunges")?.prescribedWeight).toBe(30);
+  });
+
+  it("only fills blanks in a workout in progress, never changing an existing prescription (§3.3)", () => {
+    const started = prescribeCurrentWeights(swapped, { lunges: 30 }, "all");
+    const after = prescribeCurrentWeights(started, { lunges: 50, deadlifts: 60 }, "blanks");
+    expect(after.mainExercises.find((pe) => pe.exercise.id === "lunges")?.prescribedWeight).toBe(30);
+    expect(after.mainExercises.find((pe) => pe.exercise.id === "deadlifts")?.prescribedWeight).toBe(60);
   });
 });

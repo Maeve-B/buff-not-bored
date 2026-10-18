@@ -207,7 +207,10 @@ export interface ExerciseLibraryProfile {
  *
  * Not every field applies to every exercise: bodyweight/timed exercises
  * (e.g. Plank, Superman Holds) have `prescribedDuration` instead of
- * `prescribedReps`/`startingWeight`/`progressionPercentage`.
+ * `prescribedReps`/`progressionPercentage`.
+ *
+ * Shared library data only: weights are personal state and live in
+ * `CurrentWeights` (entities/current-weights.ts), never here (§9.1, §2).
  */
 export interface Exercise extends ExerciseLibraryProfile {
   id: string;
@@ -220,9 +223,6 @@ export interface Exercise extends ExerciseLibraryProfile {
   equipment: Equipment;
   location: Location;
 
-  /** Absent for bodyweight-only exercises with no external load. */
-  startingWeight?: number;
-  weightUnit?: WeightUnit;
 
   /** Rep-based exercises set this; duration-based exercises leave it unset. */
   prescribedReps?: number;
@@ -241,7 +241,7 @@ export interface Exercise extends ExerciseLibraryProfile {
   notes?: string;
 
   /**
-   * True when some part of this exercise's data — typically startingWeight/
+   * True when some part of this exercise's data — typically
    * prescribedReps/equipment/location, but occasionally muscle
    * classification (e.g. Overhead Press, reclassified as a side effect of
    * retiring the generic "shoulders" muscle value) — is a placeholder/
@@ -250,4 +250,9 @@ export interface Exercise extends ExerciseLibraryProfile {
    * means the data is confirmed.
    */
   needsReview?: boolean;
+}
+
+/** True when the exercise takes an external load or assistance, so a weight applies to it. Unloaded bodyweight work has none. */
+export function isLoaded(exercise: Pick<Exercise, "loadType">): boolean {
+  return exercise.loadType !== "bodyweight";
 }

@@ -17,16 +17,19 @@ import {
   distinctEquipment,
   EXERCISES,
   getExposureCount,
+  prescribeCurrentWeights,
   PROGRAMME_ORDER,
   reduceExerciseCount,
   ReductionError,
   recommendProgression,
   refreshWorkout,
+  startingWeightToRecord,
   type CoverageGapWarning,
   type Equipment,
   type Exercise,
   type Muscle,
   type PlannedExercise,
+  type CurrentWeights,
   type ProgrammeGroup,
   type ProgressionRecommendation,
   type ReductionResult,
@@ -41,9 +44,19 @@ import type { CompletedWorkout, HistoryEntry, SetLog } from "./types";
 export const WORKOUT_NAME = "Full Body";
 export const CIRCUIT_WORKOUT_TYPE = "circuit" as const;
 
-/** Today's workout, built directly from the authored programme template — no persistence in this phase. */
-export function getTodayWorkout(): WorkoutSession {
-  return buildDefaultSession(EXERCISES);
+/** Today's workout, built from the authored programme template and prescribed your weights. */
+export function getTodayWorkout(currentWeights: CurrentWeights = {}): WorkoutSession {
+  return buildDefaultSession(EXERCISES, currentWeights);
+}
+
+/** Today's session re-prescribed from your weights: everything if it hasn't started, only blank weights if it has (§3.3). */
+export function prescribeWorkoutWeights(session: WorkoutSession, currentWeights: CurrentWeights, started: boolean): WorkoutSession {
+  return prescribeCurrentWeights(session, currentWeights, started ? "blanks" : "all");
+}
+
+/** The first-use starting weight to record after a set is logged, if any. */
+export function startingWeightForLog(planned: PlannedExercise, currentWeights: CurrentWeights, loggedWeight: number | undefined): number | undefined {
+  return startingWeightToRecord(planned.exercise, currentWeights, loggedWeight);
 }
 
 function mainExercisesOf(session: WorkoutSession): PlannedExercise[] {
@@ -74,8 +87,8 @@ export interface SwapResult {
 }
 
 /** Swaps one exercise using the deterministic refresh engine, targeted at exactly that exercise. */
-export function swapExercise(session: WorkoutSession, exerciseId: string): SwapResult {
-  const result = refreshWorkout(session, EXERCISES, {}, { targetExerciseIds: [exerciseId] });
+export function swapExercise(session: WorkoutSession, exerciseId: string, currentWeights: CurrentWeights = {}): SwapResult {
+  const result = refreshWorkout(session, EXERCISES, {}, { targetExerciseIds: [exerciseId], currentWeights });
   const decision = result.decisions.find((d) => d.previousExerciseId === exerciseId);
   if (!decision) {
     throw new Error(`swapExercise: no decision produced for "${exerciseId}" — is it a main-role exercise in this session?`);
@@ -207,7 +220,11 @@ function summarizePreview(before: WorkoutSession, after: WorkoutSession): Refres
  * reduction happens first (fewer slots), then refresh for variety among
  * whatever remains — soft location/equipment preferences apply to both.
  */
-export function previewRefresh(session: WorkoutSession, choices: RefreshChoices): RefreshPreviewResult {
+export function previewRefresh(
+  session: WorkoutSession,
+  choices: RefreshChoices,
+  currentWeights: CurrentWeights = {},
+): RefreshPreviewResult {
   const soft: SoftPreferences = {};
   if (choices.stayNearBench) soft.preferredLocation = "bench";
   if (choices.minimizeEquipmentChanges) soft.minimizeEquipmentChanges = true;
@@ -234,7 +251,7 @@ export function previewRefresh(session: WorkoutSession, choices: RefreshChoices)
   }
 
   if (!error && choices.changeOnePerGroup) {
-    refreshResult = refreshWorkout(working, EXERCISES, { soft });
+    refreshResult = refreshWorkout(working, EXERCISES, { soft }, { currentWeights });
     working = refreshResult.session;
   }
 

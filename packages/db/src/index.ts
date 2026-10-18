@@ -31,6 +31,9 @@ export {
 } from "./repositories/workout-repository.js";
 export {
   upsertExerciseCapability,
+  listExerciseCapabilities,
+  recordStartingWeight,
+  STARTING_WEIGHT_LOG_NOTE,
   getExerciseCapability,
   getManualExerciseWeightLog,
 } from "./repositories/exercise-capability-repository.js";

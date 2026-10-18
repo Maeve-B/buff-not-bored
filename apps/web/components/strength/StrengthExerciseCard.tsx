@@ -1,4 +1,4 @@
-import type { StrengthExercise } from "@buff-not-bored/domain";
+import { isLoaded, type StrengthExercise } from "@buff-not-bored/domain";
 import { formatEquipment, formatRestPeriod, getFormCue } from "@/lib/format";
 import { Card } from "../ui/Card";
 import { StrengthSetRow } from "./StrengthSetRow";
@@ -24,7 +24,12 @@ export function StrengthExerciseCard({ strengthExercise }: { strengthExercise: S
 
       <div className="mt-3 flex flex-col gap-2">
         {strengthExercise.sets.map((set) => (
-          <StrengthSetRow key={set.setNumber} exerciseId={strengthExercise.exercise.id} set={set} />
+          <StrengthSetRow
+            key={set.setNumber}
+            exerciseId={strengthExercise.exercise.id}
+            set={set}
+            loaded={isLoaded(strengthExercise.exercise)}
+          />
         ))}
       </div>
     </Card>

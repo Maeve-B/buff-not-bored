@@ -22,7 +22,6 @@ import {
   SKILL_LEVELS,
   STATIONS,
   WEIGHT_STEP_KG,
-  WEIGHT_UNITS,
   type Exercise,
 } from "../entities/exercise.js";
 
@@ -37,8 +36,6 @@ export const exerciseSchema = z
     exerciseType: z.enum(EXERCISE_TYPES),
     equipment: z.enum(EQUIPMENT_TYPES),
     location: z.enum(LOCATIONS),
-    startingWeight: z.number().positive().optional(),
-    weightUnit: z.enum(WEIGHT_UNITS).optional(),
     prescribedReps: z.number().int().positive().optional(),
     repsUnit: z.enum(REPS_UNITS).optional(),
     prescribedDuration: z.number().positive().optional(),
@@ -81,13 +78,6 @@ export const exerciseSchema = z
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "exercise cannot specify both prescribedReps and prescribedDuration",
-      });
-    }
-    // startingWeight and weightUnit must be set together, if at all.
-    if ((exercise.startingWeight === undefined) !== (exercise.weightUnit === undefined)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "startingWeight and weightUnit must both be present or both be absent",
       });
     }
     // repsUnit only makes sense alongside prescribedReps.

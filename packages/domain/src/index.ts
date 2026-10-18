@@ -2,6 +2,7 @@
 export * from "./entities/constraints.js";
 export * from "./entities/exercise.js";
 export * from "./entities/exercise-capability.js";
+export * from "./entities/current-weights.js";
 export * from "./entities/muscle-coverage.js";
 export * from "./entities/programme.js";
 export * from "./entities/strength.js";
@@ -41,6 +42,7 @@ export {
   buildSessionFromTemplate,
   buildWorkout,
   buildWorkoutWithDetails,
+  prescribeCurrentWeights,
   TARGET_SESSION_DURATION,
   WorkoutBuilderError,
   type BuildWorkoutOptions,
@@ -86,7 +88,9 @@ export {
 
 export {
   buildDefaultStrengthSession,
+  applyStartingWeight,
   buildStrengthSessionFromTemplate,
+  prescribeStrengthWeights,
   DEFAULT_SETS_PER_EXERCISE,
   DEFAULT_REST_SECONDS,
   StrengthBuilderError,

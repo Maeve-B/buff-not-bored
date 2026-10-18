@@ -58,6 +58,9 @@ export type SaveWorkoutResult = { ok: true; id: string } | { ok: false; error: s
 /** Result of saving an exercise capability edit (lib/actions/exercise-capability.ts) — same typed-outcome convention as SaveWorkoutResult. */
 export type SaveCapabilityResult = { ok: true; capability: ExerciseCapability } | { ok: false; error: string };
 
+/** `saved: false` means the exercise already had a weight, so nothing was written. */
+export type SaveStartingWeightResult = { ok: true; saved: boolean } | { ok: false; error: string };
+
 /** Status of the most recent persistence attempt for the current workout — "idle" before a workout has started. Shared by both stores. */
 export type SaveStatus = "idle" | "saving" | "saved" | "error";
 

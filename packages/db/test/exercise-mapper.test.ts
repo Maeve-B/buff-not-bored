@@ -14,8 +14,6 @@ const fullExercise: Exercise = {
   exerciseType: "compound",
   equipment: "barbell",
   location: "rack",
-  startingWeight: 60,
-  weightUnit: "kg",
   prescribedReps: 8,
   repsUnit: "reps",
   progressionPercentage: 5,
@@ -48,13 +46,9 @@ describe("exercise mapper", () => {
 
   it("maps a bodyweight exercise's absent optional fields to undefined, not null, on the way back", () => {
     const row = toExerciseRow(bodyweightExercise);
-    expect(row.startingWeight).toBeNull();
-    expect(row.weightUnit).toBeNull();
     expect(row.prescribedReps).toBeNull();
 
     const back = toDomainExercise(row);
-    expect(back.startingWeight).toBeUndefined();
-    expect(back.weightUnit).toBeUndefined();
     expect(back.prescribedReps).toBeUndefined();
     // needsReview defaults to false at the row level even though the domain object leaves it unset.
     expect(back).toEqual({ ...bodyweightExercise, needsReview: false });

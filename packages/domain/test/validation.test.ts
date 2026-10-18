@@ -40,11 +40,6 @@ describe("exerciseSchema", () => {
     expect(result.success).toBe(false);
   });
 
-  it("rejects startingWeight without weightUnit", () => {
-    const result = exerciseSchema.safeParse({ ...validExercise, startingWeight: 10 });
-    expect(result.success).toBe(false);
-  });
-
   it("rejects an invalid programmeGroup", () => {
     const result = exerciseSchema.safeParse({ ...validExercise, programmeGroup: "arms" });
     expect(result.success).toBe(false);

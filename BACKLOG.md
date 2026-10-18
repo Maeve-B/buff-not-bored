@@ -21,7 +21,7 @@ _Nothing yet._
 ## Now (epic R-00 · Phase 0 — Clean-up)
 _Breakdown approved 2026-10-18. Decisions D-002–D-006._
 
-### S-001 · Exercise library in the new shape — status: in-review (PR #8)
+### S-001 · Exercise library in the new shape — status: done (PR #8)
 - Epic: R-00 · Spec: §9.1, §10.2 (re-tag existing only)
 - Screens: none
 - Design-first: no
@@ -29,9 +29,9 @@ _Breakdown approved 2026-10-18. Decisions D-002–D-006._
 - Notes: schema change (escalate at plan). Keep the v1 seven groups alongside the new fields (D-002). New values flagged for review, with a one-page table in the review pack (D-005).
 - Done when: all 33 existing exercises carry the §9.1 fields and pass validation; the existing app behaves as before.
 
-### S-002 · Your weights move out of the library — status: todo
+### S-002 · Your weights move out of the library — status: in-review (PR #9)
 - Epic: R-00 · Spec: §9.1 (`starting_weight` → user exercise state), §2, §10.1 (blank weights)
-- Screens: Strength workout and exercise detail, in three states: weight set, no weight yet, assisted exercise
+- Screens: Strength and Circuit workouts and the exercise page, in three states: weight set, no weight yet, bodyweight. The assisted state is built and tested but can't be shown until Phase 1 adds an assisted exercise.
 - Design-first: partly. Entering a blank weight is part of set logging, so it's a working skeleton only.
 - Depends on: S-001
 - Notes: schema change (escalate at plan). All weights start blank; nothing carries over from the old seed (D-003).
@@ -53,11 +53,21 @@ _Breakdown approved 2026-10-18. Decisions D-002–D-006._
 - Notes: the trigger uses reps only until set feedback is logged in Phase 1 (D-006). Circuit keeps percentage progression. The old engines round weights to 0.5 kg; anything that stays must use the 0.25 kg step (D-007). Choosing which of the increment options become the nudge chips is a design question.
 - Done when: no strength screen suggests a weight automatically; the engine reports readiness and increment options.
 
+### S-005 · kg or lb, chosen in Settings — status: todo
+- Epic: R-00 (requested by Maeve, 2026-10-18; not in the spec)
+- Spec: none yet; extends D-007
+- Screens: Settings (unit choice); every weight label and box shows the chosen unit
+- Design-first: no
+- Depends on: S-002
+- Notes: one unit everywhere, not per exercise. Store kg; convert for display and entry, so nothing saved changes. lb moves in 0.5 lb steps, with jumps such as +0.5 / +1 / +2.5 / +5 lb (confirmed by Maeve).
+- Done when: switching to lb shows and accepts every weight in lb, and switching back shows the same kg values as before.
+
 ## Discovered (untriaged)
 - Weight history has no pagination yet (from PR #6).
 - Same-day ordering between a workout entry and a manual weight entry is a simple sort (from PR #6).
 - CI uses GitHub actions (checkout, setup-node, pnpm) that run on retiring Node 20; bump to their next major versions.
-- Playwright is not yet installed, but the visual review pack needs it. Adding it is a new dependency, so it needs approval.
+
+- The screenshot script for review packs lives in the session scratchpad; consider adding a reusable one to the repo.
 
 ## Done
 - PR #1 · Architecture proposal and Phase 1–2 domain engine (v1 rules)
@@ -67,3 +77,4 @@ _Breakdown approved 2026-10-18. Decisions D-002–D-006._
 - PR #5 · Exercise capability UI (`feature/exercise-capability-ui`)
 - PR #6 · Exercise weight history and independent weight tracking (`feature/weight-progression`)
 - PR #7 · Agent workflow scaffolding, roadmap and CI (`chore/agent-workflow-scaffolding`)
+- PR #8 · S-001 Exercise library in the new shape (`feature/library-v2`)

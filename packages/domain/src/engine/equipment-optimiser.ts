@@ -12,6 +12,7 @@
  */
 
 import type { SoftPreferences } from "../entities/constraints.js";
+import { currentWeightFor, type CurrentWeights } from "../entities/current-weights.js";
 import type { Exercise, Equipment, Location } from "../entities/exercise.js";
 
 export interface EquipmentScore {
@@ -24,12 +25,15 @@ export interface EquipmentScore {
  * Scores one candidate exercise against the soft equipment/location
  * preferences and (optionally) the exercise it would replace — rewarding
  * alignment with `preferredLocation`/`preferredEquipment` and continuity
- * with the previous exercise's equipment/location/weight.
+ * with the previous exercise's equipment/location/weight. Weight continuity
+ * compares your current weights, so it only applies when both exercises
+ * have one.
  */
 export function scoreEquipmentAlignment(
   candidate: Exercise,
   soft: SoftPreferences | undefined,
   previousExercise?: Exercise,
+  currentWeights: CurrentWeights = {},
 ): EquipmentScore {
   let score = 0;
   const explanation: string[] = [];
@@ -73,13 +77,15 @@ export function scoreEquipmentAlignment(
         explanation.push(`+0: location change from "${previousExercise.location}" to "${candidate.location}"`);
       }
     }
-    if (soft.minimizeWeightChanges && previousExercise.startingWeight !== undefined && candidate.startingWeight !== undefined) {
-      const delta = Math.abs(candidate.startingWeight - previousExercise.startingWeight);
+    const previousWeight = currentWeightFor(previousExercise, currentWeights);
+    const candidateWeight = currentWeightFor(candidate, currentWeights);
+    if (soft.minimizeWeightChanges && previousWeight !== undefined && candidateWeight !== undefined) {
+      const delta = Math.abs(candidateWeight - previousWeight);
       // Inverse-distance bonus, capped at +1, so small weight changes score close to a full point.
       const weightScore = 1 / (1 + delta);
       score += weightScore;
       explanation.push(
-        `+${weightScore.toFixed(2)}: weight change of ${delta}kg from the exercise it replaces (${previousExercise.startingWeight}kg -> ${candidate.startingWeight}kg)`,
+        `+${weightScore.toFixed(2)}: weight change of ${delta}kg from the exercise it replaces (${previousWeight}kg -> ${candidateWeight}kg)`,
       );
     }
   }
@@ -109,10 +115,11 @@ export function rankByEquipmentAlignment(
   candidates: Exercise[],
   soft: SoftPreferences | undefined,
   previousExercise?: Exercise,
+  currentWeights: CurrentWeights = {},
 ): { exercise: Exercise; score: number; explanation: string[] }[] {
   return candidates
     .map((exercise) => {
-      const { score, explanation } = scoreEquipmentAlignment(exercise, soft, previousExercise);
+      const { score, explanation } = scoreEquipmentAlignment(exercise, soft, previousExercise, currentWeights);
       return { exercise, score, explanation };
     })
     .sort((a, b) => b.score - a.score || a.exercise.id.localeCompare(b.exercise.id));

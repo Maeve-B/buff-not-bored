@@ -1,7 +1,16 @@
 import type { SaveStatus } from "@/lib/store";
 
-/** One-line save-status indicator for a completion screen — shared by Circuit and Classic Strength so a failed save is never silently indistinguishable from a successful one. */
-export function SaveStatusNote({ status, error }: { status: SaveStatus; error?: string }) {
+/** Save-status indicator (plus any first-use weight that failed to save) for a completion screen — shared by Circuit and Classic Strength so a failed save is never silently indistinguishable from a successful one. */
+export function SaveStatusNote({ status, error, weightError }: { status: SaveStatus; error?: string; weightError?: string }) {
+  return (
+    <>
+      <WorkoutSaveStatus status={status} error={error} />
+      {weightError && <p className="mt-1 text-xs font-medium text-red-600">{weightError}</p>}
+    </>
+  );
+}
+
+function WorkoutSaveStatus({ status, error }: { status: SaveStatus; error?: string }) {
   if (status === "saving") {
     return <p className="mt-2 text-xs font-medium text-slate-400">Saving…</p>;
   }

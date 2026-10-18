@@ -44,3 +44,9 @@
 - Decision: every loaded exercise offers jumps starting at 0.25 kg (barbell 0.25/0.5/1/2.5/5, dumbbells 0.25/0.5/1/2/2.5), and every increment is a multiple of 0.25 kg. Typed weight fields (Strength sets, exercise weight form) accept any 0.25 kg step. The circuit's tap-only stepper keeps its larger tap size to protect one-or-two-tap logging (§3.9).
 - Revisit if: the Phase 1 set-logging design sets a different tap size, or the nudge (S-004) needs fewer chips than the options list.
 
+### D-008 · How a first-use weight becomes your weight (2026-10-18, S-002)
+- Context: weights start blank (D-003), and the app must never change a prescribed load by itself (§3.3).
+- Decision: your weight lives in the exercise's capability (the exercise page). The first weight you log for a loaded exercise with no weight is saved there as a manual entry; the server re-checks and never overwrites an existing weight. After that, logged weights are session facts only. A workout in progress is never re-prescribed.
+- Alternatives: a separate "user exercise state" table (unnecessary while the capability already holds the current weight); updating your weight from every logged session (breaks §3.3).
+- Revisit if: multi-user arrives (capability gains a user id), or the progression nudge needs its own record of accepted increases.
+

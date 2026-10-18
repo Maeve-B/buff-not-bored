@@ -9,12 +9,20 @@
  * snapshot/save-queue/local-fallback pattern applies here identically.
  */
 
-import type { StrengthSession } from "@buff-not-bored/domain";
+import type { CurrentWeights, StrengthSession } from "@buff-not-bored/domain";
 import { countCompletedSets } from "@buff-not-bored/domain";
 import { create } from "zustand";
 import { persistWorkoutSnapshot } from "./actions/save-workout";
 import { clearFallbackSnapshotIfRevision, writeFallbackSnapshot } from "./local-fallback";
-import { getTodayStrengthSession, logStrengthSet, STRENGTH_WORKOUT_NAME, type StrengthSetLogInput } from "./strength-service";
+import { mergeServerWeights, persistStartingWeight } from "./starting-weight";
+import {
+  getTodayStrengthSession,
+  logStrengthSet,
+  prescribeSessionWeights,
+  resolveStartingWeight,
+  STRENGTH_WORKOUT_NAME,
+  type StrengthSetLogInput,
+} from "./strength-service";
 import type { CompletedStrengthWorkout, SaveStatus, StrengthWorkoutSnapshot } from "./types";
 
 export type WorkoutStatus = "idle" | "in_progress" | "completed";
@@ -26,15 +34,20 @@ type PersistableStatus = "in_progress" | "completed";
 interface StrengthAppData {
   workoutId: string;
   session: StrengthSession;
+  /** Your weights, loaded by the page from the server; first-use weights are added here as you log them. */
+  currentWeights: CurrentWeights;
   status: WorkoutStatus;
   startedAt?: number;
   completedAt?: number;
   history: CompletedStrengthWorkout[];
   saveStatus: SaveStatus;
   saveError?: string;
+  /** Set when a first-use starting weight didn't save. */
+  weightSaveError?: string;
 }
 
 interface StrengthAppActions {
+  applyCurrentWeights: (weights: CurrentWeights) => void;
   startWorkout: () => void;
   logSet: (exerciseId: string, setNumber: number, input: StrengthSetLogInput) => void;
   completeWorkout: () => void;
@@ -43,16 +56,18 @@ interface StrengthAppActions {
 
 type StrengthAppState = StrengthAppData & StrengthAppActions;
 
-function freshData(): StrengthAppData {
+function freshData(currentWeights: CurrentWeights = {}): StrengthAppData {
   return {
     workoutId: crypto.randomUUID(),
-    session: getTodayStrengthSession(),
+    session: getTodayStrengthSession(currentWeights),
+    currentWeights,
     status: "idle",
     startedAt: undefined,
     completedAt: undefined,
     history: [],
     saveStatus: "idle",
     saveError: undefined,
+    weightSaveError: undefined,
   };
 }
 
@@ -109,8 +124,21 @@ export const useStrengthStore = create<StrengthAppState>((set, get) => {
     });
   }
 
+  async function recordStartingWeight(exerciseName: string, exerciseId: string, weight: number) {
+    const error = await persistStartingWeight(exerciseName, exerciseId, weight);
+    if (error) set({ weightSaveError: error });
+  }
+
   return {
     ...freshData(),
+
+    // Re-prescribes the session you already have (keeping any refresh or swap), never rebuilding it.
+    // A workout in progress only gets blank weights filled in (§3.3).
+    applyCurrentWeights: (weights) =>
+      set((state) => {
+        const currentWeights = mergeServerWeights(state.currentWeights, weights);
+        return { currentWeights, session: prescribeSessionWeights(state.session, currentWeights, state.status !== "idle") };
+      }),
 
     startWorkout: () => {
       set({ status: "in_progress", startedAt: Date.now() });
@@ -119,6 +147,12 @@ export const useStrengthStore = create<StrengthAppState>((set, get) => {
 
     logSet: (exerciseId, setNumber, input) => {
       set((state) => ({ session: logStrengthSet(state.session, exerciseId, setNumber, input) }));
+      const starting = resolveStartingWeight(get().session, exerciseId, get().currentWeights, input.actualWeight);
+      if (starting) {
+        set((state) => ({ session: starting.session, currentWeights: { ...state.currentWeights, [exerciseId]: starting.weight } }));
+        const name = get().session.exercises.find((se) => se.exercise.id === exerciseId)?.exercise.name ?? exerciseId;
+        void recordStartingWeight(name, exerciseId, starting.weight);
+      }
       persistAndTrack("in_progress");
     },
 
@@ -144,6 +178,6 @@ export const useStrengthStore = create<StrengthAppState>((set, get) => {
     // an unsynced entry must survive the user moving on, for a future
     // recovery feature. It's only ever removed by its own save succeeding
     // (see persistAndTrack above).
-    startNewWorkout: () => set((state) => ({ ...freshData(), history: state.history })),
+    startNewWorkout: () => set((state) => ({ ...freshData(state.currentWeights), history: state.history })),
   };
 });

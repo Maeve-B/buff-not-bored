@@ -1,6 +1,6 @@
 "use client";
 
-import type { PlannedExercise } from "@buff-not-bored/domain";
+import { isLoaded, parseEnteredWeight, WEIGHT_STEP_KG, type PlannedExercise } from "@buff-not-bored/domain";
 import { useEffect, useState } from "react";
 import { formatEquipment, formatTargetVolume, formatTargetWeight, getFormCue } from "@/lib/format";
 import { useAppStore } from "@/lib/store";
@@ -15,22 +15,33 @@ export function ExerciseCard({ planned }: { planned: PlannedExercise }) {
   const swap = useAppStore((s) => s.swap);
 
   const isDuration = planned.prescribedDuration !== undefined;
-  const hasWeight = planned.prescribedWeight !== undefined;
+  const hasWeight = isLoaded(planned.exercise) && !isDuration;
+  // A loaded exercise with no prescribed weight is a first use: you type the weight once (spec §10.1).
+  // Working skeleton only, as part of the design-first set-logging screen.
+  const needsWeight = hasWeight && planned.prescribedWeight === undefined;
 
   const [weight, setWeight] = useState(planned.prescribedWeight ?? 0);
+  const [typedWeight, setTypedWeight] = useState("");
   const [volume, setVolume] = useState(planned.prescribedReps ?? planned.prescribedDuration ?? 0);
 
   // If this exercise gets swapped for a different one (new id, new defaults), reset the local inputs.
   useEffect(() => {
     setWeight(planned.prescribedWeight ?? 0);
+    setTypedWeight("");
     setVolume(planned.prescribedReps ?? planned.prescribedDuration ?? 0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [exerciseId]);
 
+  function loggedWeight(): number | undefined {
+    if (!hasWeight) return undefined;
+    if (!needsWeight) return weight;
+    return parseEnteredWeight(typedWeight);
+  }
+
   function handleLogSet() {
     logSet(
       exerciseId,
-      isDuration ? { actualDuration: volume } : { actualWeight: hasWeight ? weight : undefined, actualReps: volume },
+      isDuration ? { actualDuration: volume } : { actualWeight: loggedWeight(), actualReps: volume },
     );
   }
 
@@ -79,8 +90,8 @@ export function ExerciseCard({ planned }: { planned: PlannedExercise }) {
         </div>
       ) : (
         <>
-          <div className="mt-4 flex items-center justify-around gap-4 border-t border-slate-100 pt-4">
-            {hasWeight && (
+          <div className="mt-4 flex flex-wrap items-center justify-around gap-x-4 gap-y-3 border-t border-slate-100 pt-4">
+            {hasWeight && !needsWeight && (
               <Stepper
                 label="Weight"
                 value={weight}
@@ -88,6 +99,22 @@ export function ExerciseCard({ planned }: { planned: PlannedExercise }) {
                 suffix="kg"
                 onChange={setWeight}
               />
+            )}
+            {needsWeight && (
+              <label className="flex flex-col items-center gap-1">
+                <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Weight (kg)</span>
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  step={WEIGHT_STEP_KG}
+                  min={0}
+                  placeholder="kg"
+                  value={typedWeight}
+                  onChange={(e) => setTypedWeight(e.target.value)}
+                  aria-label={`${planned.exercise.name} weight`}
+                  className="w-20 rounded-lg border border-slate-300 px-2 py-2 text-center text-lg font-bold tabular-nums"
+                />
+              </label>
             )}
             <Stepper
               label={isDuration ? "Seconds" : "Reps"}

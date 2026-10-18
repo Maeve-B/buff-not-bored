@@ -38,8 +38,6 @@ const testExercise: Exercise = {
   exerciseType: "compound",
   equipment: "barbell",
   location: "rack",
-  startingWeight: 60,
-  weightUnit: "kg",
   prescribedReps: 8,
   repsUnit: "reps",
   progressionPercentage: 5,
@@ -79,9 +77,9 @@ describe("exercise repository", () => {
 
   it("upsert replaces the existing row rather than erroring on a duplicate id", async () => {
     await upsertExercise(testExercise);
-    await upsertExercise({ ...testExercise, startingWeight: 65 });
+    await upsertExercise({ ...testExercise, prescribedReps: 6 });
     const found = await findExerciseById(testExercise.id);
-    expect(found?.startingWeight).toBe(65);
+    expect(found?.prescribedReps).toBe(6);
   });
 
   it("lists every stored exercise", async () => {
@@ -435,7 +433,7 @@ describe("exercise capability repository", () => {
     await upsertExerciseCapability({ exerciseId: testExercise.id, weight: 65, weightUnit: "kg", source: "manual" });
 
     const exercise = await findExerciseById(testExercise.id);
-    expect(exercise?.startingWeight).toBe(60); // the catalog's own startingWeight, untouched by the personal capability write
+    expect(exercise).toEqual({ ...testExercise, needsReview: false }); // the catalog entry, untouched by the personal capability write
   });
 
   describe("append-only weight log (alongside the singleton capability)", () => {
