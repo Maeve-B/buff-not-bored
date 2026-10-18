@@ -87,6 +87,11 @@ describe("exerciseSchema — library v2 profile (§9.1)", () => {
     expect(exerciseSchema.safeParse({ ...validExercise, loadType: "bodyweight", incrementOptions: [1] }).success).toBe(false);
   });
 
+  it("accepts jumps as small as 0.25 kg but nothing finer", () => {
+    expect(exerciseSchema.safeParse({ ...loaded, incrementOptions: [0.25, 0.75] }).success).toBe(true);
+    expect(exerciseSchema.safeParse({ ...loaded, incrementOptions: [0.1] }).success).toBe(false);
+  });
+
   it("rejects increments that aren't strictly ascending", () => {
     expect(exerciseSchema.safeParse({ ...loaded, incrementOptions: [2, 1] }).success).toBe(false);
     expect(exerciseSchema.safeParse({ ...loaded, incrementOptions: [1, 1] }).success).toBe(false);

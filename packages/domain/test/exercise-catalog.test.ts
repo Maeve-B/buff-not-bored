@@ -168,6 +168,12 @@ describe("exercise library — v2 profile (§9.1, S-001)", () => {
     expect(squats.incrementOptions).not.toBe(EXERCISE_PROFILES.squats.incrementOptions);
   });
 
+  it("offers a 0.25 kg jump on every loaded exercise (D-007)", () => {
+    for (const exercise of EXERCISES.filter((e) => e.loadType !== "bodyweight")) {
+      expect(exercise.incrementOptions[0], exercise.id).toBe(0.25);
+    }
+  });
+
   it("never defaults strength work to percentage progression (§3.3)", () => {
     expect(EXERCISES.filter((e) => e.progressionStrategyDefault === "percentage")).toEqual([]);
   });

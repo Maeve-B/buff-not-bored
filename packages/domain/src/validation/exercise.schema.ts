@@ -21,6 +21,7 @@ import {
   REPS_UNITS,
   SKILL_LEVELS,
   STATIONS,
+  WEIGHT_STEP_KG,
   WEIGHT_UNITS,
   type Exercise,
 } from "../entities/exercise.js";
@@ -114,6 +115,9 @@ export const exerciseSchema = z
     }
     if (!unloaded && exercise.incrementOptions.length === 0) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, message: "a loaded exercise needs at least one incrementOption" });
+    }
+    if (exercise.incrementOptions.some((value) => !Number.isInteger(value / WEIGHT_STEP_KG))) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: `incrementOptions must be multiples of ${WEIGHT_STEP_KG} kg` });
     }
     if (exercise.incrementOptions.some((value, i, all) => i > 0 && value <= all[i - 1]!)) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, message: "incrementOptions must be in ascending order without repeats" });

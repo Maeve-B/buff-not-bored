@@ -8,8 +8,9 @@
  * - `station` follows the v1 `location` (rack → rack, bench → bench,
  *   standing → open_space, floor and bench_or_floor → floor), so faff
  *   scoring sees the same layout as before.
- * - Increments: barbell [2.5, 5] kg, dumbbells [1, 2, 2.5] kg (§7.4, §9.1
- *   examples); unloaded bodyweight has none.
+ * - Increments start at 0.25 kg so small jumps are always available
+ *   (D-007): barbell [0.25, 0.5, 1, 2.5, 5] kg, dumbbells [0.25, 0.5, 1, 2,
+ *   2.5] kg. Unloaded bodyweight has none.
  * - Default progression: compound → load_nudge, isolation →
  *   double_progression, unloaded bodyweight → ladder (§6.5).
  * - Light alternatives must share the movement pattern (§6.6) and are empty
@@ -18,8 +19,8 @@
 
 import type { ExerciseLibraryProfile } from "../entities/exercise.js";
 
-const BARBELL = [2.5, 5] as const;
-const DUMBBELL = [1, 2, 2.5] as const;
+const BARBELL = [0.25, 0.5, 1, 2.5, 5] as const;
+const DUMBBELL = [0.25, 0.5, 1, 2, 2.5] as const;
 
 export const EXERCISE_PROFILES = {
   // ---- LEGS ----

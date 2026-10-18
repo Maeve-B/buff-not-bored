@@ -153,6 +153,12 @@ export type GymEquipment = (typeof GYM_EQUIPMENT)[number];
 export const STATIONS = ["rack", "bench", "cable_stack", "floor", "pull_up_bar", "machine", "open_space"] as const;
 export type Station = (typeof STATIONS)[number];
 
+/**
+ * The finest weight change the app supports, in kg. Every increment option
+ * and every weight a person enters is a multiple of this (DECISIONS.md D-007).
+ */
+export const WEIGHT_STEP_KG = 0.25;
+
 /** `reduce_assistance`: the logged value is assistance in kg and a lower number is progress (§9.1). */
 export const LOAD_DIRECTIONS = ["add_load", "reduce_assistance"] as const;
 export type LoadDirection = (typeof LOAD_DIRECTIONS)[number];
@@ -181,7 +187,7 @@ export interface ExerciseLibraryProfile {
   unilateral: boolean;
   /** Reps or seconds are counted per side. Only meaningful when `unilateral`. */
   perSide: boolean;
-  /** Real available jumps in kg, smallest first. Empty for unloaded bodyweight exercises. */
+  /** Available jumps in kg, smallest first, each a multiple of WEIGHT_STEP_KG. Empty for unloaded bodyweight exercises. */
   incrementOptions: number[];
   loadDirection: LoadDirection;
   progressionStrategyDefault: ProgressionStrategy;

@@ -14,7 +14,7 @@ No screen changes, so no screenshots. This table is the review (D-005).
 Nothing to tap yet. These details start doing visible work in S-002 (your weights), S-003 (rep defaults) and S-004 (the nudge), and in Phase 1's light day and swap.
 
 ## Please check: my judgement calls ⚠️
-1. **Weight jumps** use the spec's typical values: barbell +2.5 / +5 kg, dumbbells +1 / +2 / +2.5 kg. Do they match your gym?
+1. **Weight jumps** now start at 0.25 kg, as you asked: barbell +0.25 / +0.5 / +1 / +2.5 / +5 kg, dumbbells +0.25 / +0.5 / +1 / +2 / +2.5 kg. Any weight you type can be any 0.25 kg step (D-007). The circuit screen's tap-only +/− buttons keep their old 2.5 / 0.5 kg tap size, so adjusting mid-workout doesn't take more taps; tap size is part of the set-logging design in Phase 1.
 2. **Upright Row** is filed as a *shoulder raise*, not the v1 "vertical pull". Vertical pull in v2 means pull-ups and pulldowns.
 3. **Bench Flyes** are filed as a *horizontal push* (isolation), with their own swap group.
 4. **Superman Holds** are filed as a *hinge* (isolation), with their own swap group. That makes them the light alternative for Deadlifts, RDL to Upright Row and Good Mornings.
@@ -67,38 +67,38 @@ Your earlier answers are applied: core exercises are *isolation*; RDL to Upright
 ## How it goes up, and what replaces it
 | Exercise | Weight jumps | Progression | Light alternative | Swap group | Joint stress |
 |---|---|---|---|---|---|
-| Squats | +2.5 / +5 kg | load nudge | Bodyweight Squat Pulses | squat | knee, hip, lower back |
-| Squat Pulse | +2.5 / +5 kg | load nudge | Bodyweight Squat Pulses | squat | knee, hip |
-| Lunges (Alternating) | +2.5 / +5 kg | load nudge | – | lunge | knee, hip |
-| Sumo Squats | +2.5 / +5 kg | load nudge | Bodyweight Squat Pulses | squat | knee, hip |
-| Squat + Calf Raise | +2.5 / +5 kg | load nudge | Bodyweight Squat Pulses | squat | knee, hip |
+| Squats | +0.25 / +0.5 / +1 / +2.5 / +5 kg | load nudge | Bodyweight Squat Pulses | squat | knee, hip, lower back |
+| Squat Pulse | +0.25 / +0.5 / +1 / +2.5 / +5 kg | load nudge | Bodyweight Squat Pulses | squat | knee, hip |
+| Lunges (Alternating) | +0.25 / +0.5 / +1 / +2.5 / +5 kg | load nudge | – | lunge | knee, hip |
+| Sumo Squats | +0.25 / +0.5 / +1 / +2.5 / +5 kg | load nudge | Bodyweight Squat Pulses | squat | knee, hip |
+| Squat + Calf Raise | +0.25 / +0.5 / +1 / +2.5 / +5 kg | load nudge | Bodyweight Squat Pulses | squat | knee, hip |
 | Bodyweight Squat Pulses | – | ladder | – | squat | knee |
-| Bulgarian Split Squat | +1 / +2 / +2.5 kg | load nudge | – | lunge | knee, hip |
-| Deadlifts | +2.5 / +5 kg | load nudge | Superman Holds | hinge | lower back, hip |
-| RDL to Upright Row | +2.5 / +5 kg | load nudge | Superman Holds | hinge | lower back, hip, shoulder |
-| Bent-Over Row | +2.5 / +5 kg | load nudge | Single-Arm Dumbbell Row | horizontal-pull | lower back |
-| Single-Arm Dumbbell Row | +1 / +2 / +2.5 kg | load nudge | – | horizontal-pull | – |
-| Good Mornings | +2.5 / +5 kg | load nudge | Superman Holds | hinge | lower back, hip |
+| Bulgarian Split Squat | +0.25 / +0.5 / +1 / +2 / +2.5 kg | load nudge | – | lunge | knee, hip |
+| Deadlifts | +0.25 / +0.5 / +1 / +2.5 / +5 kg | load nudge | Superman Holds | hinge | lower back, hip |
+| RDL to Upright Row | +0.25 / +0.5 / +1 / +2.5 / +5 kg | load nudge | Superman Holds | hinge | lower back, hip, shoulder |
+| Bent-Over Row | +0.25 / +0.5 / +1 / +2.5 / +5 kg | load nudge | Single-Arm Dumbbell Row | horizontal-pull | lower back |
+| Single-Arm Dumbbell Row | +0.25 / +0.5 / +1 / +2 / +2.5 kg | load nudge | – | horizontal-pull | – |
+| Good Mornings | +0.25 / +0.5 / +1 / +2.5 / +5 kg | load nudge | Superman Holds | hinge | lower back, hip |
 | Superman Holds | – | ladder | – | back-extension | lower back |
-| Flat Bench Press | +2.5 / +5 kg | load nudge | Push-Ups | horizontal-push | shoulder |
-| Bench Flyes | +1 / +2 / +2.5 kg | double progression | – | chest-fly | shoulder |
-| Flat DB Press | +1 / +2 / +2.5 kg | load nudge | Push-Ups | horizontal-push | shoulder |
-| Incline DB Press | +1 / +2 / +2.5 kg | load nudge | Push-Ups | incline-push | shoulder |
+| Flat Bench Press | +0.25 / +0.5 / +1 / +2.5 / +5 kg | load nudge | Push-Ups | horizontal-push | shoulder |
+| Bench Flyes | +0.25 / +0.5 / +1 / +2 / +2.5 kg | double progression | – | chest-fly | shoulder |
+| Flat DB Press | +0.25 / +0.5 / +1 / +2 / +2.5 kg | load nudge | Push-Ups | horizontal-push | shoulder |
+| Incline DB Press | +0.25 / +0.5 / +1 / +2 / +2.5 kg | load nudge | Push-Ups | incline-push | shoulder |
 | Push-Ups | – | ladder | – | horizontal-push | wrist, shoulder |
-| Lying Tricep Extensions | +1 / +2 / +2.5 kg | double progression | – | triceps-extension | elbow |
-| Close-Grip Bench Press | +2.5 / +5 kg | load nudge | Close-Grip Push-Ups | triceps-press | elbow, shoulder, wrist |
+| Lying Tricep Extensions | +0.25 / +0.5 / +1 / +2 / +2.5 kg | double progression | – | triceps-extension | elbow |
+| Close-Grip Bench Press | +0.25 / +0.5 / +1 / +2.5 / +5 kg | load nudge | Close-Grip Push-Ups | triceps-press | elbow, shoulder, wrist |
 | Close-Grip Push-Ups | – | ladder | – | triceps-press | wrist, elbow |
-| Tricep Kickbacks | +1 / +2 / +2.5 kg | double progression | – | triceps-extension | elbow |
-| Lateral Raises | +1 / +2 / +2.5 kg | double progression | – | lateral-raise | shoulder |
-| Front Raises | +1 / +2 / +2.5 kg | double progression | – | front-raise | shoulder |
-| Upright Row | +1 / +2 / +2.5 kg | load nudge | Lateral Raises | upright-row | shoulder, wrist |
-| Overhead Press | +1 / +2 / +2.5 kg | load nudge | – | vertical-push | shoulder, lower back |
-| Barbell Curl | +2.5 / +5 kg | double progression | – | biceps-curl | elbow, wrist |
-| Concentration Curl | +1 / +2 / +2.5 kg | double progression | – | biceps-curl | elbow |
-| Alternating Dumbbell Curl | +1 / +2 / +2.5 kg | double progression | – | biceps-curl | elbow |
-| Hammer Curl | +1 / +2 / +2.5 kg | double progression | – | biceps-curl | elbow |
+| Tricep Kickbacks | +0.25 / +0.5 / +1 / +2 / +2.5 kg | double progression | – | triceps-extension | elbow |
+| Lateral Raises | +0.25 / +0.5 / +1 / +2 / +2.5 kg | double progression | – | lateral-raise | shoulder |
+| Front Raises | +0.25 / +0.5 / +1 / +2 / +2.5 kg | double progression | – | front-raise | shoulder |
+| Upright Row | +0.25 / +0.5 / +1 / +2 / +2.5 kg | load nudge | Lateral Raises | upright-row | shoulder, wrist |
+| Overhead Press | +0.25 / +0.5 / +1 / +2 / +2.5 kg | load nudge | – | vertical-push | shoulder, lower back |
+| Barbell Curl | +0.25 / +0.5 / +1 / +2.5 / +5 kg | double progression | – | biceps-curl | elbow, wrist |
+| Concentration Curl | +0.25 / +0.5 / +1 / +2 / +2.5 kg | double progression | – | biceps-curl | elbow |
+| Alternating Dumbbell Curl | +0.25 / +0.5 / +1 / +2 / +2.5 kg | double progression | – | biceps-curl | elbow |
+| Hammer Curl | +0.25 / +0.5 / +1 / +2 / +2.5 kg | double progression | – | biceps-curl | elbow |
 | Plank | – | ladder | – | anti-extension | – |
-| Russian Twists | +1 / +2 / +2.5 kg | double progression | Bicycle Crunches | rotation | lower back |
+| Russian Twists | +0.25 / +0.5 / +1 / +2 / +2.5 kg | double progression | Bicycle Crunches | rotation | lower back |
 | Bicycle Crunches | – | ladder | – | rotation | – |
 
 ## Cues (setup, then form)

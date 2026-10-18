@@ -50,7 +50,7 @@ _Breakdown approved 2026-10-18. Decisions D-002–D-006._
 - Screens: Strength summary and Progress, in two states: ready to go up, not yet ready (placeholder text)
 - Design-first: yes. The real nudge screen comes in Phase 1, so this slice uses plain text only.
 - Depends on: S-003
-- Notes: the trigger uses reps only until set feedback is logged in Phase 1 (D-006). Circuit keeps percentage progression.
+- Notes: the trigger uses reps only until set feedback is logged in Phase 1 (D-006). Circuit keeps percentage progression. The old engines round weights to 0.5 kg; anything that stays must use the 0.25 kg step (D-007). Choosing which of the increment options become the nudge chips is a design question.
 - Done when: no strength screen suggests a weight automatically; the engine reports readiness and increment options.
 
 ## Discovered (untriaged)
