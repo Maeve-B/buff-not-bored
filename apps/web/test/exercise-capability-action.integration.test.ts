@@ -31,6 +31,7 @@ const testExercise: Exercise = {
 };
 
 async function resetTables(): Promise<void> {
+  await prisma.exerciseWeightLog.deleteMany({ where: { exerciseId: testExercise.id } });
   await prisma.exerciseCapability.deleteMany({ where: { exerciseId: testExercise.id } });
   await prisma.exercise.deleteMany({ where: { id: testExercise.id } });
 }

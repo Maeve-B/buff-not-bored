@@ -77,3 +77,18 @@ export interface LoggedWorkoutSummary {
   status: WorkoutStatus;
   dateIso: string;
 }
+
+/**
+ * One recorded weight for an exercise — either actually logged in a
+ * completed workout (`getExerciseWeightHistory`) or saved manually via
+ * the capability form, independent of any workout
+ * (`getManualExerciseWeightLog`). Deliberately origin-agnostic and
+ * minimal: just enough to plot/list a chronological series (date +
+ * weight); nothing downstream needs to know which source an entry came
+ * from, which is exactly what lets the two be merged into one timeline
+ * (see apps/web/lib/actions/exercise-weight-history.ts).
+ */
+export interface ExerciseWeightHistoryEntry {
+  dateIso: string;
+  weight: number;
+}

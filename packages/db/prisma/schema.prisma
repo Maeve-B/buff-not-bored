@@ -51,6 +51,7 @@ model Exercise {
 
   workoutExercises WorkoutExercise[]
   capability       ExerciseCapability?
+  weightLogs       ExerciseWeightLog[]
 
   @@map("exercises")
 }
@@ -88,6 +89,45 @@ model ExerciseCapability {
   updatedAt DateTime @updatedAt
 
   @@map("exercise_capabilities")
+}
+
+/// An append-only history of every weight the user has saved for an
+/// exercise outside a workout — the history `ExerciseCapability`
+/// deliberately doesn't keep. `ExerciseCapability` stays the single
+/// "what I can do right now" row per exercise (upserted, overwritten on
+/// every save); this table gets one NEW row per capability save that
+/// includes a weight, written in the same transaction, and is never
+/// updated or deleted. Kept as a separate table rather than relaxing
+/// `ExerciseCapability.exerciseId @unique`, so the current-value contract
+/// (and everything that reads it) is untouched.
+///
+/// Deliberately separate from workout-logged performance too
+/// (`WorkoutSet.actualWeight`): that is "what I actually lifted in one
+/// session", this is "what I recorded as my working weight". Both are
+/// merged into one chronological timeline only at display time (see
+/// apps/web/lib/actions/exercise-weight-history.ts) — never stored
+/// together.
+///
+/// Weight only, by design: a reps-/duration-only capability save writes
+/// nothing here. Same single-user scoping as ExerciseCapability — a future
+/// multi-user change adds a `userId` column here too.
+model ExerciseWeightLog {
+  id         String   @id @default(cuid())
+  exerciseId String
+  exercise   Exercise @relation(fields: [exerciseId], references: [id])
+
+  weight     Float
+  weightUnit String
+
+  /// "manual" | "progression" — copied from the capability save that produced this entry; plain string, same extensible-vocabulary convention as ExerciseCapability.source.
+  source String
+  note   String?
+
+  /// Set by the database at insert time — the entry's position in the timeline. Never caller-supplied, never updated.
+  recordedAt DateTime @default(now())
+
+  @@index([exerciseId, recordedAt])
+  @@map("exercise_weight_logs")
 }
 
 /// A completed (or in-progress) workout/session — the shared envelope for

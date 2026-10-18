@@ -2,6 +2,7 @@ export { prisma } from "./client.js";
 
 // Types (the persistence-facing DTO shape — see src/types.ts's doc comment)
 export type {
+  ExerciseWeightHistoryEntry,
   LoggedSetInput,
   LoggedSetRecord,
   LoggedWorkoutExerciseInput,
@@ -25,6 +26,11 @@ export {
   saveWorkoutSnapshot,
   getWorkoutById,
   listWorkoutSummaries,
+  getExerciseWeightHistory,
   WorkoutStatusRegressionError,
 } from "./repositories/workout-repository.js";
-export { upsertExerciseCapability, getExerciseCapability } from "./repositories/exercise-capability-repository.js";
+export {
+  upsertExerciseCapability,
+  getExerciseCapability,
+  getManualExerciseWeightLog,
+} from "./repositories/exercise-capability-repository.js";

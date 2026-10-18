@@ -11,8 +11,13 @@ import type { Exercise, ExerciseCapabilityInput } from "@buff-not-bored/domain";
 import { CapabilityValidationError } from "@buff-not-bored/domain";
 import { prisma } from "../src/client.js";
 import { findExerciseById, listExercises, upsertExercise } from "../src/repositories/exercise-repository.js";
-import { getExerciseCapability, upsertExerciseCapability } from "../src/repositories/exercise-capability-repository.js";
 import {
+  getExerciseCapability,
+  getManualExerciseWeightLog,
+  upsertExerciseCapability,
+} from "../src/repositories/exercise-capability-repository.js";
+import {
+  getExerciseWeightHistory,
   getWorkoutById,
   listWorkoutSummaries,
   saveWorkoutSnapshot,
@@ -43,6 +48,7 @@ async function resetTables(): Promise<void> {
   await prisma.workoutSet.deleteMany();
   await prisma.workoutExercise.deleteMany();
   await prisma.workout.deleteMany();
+  await prisma.exerciseWeightLog.deleteMany();
   await prisma.exerciseCapability.deleteMany();
   await prisma.exercise.deleteMany();
 }
@@ -258,6 +264,106 @@ describe("workout repository", () => {
   });
 });
 
+describe("getExerciseWeightHistory", () => {
+  beforeEach(async () => {
+    await upsertExercise(testExercise);
+  });
+
+  function oneSetWorkout(dateIso: string, actualWeight: number | undefined, completed: boolean): LoggedWorkoutInput {
+    return {
+      workoutType: "classic_strength",
+      name: "Full Body Strength",
+      status: "completed",
+      dateIso,
+      exercises: [
+        {
+          exerciseId: testExercise.id,
+          role: "main",
+          sets: [{ setNumber: 1, targetReps: 8, actualReps: 8, actualWeight, completed }],
+        },
+      ],
+    };
+  }
+
+  it("returns an empty list when nothing has ever been logged", async () => {
+    const history = await getExerciseWeightHistory(testExercise.id);
+    expect(history).toEqual([]);
+  });
+
+  it("returns entries in chronological order regardless of save order", async () => {
+    await saveWorkoutSnapshot("wh-2", oneSetWorkout("2026-09-28", 40, true));
+    await saveWorkoutSnapshot("wh-1", oneSetWorkout("2026-09-21", 38, true));
+    await saveWorkoutSnapshot("wh-3", oneSetWorkout("2026-10-05", 42, true));
+
+    const history = await getExerciseWeightHistory(testExercise.id);
+    expect(history).toEqual([
+      { dateIso: "2026-09-21", weight: 38 },
+      { dateIso: "2026-09-28", weight: 40 },
+      { dateIso: "2026-10-05", weight: 42 },
+    ]);
+  });
+
+  it("includes an increase, a decrease, and a repeated (unchanged) weight, all in the data", async () => {
+    await saveWorkoutSnapshot("wh-week1", oneSetWorkout("2026-09-07", 40, true));
+    await saveWorkoutSnapshot("wh-week2", oneSetWorkout("2026-09-14", 42.5, true)); // increase
+    await saveWorkoutSnapshot("wh-week3", oneSetWorkout("2026-09-21", 42.5, true)); // unchanged
+    await saveWorkoutSnapshot("wh-week4", oneSetWorkout("2026-09-28", 35, true)); // decrease
+
+    const history = await getExerciseWeightHistory(testExercise.id);
+    expect(history.map((e) => e.weight)).toEqual([40, 42.5, 42.5, 35]);
+  });
+
+  it("excludes sets from a workout that was never completed", async () => {
+    await saveWorkoutSnapshot("wh-in-progress", { ...oneSetWorkout("2026-09-21", 40, true), status: "in_progress" });
+
+    const history = await getExerciseWeightHistory(testExercise.id);
+    expect(history).toEqual([]);
+  });
+
+  it("excludes individual sets that weren't completed, even within an otherwise completed workout", async () => {
+    const input: LoggedWorkoutInput = {
+      workoutType: "classic_strength",
+      name: "Full Body Strength",
+      status: "completed",
+      dateIso: "2026-09-21",
+      exercises: [
+        {
+          exerciseId: testExercise.id,
+          role: "main",
+          sets: [
+            { setNumber: 1, targetReps: 8, actualReps: 8, actualWeight: 40, completed: true },
+            { setNumber: 2, targetReps: 8, actualReps: 4, actualWeight: 40, completed: false },
+          ],
+        },
+      ],
+    };
+    await saveWorkoutSnapshot("wh-mixed-sets", input);
+
+    const history = await getExerciseWeightHistory(testExercise.id);
+    expect(history).toHaveLength(1);
+  });
+
+  it("excludes a completed set that has no actual weight recorded", async () => {
+    await saveWorkoutSnapshot("wh-no-weight", oneSetWorkout("2026-09-21", undefined, true));
+
+    const history = await getExerciseWeightHistory(testExercise.id);
+    expect(history).toEqual([]);
+  });
+
+  it("is scoped to the requested exercise only", async () => {
+    const otherExercise: Exercise = { ...testExercise, id: "integration-weight-history-other" };
+    await upsertExercise(otherExercise);
+    const input: LoggedWorkoutInput = {
+      ...oneSetWorkout("2026-09-21", 99, true),
+      exercises: [{ exerciseId: otherExercise.id, role: "main", sets: [{ setNumber: 1, targetReps: 8, actualReps: 8, actualWeight: 99, completed: true }] }],
+    };
+    await saveWorkoutSnapshot("wh-other-exercise", input);
+
+    const history = await getExerciseWeightHistory(testExercise.id);
+    expect(history).toEqual([]);
+  });
+});
+
 describe("exercise capability repository", () => {
   beforeEach(async () => {
     await upsertExercise(testExercise);
@@ -328,5 +434,82 @@ describe("exercise capability repository", () => {
 
     const exercise = await findExerciseById(testExercise.id);
     expect(exercise?.startingWeight).toBe(60); // the catalog's own startingWeight, untouched by the personal capability write
+  });
+
+  describe("append-only weight log (alongside the singleton capability)", () => {
+    const loaded = (weight: number): ExerciseCapabilityInput => ({
+      exerciseId: testExercise.id,
+      weight,
+      weightUnit: "kg",
+      reps: 8,
+      repsUnit: "reps",
+      source: "manual",
+    });
+
+    it("returns an empty log when no weight has ever been saved", async () => {
+      expect(await getManualExerciseWeightLog(testExercise.id)).toEqual([]);
+    });
+
+    it("the first weight save creates the first log entry, carrying unit, source and note", async () => {
+      await upsertExerciseCapability({ ...loaded(8), note: "first time" });
+
+      const rows = await prisma.exerciseWeightLog.findMany({ where: { exerciseId: testExercise.id } });
+      expect(rows).toHaveLength(1);
+      expect(rows[0]).toMatchObject({ weight: 8, weightUnit: "kg", source: "manual", note: "first time" });
+      expect(rows[0]!.recordedAt).toBeInstanceOf(Date);
+    });
+
+    it("a second save appends a second log row, while the capability table still holds exactly one row", async () => {
+      await upsertExerciseCapability(loaded(8));
+      await upsertExerciseCapability(loaded(10));
+
+      expect(await prisma.exerciseWeightLog.count({ where: { exerciseId: testExercise.id } })).toBe(2);
+      expect(await prisma.exerciseCapability.count({ where: { exerciseId: testExercise.id } })).toBe(1);
+      expect((await getExerciseCapability(testExercise.id))?.weight).toBe(10);
+    });
+
+    it("preserves an increase, an unchanged repeat, and a decrease, in save order", async () => {
+      for (const weight of [40, 42.5, 42.5, 35]) {
+        await upsertExerciseCapability(loaded(weight));
+      }
+      const log = await getManualExerciseWeightLog(testExercise.id);
+      expect(log.map((e) => e.weight)).toEqual([40, 42.5, 42.5, 35]);
+    });
+
+    it("a reps-/duration-only save writes no log entry, and doesn't erase earlier log entries", async () => {
+      await upsertExerciseCapability(loaded(20));
+      await upsertExerciseCapability({ exerciseId: testExercise.id, reps: 15, repsUnit: "reps", source: "manual" });
+      await upsertExerciseCapability({ exerciseId: testExercise.id, duration: 60, source: "manual" });
+
+      expect((await getManualExerciseWeightLog(testExercise.id)).map((e) => e.weight)).toEqual([20]);
+      expect((await getExerciseCapability(testExercise.id))?.weight).toBeUndefined(); // current value replaced; history kept
+    });
+
+    it("a rejected (invalid) save writes nothing to the log", async () => {
+      const invalid = { exerciseId: testExercise.id, weight: 10, source: "manual" } as ExerciseCapabilityInput; // weight without weightUnit
+      await expect(upsertExerciseCapability(invalid)).rejects.toThrow(CapabilityValidationError);
+      expect(await prisma.exerciseWeightLog.count()).toBe(0);
+    });
+
+    it("returns { dateIso, weight } entries in chronological order", async () => {
+      await upsertExerciseCapability(loaded(8));
+      await upsertExerciseCapability(loaded(9));
+      const log = await getManualExerciseWeightLog(testExercise.id);
+
+      expect(log.every((e) => Object.keys(e).sort().join() === "dateIso,weight")).toBe(true);
+      expect(log.every((e) => !Number.isNaN(Date.parse(e.dateIso)))).toBe(true);
+      const dates = log.map((e) => e.dateIso);
+      expect(dates).toEqual([...dates].sort());
+    });
+
+    it("is scoped to the requested exercise only", async () => {
+      const other: Exercise = { ...testExercise, id: "integration-weight-log-other" };
+      await upsertExercise(other);
+      await upsertExerciseCapability({ ...loaded(99), exerciseId: other.id });
+      await upsertExerciseCapability(loaded(8));
+
+      expect((await getManualExerciseWeightLog(testExercise.id)).map((e) => e.weight)).toEqual([8]);
+      expect((await getManualExerciseWeightLog(other.id)).map((e) => e.weight)).toEqual([99]);
+    });
   });
 });

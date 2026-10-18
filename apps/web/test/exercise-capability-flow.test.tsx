@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Exercise, ExerciseCapability } from "@buff-not-bored/domain";
 import { ExerciseCapabilityForm } from "@/components/ExerciseCapabilityForm";
 import { saveExerciseCapability } from "@/lib/actions/exercise-capability";
@@ -12,6 +12,16 @@ vi.mock("@/lib/actions/exercise-capability", () => ({
   loadExerciseCapability: vi.fn(async () => undefined),
   saveExerciseCapability: vi.fn(),
 }));
+
+// The component calls router.refresh() after a successful save so the page's
+// merged weight history re-fetches — rendering it directly here (outside a
+// Next app-router context) needs a stub, same as any other external module.
+const refresh = vi.fn();
+vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh }) }));
+
+beforeEach(() => {
+  refresh.mockClear();
+});
 
 const backSquat: Exercise = {
   id: "back-squat",
@@ -72,6 +82,7 @@ describe("ExerciseCapabilityForm", () => {
       expect.objectContaining({ exerciseId: "back-squat", weight: 65, source: "manual" }),
     );
     expect(await screen.findByText("Saved")).toBeInTheDocument();
+    expect(refresh).toHaveBeenCalled(); // re-fetches the page so the merged weight history below picks up this save
   });
 
   it("omits weight/weightUnit entirely when the weight field is left blank", async () => {
@@ -101,5 +112,6 @@ describe("ExerciseCapabilityForm", () => {
 
     expect(await screen.findByText(/couldn't save this capability/i)).toBeInTheDocument();
     expect(screen.getByText(/at least one of weight, reps, or duration/)).toBeInTheDocument();
+    expect(refresh).not.toHaveBeenCalled(); // a failed save must not refresh the page as if it had succeeded
   });
 });
