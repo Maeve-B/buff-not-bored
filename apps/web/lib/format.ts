@@ -34,9 +34,9 @@ export function formatProgrammeGroup(group: string): string {
   return group.charAt(0).toUpperCase() + group.slice(1);
 }
 
-/** "20kg" / "8kg each" (a dumbbell pair's weight is per dumbbell) / "Weight needed" (loaded, none yet) / "Bodyweight". */
+/** "20kg" / "8kg each" (a dumbbell pair's weight is per dumbbell) / "Add baseline" (loaded, no weight yet) / "Bodyweight". */
 export function formatTargetWeight(exercise: Exercise, weight?: number): string {
-  if (weight === undefined) return isLoaded(exercise) ? "Weight needed" : "Bodyweight";
+  if (weight === undefined) return isLoaded(exercise) ? "Add baseline" : "Bodyweight";
   const suffix = exercise.loadType === "dumbbell_pair" ? " each" : "";
   return `${weight}kg${suffix}`;
 }

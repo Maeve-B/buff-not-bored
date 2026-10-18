@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { REPS_UNITS, WEIGHT_STEP_KG, WEIGHT_UNITS, type Exercise, type ExerciseCapability, type ExerciseCapabilityInput } from "@buff-not-bored/domain";
+import { WEIGHT_STEP_KG, WEIGHT_UNITS, type Exercise, type ExerciseCapability, type ExerciseCapabilityInput } from "@buff-not-bored/domain";
 import { saveExerciseCapability } from "@/lib/actions/exercise-capability";
 import type { SaveStatus } from "@/lib/store";
 import { Button } from "./ui/Button";
@@ -26,7 +26,6 @@ export function ExerciseCapabilityForm({
   const [weight, setWeight] = useState(initialCapability?.weight?.toString() ?? "");
   const [weightUnit, setWeightUnit] = useState(initialCapability?.weightUnit ?? WEIGHT_UNITS[0]);
   const [reps, setReps] = useState(initialCapability?.reps?.toString() ?? "");
-  const [repsUnit, setRepsUnit] = useState(initialCapability?.repsUnit ?? REPS_UNITS[0]);
   const [duration, setDuration] = useState(initialCapability?.duration?.toString() ?? "");
   const [note, setNote] = useState(initialCapability?.note ?? "");
   const [status, setStatus] = useState<SaveStatus>("idle");
@@ -44,7 +43,8 @@ export function ExerciseCapabilityForm({
       weight: parsedWeight,
       weightUnit: parsedWeight !== undefined ? weightUnit : undefined,
       reps: parsedReps,
-      repsUnit: parsedReps !== undefined ? repsUnit : undefined,
+      // Reps are counted the way the exercise defines them (per side or total); there's no unit to choose.
+      repsUnit: parsedReps !== undefined ? (exercise.repsUnit ?? "reps") : undefined,
       duration: parsedDuration,
       source: "manual",
       note: note.trim() === "" ? undefined : note.trim(),
@@ -93,33 +93,17 @@ export function ExerciseCapabilityForm({
           </label>
         </div>
 
-        <div className="flex gap-3">
-          <label className="flex-1 text-sm font-semibold text-slate-700">
-            Reps
-            <input
-              type="number"
-              inputMode="numeric"
-              step="1"
-              value={reps}
-              onChange={(e) => setReps(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-            />
-          </label>
-          <label className="w-28 text-sm font-semibold text-slate-700">
-            Unit
-            <select
-              value={repsUnit}
-              onChange={(e) => setRepsUnit(e.target.value as (typeof REPS_UNITS)[number])}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-            >
-              {REPS_UNITS.map((unit) => (
-                <option key={unit} value={unit}>
-                  {unit}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
+        <label className="text-sm font-semibold text-slate-700">
+          Reps
+          <input
+            type="number"
+            inputMode="numeric"
+            step="1"
+            value={reps}
+            onChange={(e) => setReps(e.target.value)}
+            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+          />
+        </label>
 
         <label className="text-sm font-semibold text-slate-700">
           Duration (seconds)

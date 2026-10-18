@@ -7,6 +7,13 @@
 - **After that, the app never changes your weight by itself (§3.3).** Lifting more or less on the day is recorded for that session only. Your weight changes only when you edit it on the exercise page (and, later, by accepting a progression nudge).
 - **Bodyweight exercises** (plank, push-ups and so on) are recognised by their load type, so they still say "Bodyweight" rather than asking for a weight.
 
+## Changes from your feedback
+- **Every Strength set:** reps box first, then weight, each with a small label underneath ("reps", "weight (kg)"). Timed holds such as Plank have one box labelled "seconds".
+- **No text under "Set 1", "Set 2"…** any more. The targets are pre-filled in the boxes instead.
+- **"Weight needed" is now "Add baseline".**
+- **The reps unit dropdown is gone** from the exercise page (the ⚙️ screens). Reps are saved the way the exercise counts them (per side or total).
+- **kg/lb** becomes a single setting in Settings, in its own slice (S-005).
+
 ## Screenshots (390 × 844, in flow order)
 
 **Strength, first use**
@@ -14,29 +21,29 @@
 | | |
 |---|---|
 | ![](01-strength-overview.png) | **01 · Overview.** Unchanged. |
-| ![](02-strength-squats-no-weight-yet.png) | **02 · No weight yet.** Each set says "Weight (kg)", with an empty box. |
+| ![](02-strength-squats-no-weight-yet.png) | **02 · No weight yet.** Each set has its reps box, then an empty weight box, each labelled underneath. |
 | ![](03-strength-typing-first-weight.png) | **03 · Typing the first weight**, 20.25 kg. |
-| ![](04-strength-first-set-logged-rest-filled-in.png) | **04 · First set logged.** Sets 2 and 3 now target 20.25 kg. |
-| ![](05-strength-bodyweight-exercise.png) | **05 · Bodyweight exercise** (Plank): no weight box. A loaded exercise below (Russian Twists) still asks. |
+| ![](04-strength-first-set-logged-rest-filled-in.png) | **04 · First set logged.** Sets 2 and 3 now have 20.25 in their weight boxes. |
+| ![](05-strength-bodyweight-exercise.png) | **05 · Hold exercise** (Plank): one box labelled "seconds", no weight. A loaded exercise below (Russian Twists) still asks. |
 
 **Exercise page**
 
 | | |
 |---|---|
-| ![](06-exercise-page-after-first-use.png) | **06 · After first use.** Squats shows 20.25 kg and one history entry. |
+| ![](06-exercise-page-after-first-use.png) | **06 · After first use.** Squats shows 20.25 kg and one history entry. The reps unit dropdown is gone. |
 | ![](07-exercise-page-no-weight-yet.png) | **07 · No weight yet** (Deadlifts): empty, as before. |
 
 **Strength, next session**
 
 | | |
 |---|---|
-| ![](08-strength-next-session-weight-filled-in.png) | **08 · Next session.** Squats is prescribed your 20.25 kg; Squat Pulse still asks. |
+| ![](08-strength-next-session-weight-filled-in.png) | **08 · Next session.** Squats is pre-filled with your 20.25 kg; Squat Pulse still asks. |
 
 **Circuit**
 
 | | |
 |---|---|
-| ![](09-circuit-your-weight-and-weight-needed.png) | **09 · Your weight and weight needed.** Squats uses your 20.25 kg with the +/− buttons; Squat Pulse says "Weight needed" and shows a typed "Weight (kg)" box. |
+| ![](09-circuit-your-weight-and-add-baseline.png) | **09 · Your weight and "Add baseline".** Squats uses your 20.25 kg with the +/− buttons; Squat Pulse says "Add baseline" and shows a typed "Weight (kg)" box. |
 | ![](10-circuit-typing-first-weight.png) | **10 · Typing a first weight** on Deadlifts, 35.25 kg. |
 | ![](11-circuit-first-weight-logged.png) | **11 · Logged.** Deadlifts now shows your 35.25 kg straight away. |
 | ![](12-circuit-bodyweight-exercise.png) | **12 · Bodyweight exercise** on Circuit. |
@@ -49,7 +56,7 @@
 Your local database is empty right now, so every weight will start blank, as you asked (D-003). The screenshots came from a separate review database, so your data wasn't touched.
 
 ## Placeholder UI (design-first)
-The empty weight box and its "Weight (kg)" label (your wording) are a **working skeleton only**. Entering a weight is part of set logging, which is design-first, so this stops here for your design.
+The set layout and labels follow your direction, but they are still a **working skeleton**, not a finished design. Entering a weight is part of set logging, which is design-first, so this stops here for your design.
 
 ## Deviations and things to know
 - **Fixed along the way, because 0.25 kg weights exposed them:**

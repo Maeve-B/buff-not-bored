@@ -89,7 +89,7 @@ describe("Your weights (S-002)", () => {
     await user.click(screen.getByRole("button", { name: /start workout/i }));
 
     expect(within(cardFor("Squats")).getByText(/^40kg ·/)).toBeInTheDocument();
-    expect(within(cardFor("Deadlifts")).getByText(/^Weight needed ·/)).toBeInTheDocument();
+    expect(within(cardFor("Deadlifts")).getByText(/^Add baseline ·/)).toBeInTheDocument();
     expect(within(cardFor("Deadlifts")).getByRole("spinbutton", { name: "Deadlifts weight" })).toHaveValue(null);
     expect(within(cardFor("Superman Holds")).getByText(/^Bodyweight ·/)).toBeInTheDocument();
   });

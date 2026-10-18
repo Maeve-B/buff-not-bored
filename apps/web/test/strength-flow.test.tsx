@@ -21,6 +21,13 @@ beforeEach(() => {
   vi.mocked(saveStartingWeight).mockClear();
 });
 
+/** The values in a card's weight boxes, for sets not yet logged ("" = blank). */
+function weightValues(card: HTMLElement): string[] {
+  return within(card)
+    .queryAllByRole("spinbutton", { name: /^Set \d weight$/ })
+    .map((input) => (input as HTMLInputElement).value);
+}
+
 function squatsCard(): HTMLElement {
   return screen.getByRole("heading", { name: "Squats", level: 3 }).closest("div")!.parentElement!;
 }
@@ -41,7 +48,14 @@ describe("Classic Strength — has proper set-based semantics, distinct from Cir
     expect(squats.getByText("Set 1")).toBeInTheDocument();
     expect(squats.getByText("Set 2")).toBeInTheDocument();
     expect(squats.getByText("Set 3")).toBeInTheDocument();
-    expect(squats.getAllByText(/Target: 20 reps @ 20kg/)).toHaveLength(3); // Squats: 3 sets, same target
+    // Each set: reps first, then weight, each with a small label beneath, pre-filled with the target.
+    expect(squats.getAllByText("reps")).toHaveLength(3);
+    expect(squats.getAllByText("weight (kg)")).toHaveLength(3);
+    expect(squats.getAllByRole("spinbutton", { name: /^Set \d reps$/ }).map((input) => (input as HTMLInputElement).value)).toEqual(["20", "20", "20"]);
+    expect(weightValues(squatsCard())).toEqual(["20", "20", "20"]);
+    const [repsBox, weightBox] = squats.getAllByRole("spinbutton").slice(0, 2);
+    expect(repsBox).toHaveAccessibleName("Set 1 reps");
+    expect(weightBox).toHaveAccessibleName("Set 1 weight");
   });
 
   it("logging one set does not affect the other sets on the same exercise — per-set completion, not per-exercise", async () => {
@@ -92,7 +106,8 @@ describe("Classic Strength — your weights (S-002)", () => {
     await user.click(screen.getByRole("button", { name: /start workout/i }));
 
     const squats = within(squatsCard());
-    expect(squats.getAllByText("Weight (kg)")).toHaveLength(3);
+    expect(squats.getAllByText("weight (kg)")).toHaveLength(3);
+    expect(weightValues(squatsCard())).toEqual(["", "", ""]);
     expect(squats.getByRole("spinbutton", { name: "Set 1 weight" })).toHaveValue(null);
   });
 
@@ -106,12 +121,12 @@ describe("Classic Strength — your weights (S-002)", () => {
 
     expect(saveStartingWeight).toHaveBeenCalledWith("squats", 20.25);
     expect(within(squatsCard()).getByText(/20\.25kg × 20 reps/)).toBeInTheDocument();
-    expect(within(squatsCard()).getAllByText(/Target: 20 reps @ 20\.25kg/)).toHaveLength(2);
+    expect(weightValues(squatsCard())).toEqual(["20.25", "20.25"]);
 
     await user.click(screen.getByRole("button", { name: /finish workout/i }));
     await user.click(screen.getByRole("button", { name: /done/i }));
     await user.click(screen.getByRole("button", { name: /start workout/i }));
-    expect(within(squatsCard()).getAllByText(/Target: 20 reps @ 20\.25kg/)).toHaveLength(3);
+    expect(weightValues(squatsCard())).toEqual(["20.25", "20.25", "20.25"]);
   });
 
   it("logs a heavier lift for that session only, never changing your weight (§3.3)", async () => {
@@ -125,7 +140,7 @@ describe("Classic Strength — your weights (S-002)", () => {
     await user.click(within(squatsCard()).getByRole("button", { name: "Complete set 1" }));
 
     expect(saveStartingWeight).not.toHaveBeenCalled();
-    expect(within(squatsCard()).getAllByText(/Target: 20 reps @ 20kg/)).toHaveLength(3);
+    expect(weightValues(squatsCard())).toEqual(["20", "20"]);
   });
 });
 
@@ -151,9 +166,8 @@ describe("Classic Strength — your weights, edge cases (S-002 review)", () => {
 
     rerender(<StrengthScreen currentWeights={{ squats: 30, deadlifts: 60 }} />);
 
-    expect(within(squatsCard()).getAllByText(/Target: 20 reps @ 20kg/)).toHaveLength(3);
-    const deadlifts = within(screen.getByRole("heading", { name: "Deadlifts", level: 3 }).closest("div")!.parentElement!);
-    expect(deadlifts.getAllByText(/@ 60kg/)).toHaveLength(3);
+    expect(weightValues(squatsCard())).toEqual(["20", "20", "20"]);
+    expect(weightValues(screen.getByRole("heading", { name: "Deadlifts", level: 3 }).closest("div")!.parentElement!)).toEqual(["60", "60", "60"]);
   });
 
   it("says so if a starting weight doesn't save, and doesn't quietly save the next set instead", async () => {
@@ -185,5 +199,17 @@ describe("Classic Strength — your weights, edge cases (S-002 review)", () => {
 
     expect(squats.getByText(/^20 reps$/)).toBeInTheDocument();
     expect(saveStartingWeight).not.toHaveBeenCalled();
+  });
+});
+
+describe("Classic Strength — hold exercises", () => {
+  it("labels a timed hold's box 'seconds' and asks for no weight", async () => {
+    const user = userEvent.setup();
+    render(<StrengthScreen currentWeights={{}} />);
+    await user.click(screen.getByRole("button", { name: /start workout/i }));
+
+    const plank = within(screen.getByRole("heading", { name: "Plank", level: 3 }).closest("div")!.parentElement!);
+    expect(plank.getAllByText("seconds")).toHaveLength(3);
+    expect(plank.queryByText("weight (kg)")).not.toBeInTheDocument();
   });
 });
