@@ -27,6 +27,7 @@
  */
 
 import { hasAdequatePrimaryOverlap, isExerciseAllowed, type OptimisationConstraints, type SoftPreferences } from "../entities/constraints.js";
+import { currentWeightFor, type CurrentWeights } from "../entities/current-weights.js";
 import type { Exercise, Muscle, ProgrammeGroup } from "../entities/exercise.js";
 import type { PlannedExercise, WorkoutSession } from "../entities/workout-session.js";
 import { scoreEquipmentAlignment } from "./equipment-optimiser.js";
@@ -69,14 +70,17 @@ export interface RefreshOptions {
    *   variety substitution.
    */
   targetExerciseIds?: string[];
+  /** Your weights: a replacement is prescribed yours, and weight-change scoring compares them. */
+  currentWeights?: CurrentWeights;
 }
 
 function scoreCandidate(
   candidate: Exercise,
   soft: SoftPreferences | undefined,
   previousExercise: Exercise,
+  currentWeights: CurrentWeights,
 ): { total: number; explanation: string[] } {
-  const equipmentResult = scoreEquipmentAlignment(candidate, soft, previousExercise);
+  const equipmentResult = scoreEquipmentAlignment(candidate, soft, previousExercise, currentWeights);
   const explanation = [...equipmentResult.explanation];
   let varietyScore = 0;
 
@@ -105,6 +109,7 @@ function attemptReplacement(
   library: Exercise[],
   otherSessionExerciseIds: Set<string>,
   constraints: OptimisationConstraints,
+  currentWeights: CurrentWeights,
 ): ReplacementDecision {
   const { hard, soft } = constraints;
   const group = currentExercise.programmeGroup;
@@ -151,7 +156,7 @@ function attemptReplacement(
   }
 
   const scored = eligible
-    .map((candidate) => ({ candidate, ...scoreCandidate(candidate, soft, currentExercise) }))
+    .map((candidate) => ({ candidate, ...scoreCandidate(candidate, soft, currentExercise, currentWeights) }))
     .sort((a, b) => b.total - a.total || a.candidate.id.localeCompare(b.candidate.id));
 
   const best = scored[0]!;
@@ -215,7 +220,7 @@ export function refreshWorkout(
 
     const currentExercise = plannedExercise.exercise;
     const otherSessionIds = new Set([...sessionExerciseIds].filter((id) => id !== currentExercise.id));
-    const decision = attemptReplacement(currentExercise, library, otherSessionIds, constraints);
+    const decision = attemptReplacement(currentExercise, library, otherSessionIds, constraints, options.currentWeights ?? {});
     decisions.push(decision);
 
     if (decision.replaced) {
@@ -232,7 +237,7 @@ export function refreshWorkout(
     return {
       exercise: replacement,
       role: pe.role,
-      prescribedWeight: replacement.startingWeight,
+      prescribedWeight: currentWeightFor(replacement, options.currentWeights ?? {}),
       prescribedReps: replacement.prescribedReps,
       repsUnit: replacement.repsUnit,
       prescribedDuration: replacement.prescribedDuration,

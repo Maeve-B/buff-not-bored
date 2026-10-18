@@ -5,8 +5,12 @@
  */
 
 import {
+  applyStartingWeight,
   buildDefaultStrengthSession,
   EXERCISES,
+  prescribeStrengthWeights,
+  startingWeightToRecord,
+  type CurrentWeights,
   recommendProgression,
   type ProgressionRecommendation,
   type StrengthExercise,
@@ -17,9 +21,30 @@ import type { CompletedStrengthWorkout, HistoryEntry } from "./types";
 
 export const STRENGTH_WORKOUT_NAME = "Full Body Strength";
 
-/** Today's Classic Strength session — same library/template as Circuit, different session shape. */
-export function getTodayStrengthSession(): StrengthSession {
-  return buildDefaultStrengthSession(EXERCISES);
+/** Today's Classic Strength session — same library/template as Circuit, different session shape, prescribed your weights. */
+export function getTodayStrengthSession(currentWeights: CurrentWeights = {}): StrengthSession {
+  return buildDefaultStrengthSession(EXERCISES, { currentWeights });
+}
+
+/** The session re-prescribed from your weights: everything if it hasn't started, only blank weights if it has (§3.3). */
+export function prescribeSessionWeights(session: StrengthSession, currentWeights: CurrentWeights, started: boolean): StrengthSession {
+  return prescribeStrengthWeights(session, currentWeights, started ? "blanks" : "all");
+}
+
+/**
+ * After a set is logged: the first-use starting weight to record for that
+ * exercise (if any), and the session with its remaining sets filled in.
+ */
+export function resolveStartingWeight(
+  session: StrengthSession,
+  exerciseId: string,
+  currentWeights: CurrentWeights,
+  loggedWeight: number | undefined,
+): { weight: number; session: StrengthSession } | undefined {
+  const exercise = session.exercises.find((se) => se.exercise.id === exerciseId)?.exercise;
+  if (!exercise) return undefined;
+  const weight = startingWeightToRecord(exercise, currentWeights, loggedWeight);
+  return weight === undefined ? undefined : { weight, session: applyStartingWeight(session, exerciseId, weight) };
 }
 
 export interface StrengthSetLogInput {

@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { EXERCISES } from "../src/data/exercises.js";
 import { countCompletedSets, isStrengthSessionFullyLogged, type StrengthSession } from "../src/entities/strength.js";
 import {
+  applyStartingWeight,
+  prescribeStrengthWeights,
   buildDefaultStrengthSession,
   buildStrengthSessionFromTemplate,
   DEFAULT_SETS_PER_EXERCISE,
@@ -10,7 +12,7 @@ import {
 import { PROGRAMME_TEMPLATE } from "../src/data/programme-template.js";
 
 describe("Classic Strength — exercises have sets, sets have target reps and recommended weights", () => {
-  const session = buildDefaultStrengthSession(EXERCISES);
+  const session = buildDefaultStrengthSession(EXERCISES, { currentWeights: { squats: 20 } });
   const squats = session.exercises.find((se) => se.exercise.id === "squats")!;
 
   it("every exercise has the configured number of sets", () => {
@@ -23,7 +25,7 @@ describe("Classic Strength — exercises have sets, sets have target reps and re
     expect(squats.sets.every((set) => set.targetReps === 20)).toBe(true); // Squats: 20 prescribed reps
   });
 
-  it("each set carries a recommended weight from the exercise's WeightRecommendation", () => {
+  it("each set carries a recommended weight from your current weight", () => {
     expect(squats.recommendation?.baseWeight).toBe(20);
     expect(squats.recommendation?.finalWeight).toBe(20); // no adjustments applied by default
     expect(squats.sets.every((set) => set.targetWeight === 20)).toBe(true);
@@ -35,7 +37,13 @@ describe("Classic Strength — exercises have sets, sets have target reps and re
     expect(plank.sets.every((set) => set.targetReps === undefined)).toBe(true);
   });
 
-  it("bodyweight exercises with no starting weight have no recommendation", () => {
+  it("a loaded exercise with no weight yet has no recommendation and no target weight", () => {
+    const deadlifts = session.exercises.find((se) => se.exercise.id === "deadlifts")!;
+    expect(deadlifts.recommendation).toBeUndefined();
+    expect(deadlifts.sets.every((set) => set.targetWeight === undefined)).toBe(true);
+  });
+
+  it("bodyweight exercises have no recommendation", () => {
     const plank = session.exercises.find((se) => se.exercise.id === "plank")!;
     expect(plank.recommendation).toBeUndefined();
     expect(plank.sets.every((set) => set.targetWeight === undefined)).toBe(true);
@@ -64,7 +72,7 @@ describe("Classic Strength — exercises have sets, sets have target reps and re
 
 describe("Classic Strength — actual performance can be recorded, separately from the target", () => {
   it("actual weight/reps and completed state can be set on a set without touching its target", () => {
-    const session = buildDefaultStrengthSession(EXERCISES);
+    const session = buildDefaultStrengthSession(EXERCISES, { currentWeights: { squats: 20 } });
     const squats = session.exercises.find((se) => se.exercise.id === "squats")!;
     const loggedSet = { ...squats.sets[0]!, actualWeight: 22.5, actualReps: 18, completed: true };
 
@@ -133,5 +141,63 @@ describe("Classic Strength and Circuit select the same exercises from the same t
       .exercises.map((se) => se.exercise.id)
       .sort();
     expect(strengthIds).toEqual(circuitIds);
+  });
+});
+
+describe("applyStartingWeight (first use, §10.1)", () => {
+  const blank = buildDefaultStrengthSession(EXERCISES);
+  const firstSetLogged: StrengthSession = {
+    exercises: blank.exercises.map((se) =>
+      se.exercise.id === "squats"
+        ? { ...se, sets: se.sets.map((set, i) => (i === 0 ? { ...set, actualWeight: 20.25, actualReps: 5, completed: true } : set)) }
+        : se,
+    ),
+  };
+
+  it("gives the exercise's remaining sets the starting weight, keeping 0.25 kg precision", () => {
+    const squats = applyStartingWeight(firstSetLogged, "squats", 20.25).exercises.find((se) => se.exercise.id === "squats")!;
+    expect(squats.recommendation?.finalWeight).toBe(20.25);
+    expect(squats.sets.slice(1).every((set) => set.targetWeight === 20.25)).toBe(true);
+  });
+
+  it("leaves the logged set exactly as lifted", () => {
+    const squats = applyStartingWeight(firstSetLogged, "squats", 20.25).exercises.find((se) => se.exercise.id === "squats")!;
+    expect(squats.sets[0]).toMatchObject({ targetWeight: undefined, actualWeight: 20.25 });
+  });
+
+  it("never replaces an existing prescription (§3.3)", () => {
+    const withWeight = buildDefaultStrengthSession(EXERCISES, { currentWeights: { squats: 30 } });
+    expect(applyStartingWeight(withWeight, "squats", 20)).toEqual(withWeight);
+  });
+
+  it("leaves every other exercise untouched", () => {
+    const after = applyStartingWeight(firstSetLogged, "squats", 20.25);
+    expect(after.exercises.filter((se) => se.exercise.id !== "squats")).toEqual(
+      firstSetLogged.exercises.filter((se) => se.exercise.id !== "squats"),
+    );
+  });
+});
+
+describe("prescribeStrengthWeights", () => {
+  it("re-prescribes an unstarted session from your weights", () => {
+    const session = prescribeStrengthWeights(buildDefaultStrengthSession(EXERCISES), { squats: 40 }, "all");
+    const squats = session.exercises.find((se) => se.exercise.id === "squats")!;
+    expect(squats.sets.every((set) => set.targetWeight === 40)).toBe(true);
+  });
+
+  it("in a workout in progress, fills a blank exercise's unlogged sets but leaves existing prescriptions alone", () => {
+    const started = buildDefaultStrengthSession(EXERCISES, { currentWeights: { squats: 20 } });
+    const withLoggedDeadlift: StrengthSession = {
+      exercises: started.exercises.map((se) =>
+        se.exercise.id === "deadlifts"
+          ? { ...se, sets: se.sets.map((set, i) => (i === 0 ? { ...set, actualWeight: 50, actualReps: 5, completed: true } : set)) }
+          : se,
+      ),
+    };
+    const after = prescribeStrengthWeights(withLoggedDeadlift, { squats: 99, deadlifts: 60 }, "blanks");
+    expect(after.exercises.find((se) => se.exercise.id === "squats")!.sets.every((set) => set.targetWeight === 20)).toBe(true);
+    const deadlifts = after.exercises.find((se) => se.exercise.id === "deadlifts")!;
+    expect(deadlifts.sets[0]).toMatchObject({ targetWeight: undefined, actualWeight: 50 });
+    expect(deadlifts.sets.slice(1).every((set) => set.targetWeight === 60)).toBe(true);
   });
 });

@@ -6,8 +6,8 @@ const flatBenchPress = EXERCISES.find((e) => e.id === "flat-bench-press")!; // b
 const benchFlyes = EXERCISES.find((e) => e.id === "bench-flyes")!; // dumbbell, bench
 const pushUps = EXERCISES.find((e) => e.id === "push-ups")!; // bodyweight, bench_or_floor
 const squats = EXERCISES.find((e) => e.id === "squats")!; // barbell, rack
-const overheadPress = EXERCISES.find((e) => e.id === "overhead-press")!; // dumbbell, standing, 12.5kg
-const flatDbPress = EXERCISES.find((e) => e.id === "flat-db-press")!; // dumbbell, bench, 8kg
+const overheadPress = EXERCISES.find((e) => e.id === "overhead-press")!; // dumbbell, standing
+const flatDbPress = EXERCISES.find((e) => e.id === "flat-db-press")!; // dumbbell, bench
 
 describe("scoreEquipmentAlignment", () => {
   it("returns a neutral score with no preference supplied", () => {
@@ -39,10 +39,16 @@ describe("scoreEquipmentAlignment", () => {
     expect(sameLocation.score).toBeGreaterThan(differentLocation.score);
   });
 
-  it("rewards weight continuity, favouring smaller deltas", () => {
-    const closeWeight = scoreEquipmentAlignment(benchFlyes, { minimizeWeightChanges: true }, flatDbPress); // 6kg vs 8kg
-    const farWeight = scoreEquipmentAlignment(overheadPress, { minimizeWeightChanges: true }, flatDbPress); // 12.5kg vs 8kg
+  it("rewards weight continuity using your current weights, favouring smaller deltas", () => {
+    const weights = { "bench-flyes": 6, "flat-db-press": 8, "overhead-press": 12.5 };
+    const closeWeight = scoreEquipmentAlignment(benchFlyes, { minimizeWeightChanges: true }, flatDbPress, weights); // 6kg vs 8kg
+    const farWeight = scoreEquipmentAlignment(overheadPress, { minimizeWeightChanges: true }, flatDbPress, weights); // 12.5kg vs 8kg
     expect(closeWeight.score).toBeGreaterThan(farWeight.score);
+  });
+
+  it("skips weight continuity when either exercise has no weight yet", () => {
+    const result = scoreEquipmentAlignment(benchFlyes, { minimizeWeightChanges: true }, flatDbPress, { "flat-db-press": 8 });
+    expect(result.score).toBe(0);
   });
 
   it("every non-zero contribution has an explanation", () => {

@@ -35,8 +35,6 @@ const backSquat: Exercise = {
   exerciseType: "compound",
   equipment: "barbell",
   location: "rack",
-  startingWeight: 20,
-  weightUnit: "kg",
   prescribedReps: 8,
   repsUnit: "reps",
   progressionPercentage: 5,

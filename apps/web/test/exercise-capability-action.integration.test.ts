@@ -9,9 +9,14 @@
 
 import { EXERCISE_PROFILES } from "@buff-not-bored/domain";
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
-import { prisma, upsertExercise } from "@buff-not-bored/db";
+import { prisma, STARTING_WEIGHT_LOG_NOTE, upsertExercise } from "@buff-not-bored/db";
 import type { Exercise } from "@buff-not-bored/domain";
-import { loadExerciseCapability, saveExerciseCapability } from "@/lib/actions/exercise-capability";
+import {
+  loadCurrentWeights,
+  loadExerciseCapability,
+  saveExerciseCapability,
+  saveStartingWeight,
+} from "@/lib/actions/exercise-capability";
 
 const testExercise: Exercise = {
   ...EXERCISE_PROFILES.squats,
@@ -24,8 +29,6 @@ const testExercise: Exercise = {
   exerciseType: "compound",
   equipment: "barbell",
   location: "rack",
-  startingWeight: 20,
-  weightUnit: "kg",
   prescribedReps: 20,
   repsUnit: "reps",
   progressionPercentage: 5,
@@ -98,5 +101,38 @@ describe("exercise capability actions — real database", () => {
 
     const rows = await prisma.exerciseCapability.findMany({ where: { exerciseId: testExercise.id } });
     expect(rows).toHaveLength(0);
+  });
+});
+
+describe("starting weight actions — real database (S-002)", () => {
+  it("records a first-use starting weight, which then shows up in your current weights", async () => {
+    expect(await saveStartingWeight(testExercise.id, 20.25)).toEqual({ ok: true, saved: true });
+
+    expect(await loadExerciseCapability(testExercise.id)).toMatchObject({ weight: 20.25, weightUnit: "kg", source: "manual" });
+    expect((await loadCurrentWeights())[testExercise.id]).toBe(20.25);
+  });
+
+  it("keeps reps and note already saved, and gives the history entry its own note", async () => {
+    await saveExerciseCapability({ exerciseId: testExercise.id, reps: 8, repsUnit: "reps", source: "manual", note: "felt solid" });
+    await saveStartingWeight(testExercise.id, 30);
+    expect(await loadExerciseCapability(testExercise.id)).toMatchObject({ weight: 30, reps: 8, repsUnit: "reps", note: "felt solid" });
+    const logs = await prisma.exerciseWeightLog.findMany({ where: { exerciseId: testExercise.id } });
+    expect(logs.map((log) => log.note)).toEqual([STARTING_WEIGHT_LOG_NOTE]);
+  });
+
+  it("lets only one of two simultaneous first-use saves through", async () => {
+    const results = await Promise.all([saveStartingWeight(testExercise.id, 20), saveStartingWeight(testExercise.id, 25)]);
+    const saved = results.filter((result) => result.ok && result.saved);
+    expect(saved).toHaveLength(1);
+    expect(await prisma.exerciseWeightLog.count({ where: { exerciseId: testExercise.id } })).toBe(1);
+    expect([20, 25]).toContain((await loadExerciseCapability(testExercise.id))?.weight);
+  });
+
+  it("never overwrites a weight you already have, and writes no history entry", async () => {
+    await saveExerciseCapability({ exerciseId: testExercise.id, weight: 40, weightUnit: "kg", source: "manual" });
+
+    expect(await saveStartingWeight(testExercise.id, 25)).toEqual({ ok: true, saved: false });
+    expect((await loadExerciseCapability(testExercise.id))?.weight).toBe(40);
+    expect(await prisma.exerciseWeightLog.count({ where: { exerciseId: testExercise.id } })).toBe(1);
   });
 });

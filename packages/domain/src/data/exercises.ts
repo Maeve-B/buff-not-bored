@@ -1,13 +1,9 @@
 /**
  * The seeded exercise catalog — every exercise from PRODUCT_SPEC.md §6.
  *
- * Convention: `startingWeight` for a dumbbell exercise is the weight of a
- * single implement (what the spec calls "X kg each dumbbell"), not the
- * combined total — matching how the spec itself states these weights.
- *
- * Where the spec gives a "current working range" (Deadlifts, RDL to Upright
- * Row) in addition to a starting weight, the range is preserved in `notes`
- * since it isn't part of the §5 field list.
+ * No weights: v1's seeded starting weights were removed in S-002 (spec v2
+ * §9.1; DECISIONS.md D-003). Your weights are personal state, entered at
+ * first use (entities/current-weights.ts).
  */
 
 import type { Exercise, ExerciseLibraryProfile } from "../entities/exercise.js";
@@ -26,8 +22,6 @@ const BASE_EXERCISES: Omit<Exercise, keyof ExerciseLibraryProfile>[] = [
     exerciseType: "compound",
     equipment: "barbell",
     location: "rack",
-    startingWeight: 20,
-    weightUnit: "kg",
     prescribedReps: 20,
     repsUnit: "reps",
     progressionPercentage: 5,
@@ -43,8 +37,6 @@ const BASE_EXERCISES: Omit<Exercise, keyof ExerciseLibraryProfile>[] = [
     exerciseType: "compound",
     equipment: "barbell",
     location: "rack",
-    startingWeight: 20,
-    weightUnit: "kg",
     prescribedReps: 16,
     repsUnit: "reps",
     progressionPercentage: 5,
@@ -61,16 +53,14 @@ const BASE_EXERCISES: Omit<Exercise, keyof ExerciseLibraryProfile>[] = [
     exerciseType: "compound",
     equipment: "barbell",
     location: "rack",
-    startingWeight: 20,
-    weightUnit: "kg",
     prescribedReps: 16,
     repsUnit: "reps",
     progressionPercentage: 5,
     active: true,
     needsReview: true,
     notes:
-      "Muscle classification confirmed by user. PLACEHOLDER: equipment, location, starting " +
-      "weight, reps and progression are still estimated and not yet confirmed against the " +
+      "Muscle classification confirmed by user. PLACEHOLDER: equipment, location, reps " +
+      "and progression are still estimated and not yet confirmed against the " +
       "user's actual programme.",
   },
   {
@@ -83,8 +73,6 @@ const BASE_EXERCISES: Omit<Exercise, keyof ExerciseLibraryProfile>[] = [
     exerciseType: "compound",
     equipment: "barbell",
     location: "rack",
-    startingWeight: 20,
-    weightUnit: "kg",
     prescribedReps: 16,
     repsUnit: "reps",
     progressionPercentage: 5,
@@ -100,8 +88,6 @@ const BASE_EXERCISES: Omit<Exercise, keyof ExerciseLibraryProfile>[] = [
     exerciseType: "compound",
     equipment: "barbell",
     location: "rack",
-    startingWeight: 20,
-    weightUnit: "kg",
     prescribedReps: 16,
     repsUnit: "reps",
     progressionPercentage: 5,
@@ -132,13 +118,10 @@ const BASE_EXERCISES: Omit<Exercise, keyof ExerciseLibraryProfile>[] = [
     exerciseType: "compound",
     equipment: "barbell",
     location: "rack",
-    startingWeight: 35,
-    weightUnit: "kg",
     prescribedReps: 20,
     repsUnit: "reps",
     progressionPercentage: 5,
     active: true,
-    notes: "Current working range: 35-40kg.",
   },
   {
     id: "rdl-upright-row",
@@ -150,13 +133,10 @@ const BASE_EXERCISES: Omit<Exercise, keyof ExerciseLibraryProfile>[] = [
     exerciseType: "compound",
     equipment: "barbell",
     location: "rack",
-    startingWeight: 20,
-    weightUnit: "kg",
     prescribedReps: 16,
     repsUnit: "reps",
     progressionPercentage: 5,
     active: true,
-    notes: "Current working range: 20-25kg.",
   },
   {
     id: "bent-over-row",
@@ -168,16 +148,14 @@ const BASE_EXERCISES: Omit<Exercise, keyof ExerciseLibraryProfile>[] = [
     exerciseType: "compound",
     equipment: "barbell",
     location: "rack",
-    startingWeight: 20,
-    weightUnit: "kg",
     prescribedReps: 16,
     repsUnit: "reps",
     progressionPercentage: 5,
     active: true,
     needsReview: true,
     notes:
-      "Muscle classification confirmed by user. PLACEHOLDER: equipment, location, starting " +
-      "weight, reps and progression are estimated and not yet confirmed.",
+      "Muscle classification confirmed by user. PLACEHOLDER: equipment, location, reps " +
+      "and progression are estimated and not yet confirmed.",
   },
   {
     id: "single-arm-dumbbell-row",
@@ -189,15 +167,13 @@ const BASE_EXERCISES: Omit<Exercise, keyof ExerciseLibraryProfile>[] = [
     exerciseType: "compound",
     equipment: "dumbbell",
     location: "bench",
-    startingWeight: 8,
-    weightUnit: "kg",
     prescribedReps: 12,
     repsUnit: "per_side",
     progressionPercentage: 5,
     active: true,
     needsReview: true,
     notes:
-      "Muscle classification confirmed by user. PLACEHOLDER: equipment, location, weight, reps " +
+      "Muscle classification confirmed by user. PLACEHOLDER: equipment, location, reps " +
       "and progression are still estimated and not yet confirmed.",
   },
   {
@@ -210,15 +186,13 @@ const BASE_EXERCISES: Omit<Exercise, keyof ExerciseLibraryProfile>[] = [
     exerciseType: "compound",
     equipment: "barbell",
     location: "rack",
-    startingWeight: 20,
-    weightUnit: "kg",
     prescribedReps: 16,
     repsUnit: "reps",
     progressionPercentage: 5,
     active: true,
     needsReview: true,
     notes:
-      "Muscle classification confirmed by user. PLACEHOLDER: equipment, location, weight, reps " +
+      "Muscle classification confirmed by user. PLACEHOLDER: equipment, location, reps " +
       "and progression are still estimated and not yet confirmed.",
   },
   {
@@ -246,15 +220,13 @@ const BASE_EXERCISES: Omit<Exercise, keyof ExerciseLibraryProfile>[] = [
     exerciseType: "compound",
     equipment: "barbell",
     location: "bench",
-    startingWeight: 20,
-    weightUnit: "kg",
     prescribedReps: 16,
     repsUnit: "reps",
     progressionPercentage: 2.5,
     active: true,
     needsReview: true,
     notes:
-      "Muscle classification confirmed by user. PLACEHOLDER: starting weight/reps/progression " +
+      "Muscle classification confirmed by user. PLACEHOLDER: reps/progression " +
       "estimated (barbell variant, distinct from the dumbbell 'flat-db-press' entry) and not " +
       "yet confirmed against the user's actual programme.",
   },
@@ -268,15 +240,13 @@ const BASE_EXERCISES: Omit<Exercise, keyof ExerciseLibraryProfile>[] = [
     exerciseType: "isolation",
     equipment: "dumbbell",
     location: "bench",
-    startingWeight: 6,
-    weightUnit: "kg",
     prescribedReps: 16,
     repsUnit: "reps",
     progressionPercentage: 2.5,
     active: true,
     needsReview: true,
     notes:
-      "Muscle classification confirmed by user. PLACEHOLDER: starting weight/reps/progression " +
+      "Muscle classification confirmed by user. PLACEHOLDER: reps/progression " +
       "estimated and not yet confirmed against the user's actual programme.",
   },
   {
@@ -289,8 +259,6 @@ const BASE_EXERCISES: Omit<Exercise, keyof ExerciseLibraryProfile>[] = [
     exerciseType: "compound",
     equipment: "dumbbell",
     location: "bench",
-    startingWeight: 8,
-    weightUnit: "kg",
     prescribedReps: 20,
     repsUnit: "reps",
     progressionPercentage: 2.5,
@@ -306,8 +274,6 @@ const BASE_EXERCISES: Omit<Exercise, keyof ExerciseLibraryProfile>[] = [
     exerciseType: "compound",
     equipment: "dumbbell",
     location: "bench",
-    startingWeight: 8,
-    weightUnit: "kg",
     prescribedReps: 16,
     repsUnit: "reps",
     progressionPercentage: 2.5,
@@ -323,8 +289,6 @@ const BASE_EXERCISES: Omit<Exercise, keyof ExerciseLibraryProfile>[] = [
     exerciseType: "compound",
     equipment: "dumbbell",
     location: "bench",
-    startingWeight: 8,
-    weightUnit: "kg",
     prescribedReps: 12,
     repsUnit: "per_side",
     progressionPercentage: 2.5,
@@ -360,8 +324,6 @@ const BASE_EXERCISES: Omit<Exercise, keyof ExerciseLibraryProfile>[] = [
     exerciseType: "isolation",
     equipment: "dumbbell",
     location: "bench",
-    startingWeight: 4,
-    weightUnit: "kg",
     prescribedReps: 16,
     repsUnit: "reps",
     progressionPercentage: 2.5,
@@ -377,15 +339,13 @@ const BASE_EXERCISES: Omit<Exercise, keyof ExerciseLibraryProfile>[] = [
     exerciseType: "compound",
     equipment: "barbell",
     location: "bench",
-    startingWeight: 20,
-    weightUnit: "kg",
     prescribedReps: 16,
     repsUnit: "reps",
     progressionPercentage: 2.5,
     active: true,
     needsReview: true,
     notes:
-      "Muscle classification confirmed by user. PLACEHOLDER: starting weight/reps/progression " +
+      "Muscle classification confirmed by user. PLACEHOLDER: reps/progression " +
       "estimated (barbell variant, distinct from the bodyweight 'close-grip-push-ups' entry) " +
       "and not yet confirmed.",
   },
@@ -413,8 +373,6 @@ const BASE_EXERCISES: Omit<Exercise, keyof ExerciseLibraryProfile>[] = [
     exerciseType: "isolation",
     equipment: "dumbbell",
     location: "bench",
-    startingWeight: 4,
-    weightUnit: "kg",
     prescribedReps: 16,
     repsUnit: "reps",
     progressionPercentage: 2.5,
@@ -432,8 +390,6 @@ const BASE_EXERCISES: Omit<Exercise, keyof ExerciseLibraryProfile>[] = [
     exerciseType: "isolation",
     equipment: "dumbbell",
     location: "standing",
-    startingWeight: 4,
-    weightUnit: "kg",
     prescribedReps: 16,
     repsUnit: "reps",
     progressionPercentage: 2.5,
@@ -449,8 +405,6 @@ const BASE_EXERCISES: Omit<Exercise, keyof ExerciseLibraryProfile>[] = [
     exerciseType: "isolation",
     equipment: "dumbbell",
     location: "standing",
-    startingWeight: 4,
-    weightUnit: "kg",
     prescribedReps: 16,
     repsUnit: "reps",
     progressionPercentage: 2.5,
@@ -466,15 +420,13 @@ const BASE_EXERCISES: Omit<Exercise, keyof ExerciseLibraryProfile>[] = [
     exerciseType: "compound",
     equipment: "dumbbell",
     location: "standing",
-    startingWeight: 6,
-    weightUnit: "kg",
     prescribedReps: 16,
     repsUnit: "reps",
     progressionPercentage: 2.5,
     active: true,
     needsReview: true,
     notes:
-      "Muscle classification confirmed by user. PLACEHOLDER: equipment, weight, reps and " +
+      "Muscle classification confirmed by user. PLACEHOLDER: equipment, reps and " +
       "progression are still estimated (distinct from the combined 'rdl-upright-row' library " +
       "alternate) and not yet confirmed.",
   },
@@ -488,8 +440,6 @@ const BASE_EXERCISES: Omit<Exercise, keyof ExerciseLibraryProfile>[] = [
     exerciseType: "compound",
     equipment: "dumbbell",
     location: "standing",
-    startingWeight: 12.5,
-    weightUnit: "kg",
     prescribedReps: 16,
     repsUnit: "reps",
     progressionPercentage: 2.5,
@@ -500,7 +450,7 @@ const BASE_EXERCISES: Omit<Exercise, keyof ExerciseLibraryProfile>[] = [
       "muscle value (taxonomy correction) — not explicitly given by the user for this exercise. " +
       "Standard classification for a compound vertical dumbbell press (anterior deltoid primary, " +
       "lateral deltoid + triceps secondary); flagged for confirmation like the other assumed " +
-      "classifications, though weight/reps/progression here are the user's original confirmed values.",
+      "classifications, though reps/progression here are the user's original confirmed values.",
   },
 
   // ---- BICEPS ----
@@ -514,15 +464,13 @@ const BASE_EXERCISES: Omit<Exercise, keyof ExerciseLibraryProfile>[] = [
     exerciseType: "isolation",
     equipment: "barbell",
     location: "rack",
-    startingWeight: 15,
-    weightUnit: "kg",
     prescribedReps: 16,
     repsUnit: "reps",
     progressionPercentage: 2.5,
     active: true,
     needsReview: true,
     notes:
-      "PLACEHOLDER: starting weight/reps/progression estimated and not yet confirmed against " +
+      "PLACEHOLDER: reps/progression estimated and not yet confirmed against " +
       "the user's actual programme.",
   },
   {
@@ -535,8 +483,6 @@ const BASE_EXERCISES: Omit<Exercise, keyof ExerciseLibraryProfile>[] = [
     exerciseType: "isolation",
     equipment: "dumbbell",
     location: "bench",
-    startingWeight: 6,
-    weightUnit: "kg",
     prescribedReps: 12,
     repsUnit: "per_side",
     progressionPercentage: 2.5,
@@ -552,8 +498,6 @@ const BASE_EXERCISES: Omit<Exercise, keyof ExerciseLibraryProfile>[] = [
     exerciseType: "isolation",
     equipment: "dumbbell",
     location: "standing",
-    startingWeight: 6,
-    weightUnit: "kg",
     prescribedReps: 20,
     repsUnit: "reps",
     progressionPercentage: 2.5,
@@ -569,8 +513,6 @@ const BASE_EXERCISES: Omit<Exercise, keyof ExerciseLibraryProfile>[] = [
     exerciseType: "isolation",
     equipment: "dumbbell",
     location: "standing",
-    startingWeight: 6,
-    weightUnit: "kg",
     prescribedReps: 16,
     repsUnit: "reps",
     progressionPercentage: 2.5,
@@ -601,8 +543,6 @@ const BASE_EXERCISES: Omit<Exercise, keyof ExerciseLibraryProfile>[] = [
     exerciseType: "core",
     equipment: "dumbbell",
     location: "bench_or_floor",
-    startingWeight: 4,
-    weightUnit: "kg",
     prescribedReps: 20,
     repsUnit: "reps",
     progressionPercentage: 2.5,

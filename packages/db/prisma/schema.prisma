@@ -25,7 +25,8 @@ datasource db {
 }
 
 /// The exercise catalog — mirrors packages/domain's `Exercise` entity
-/// field-for-field. Muscles/movement patterns are native Postgres arrays,
+/// field-for-field. Shared library data only: no weights (spec v2 §9.1);
+/// your current weight lives in `ExerciseCapability`. Muscles/movement patterns are native Postgres arrays,
 /// not join tables: nothing queries the database for muscle coverage today
 /// (that's computed in-memory in packages/domain against static seed data),
 /// so a join table here would be schema speculation, not a real need.
@@ -39,8 +40,6 @@ model Exercise {
   exerciseType          String
   equipment             String
   location               String
-  startingWeight        Float?
-  weightUnit            String?
   prescribedReps        Int?
   repsUnit              String?
   prescribedDuration    Float?

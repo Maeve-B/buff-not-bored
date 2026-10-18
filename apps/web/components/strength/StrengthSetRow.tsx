@@ -1,25 +1,39 @@
 "use client";
 
-import { WEIGHT_STEP_KG } from "@buff-not-bored/domain";
+import { parseEnteredWeight, WEIGHT_STEP_KG } from "@buff-not-bored/domain";
 import type { StrengthSet } from "@buff-not-bored/domain";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { formatTargetVolume } from "@/lib/format";
 import { useStrengthStore } from "@/lib/strength-store";
 
-export function StrengthSetRow({ exerciseId, set }: { exerciseId: string; set: StrengthSet }) {
+/**
+ * One set. `loaded` says whether the exercise takes a weight at all; a
+ * loaded set with no target weight is a first use, so its weight box starts
+ * empty for you to fill in (spec §10.1). Working skeleton only: this is
+ * part of the design-first set-logging screen.
+ */
+export function StrengthSetRow({ exerciseId, set, loaded }: { exerciseId: string; set: StrengthSet; loaded: boolean }) {
   const logSet = useStrengthStore((s) => s.logSet);
   const isDuration = set.targetDuration !== undefined;
-  const hasWeight = set.targetWeight !== undefined;
+  const hasWeight = loaded && !isDuration;
+  const needsWeight = hasWeight && set.targetWeight === undefined;
   const logged = set.actualReps !== undefined || set.actualDuration !== undefined;
 
-  const [weight, setWeight] = useState(set.targetWeight ?? 0);
+  const [weight, setWeight] = useState(set.targetWeight?.toString() ?? "");
+
+  // When a first-use weight fills this set's target, show it — unless you've already typed something here.
+  useEffect(() => {
+    if (set.targetWeight !== undefined) setWeight((typed) => (typed === "" ? set.targetWeight!.toString() : typed));
+  }, [set.targetWeight]);
   const [volume, setVolume] = useState(set.targetReps ?? set.targetDuration ?? 0);
 
   function handleComplete() {
     logSet(
       exerciseId,
       set.setNumber,
-      isDuration ? { actualDuration: volume } : { actualWeight: hasWeight ? weight : undefined, actualReps: volume },
+      isDuration
+        ? { actualDuration: volume }
+        : { actualWeight: hasWeight ? parseEnteredWeight(weight) : undefined, actualReps: volume },
     );
   }
 
@@ -33,8 +47,9 @@ export function StrengthSetRow({ exerciseId, set }: { exerciseId: string; set: S
         <p className="text-sm font-semibold text-slate-800">Set {set.setNumber}</p>
         <p className="text-xs text-slate-500">
           Target: {formatTargetVolume({ prescribedReps: set.targetReps, repsUnit: set.repsUnit, prescribedDuration: set.targetDuration })}
-          {hasWeight ? ` @ ${set.targetWeight}kg` : ""}
+          {hasWeight && !needsWeight ? ` @ ${set.targetWeight}kg` : ""}
         </p>
+        {needsWeight && !logged && <p className="text-xs font-medium text-accent-700">Enter your weight</p>}
       </div>
 
       {logged ? (
@@ -50,9 +65,10 @@ export function StrengthSetRow({ exerciseId, set }: { exerciseId: string; set: S
               inputMode="decimal"
               step={WEIGHT_STEP_KG}
               value={weight}
-              onChange={(e) => setWeight(Number(e.target.value))}
+              placeholder="kg"
+              onChange={(e) => setWeight(e.target.value)}
               aria-label={`Set ${set.setNumber} weight`}
-              className="w-16 rounded-lg border border-slate-300 px-2 py-1.5 text-right text-sm tabular-nums"
+              className="w-20 rounded-lg border border-slate-300 px-2 py-1.5 text-right text-sm tabular-nums"
             />
           )}
           <input

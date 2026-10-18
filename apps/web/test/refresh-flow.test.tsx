@@ -11,7 +11,7 @@ beforeEach(() => {
 describe("Flow 5: Open 'I'm Bored'", () => {
   it("opens a modal offering the four structured refresh options", async () => {
     const user = userEvent.setup();
-    render(<TodayScreen />);
+    render(<TodayScreen currentWeights={{}} />);
     await user.click(screen.getByRole("button", { name: /i'm bored/i }));
 
     const dialog = screen.getByRole("dialog", { name: /i'm bored/i });
@@ -24,7 +24,7 @@ describe("Flow 5: Open 'I'm Bored'", () => {
 
   it("defaults to 'change one exercise from each group' checked", async () => {
     const user = userEvent.setup();
-    render(<TodayScreen />);
+    render(<TodayScreen currentWeights={{}} />);
     await user.click(screen.getByRole("button", { name: /i'm bored/i }));
     const dialog = screen.getByRole("dialog", { name: /i'm bored/i });
     expect(within(dialog).getByRole("checkbox", { name: /change one exercise from each group/i })).toBeChecked();
@@ -35,7 +35,7 @@ describe("Flow 5: Open 'I'm Bored'", () => {
 describe("Flow 6: Generate a refreshed workout", () => {
   it("previews changed exercises and a muscle-coverage status using the deterministic engine", async () => {
     const user = userEvent.setup();
-    render(<TodayScreen />);
+    render(<TodayScreen currentWeights={{}} />);
     await user.click(screen.getByRole("button", { name: /i'm bored/i }));
     const dialog = screen.getByRole("dialog", { name: /i'm bored/i });
 
@@ -50,7 +50,7 @@ describe("Flow 6: Generate a refreshed workout", () => {
 
   it("reports an impossible reduction rather than silently applying it", async () => {
     const user = userEvent.setup();
-    render(<TodayScreen />);
+    render(<TodayScreen currentWeights={{}} />);
     await user.click(screen.getByRole("button", { name: /i'm bored/i }));
     const dialog = screen.getByRole("dialog", { name: /i'm bored/i });
 
@@ -67,7 +67,7 @@ describe("Flow 6: Generate a refreshed workout", () => {
 describe("Flow 7: Accept the refreshed workout", () => {
   it("applies the previewed session when 'Use This Workout' is clicked", async () => {
     const user = userEvent.setup();
-    render(<TodayScreen />);
+    render(<TodayScreen currentWeights={{}} />);
     await user.click(screen.getByRole("button", { name: /i'm bored/i }));
     const dialog = screen.getByRole("dialog", { name: /i'm bored/i });
     await user.click(within(dialog).getByRole("button", { name: /preview changes/i }));
@@ -82,7 +82,7 @@ describe("Flow 7: Accept the refreshed workout", () => {
 
   it("'Keep Current' discards the preview and leaves the session unchanged", async () => {
     const user = userEvent.setup();
-    render(<TodayScreen />);
+    render(<TodayScreen currentWeights={{}} />);
     await user.click(screen.getByRole("button", { name: /i'm bored/i }));
     const dialog = screen.getByRole("dialog", { name: /i'm bored/i });
     await user.click(within(dialog).getByRole("button", { name: /preview changes/i }));

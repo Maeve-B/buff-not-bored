@@ -28,8 +28,6 @@ const testSquats: Exercise = {
   exerciseType: "compound",
   equipment: "barbell",
   location: "rack",
-  startingWeight: 20,
-  weightUnit: "kg",
   prescribedReps: 20,
   repsUnit: "reps",
   progressionPercentage: 5,

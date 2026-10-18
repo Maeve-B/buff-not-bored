@@ -15,7 +15,7 @@ describe("Flow 10: View progression", () => {
   });
 
   it("uses the domain progression engine's recommendation for each logged exercise", () => {
-    const session = getTodayWorkout();
+    const session = getTodayWorkout({ squats: 20, deadlifts: 35 });
     useAppStore.setState({
       history: [
         {
@@ -28,9 +28,9 @@ describe("Flow 10: View progression", () => {
           exercisesCompleted: 2,
           session,
           setLogs: [
-            // Squats: prescribed 20kg/20 reps, logged easy performance -> engine recommends increase.
+            // Squats: your 20kg, 20 reps, logged easy performance -> engine recommends increase.
             { exerciseId: "squats", actualWeight: 20, actualReps: 25, completed: true, loggedAt: Date.now() },
-            // Deadlifts: prescribed 35kg/20 reps, met exactly -> engine recommends maintain.
+            // Deadlifts: your 35kg, 20 reps, met exactly -> engine recommends maintain.
             { exerciseId: "deadlifts", actualWeight: 35, actualReps: 20, completed: true, loggedAt: Date.now() },
           ],
         },

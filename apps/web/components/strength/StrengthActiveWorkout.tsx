@@ -13,6 +13,7 @@ export function StrengthActiveWorkout() {
   const completeWorkout = useStrengthStore((s) => s.completeWorkout);
   const saveStatus = useStrengthStore((s) => s.saveStatus);
   const saveError = useStrengthStore((s) => s.saveError);
+  const weightSaveError = useStrengthStore((s) => s.weightSaveError);
 
   const { completed, total } = countCompletedSets(session);
   const progressPercent = total === 0 ? 0 : Math.round((completed / total) * 100);
@@ -31,7 +32,7 @@ export function StrengthActiveWorkout() {
           <div className="h-full rounded-full bg-accent-600 transition-all" style={{ width: `${progressPercent}%` }} />
         </div>
         <div className="text-right">
-          <SaveStatusNote status={saveStatus} error={saveError} />
+          <SaveStatusNote status={saveStatus} error={saveError} weightError={weightSaveError} />
         </div>
       </div>
 

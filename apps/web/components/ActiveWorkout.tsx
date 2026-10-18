@@ -16,6 +16,7 @@ export function ActiveWorkout() {
   const completeWorkout = useAppStore((s) => s.completeWorkout);
   const saveStatus = useAppStore((s) => s.saveStatus);
   const saveError = useAppStore((s) => s.saveError);
+  const weightSaveError = useAppStore((s) => s.weightSaveError);
 
   const groups = getProgrammeGroupsPresent(session);
   const mainExercises = session.mainExercises;
@@ -36,7 +37,7 @@ export function ActiveWorkout() {
           <div className="h-full rounded-full bg-accent-600 transition-all" style={{ width: `${progressPercent}%` }} />
         </div>
         <div className="text-right">
-          <SaveStatusNote status={saveStatus} error={saveError} />
+          <SaveStatusNote status={saveStatus} error={saveError} weightError={weightSaveError} />
         </div>
       </div>
 
