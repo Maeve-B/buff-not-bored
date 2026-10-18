@@ -53,6 +53,15 @@ _Breakdown approved 2026-10-18. Decisions D-002–D-006._
 - Notes: the trigger uses reps only until set feedback is logged in Phase 1 (D-006). Circuit keeps percentage progression. The old engines round weights to 0.5 kg; anything that stays must use the 0.25 kg step (D-007). Choosing which of the increment options become the nudge chips is a design question.
 - Done when: no strength screen suggests a weight automatically; the engine reports readiness and increment options.
 
+### S-005 · kg or lb, chosen in Settings — status: todo
+- Epic: R-00 (requested by Maeve, 2026-10-18; not in the spec)
+- Spec: none yet; extends D-007
+- Screens: Settings (unit choice); every weight label and box shows the chosen unit
+- Design-first: no
+- Depends on: S-002
+- Notes: one unit everywhere, not per exercise. Store kg; convert for display and entry, so nothing saved changes. lb moves in 0.5 lb steps, with jumps such as +0.5 / +1 / +2.5 / +5 lb (confirmed by Maeve).
+- Done when: switching to lb shows and accepts every weight in lb, and switching back shows the same kg values as before.
+
 ## Discovered (untriaged)
 - Weight history has no pagination yet (from PR #6).
 - Same-day ordering between a workout entry and a manual weight entry is a simple sort (from PR #6).

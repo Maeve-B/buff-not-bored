@@ -49,7 +49,7 @@ export function StrengthSetRow({ exerciseId, set, loaded }: { exerciseId: string
           Target: {formatTargetVolume({ prescribedReps: set.targetReps, repsUnit: set.repsUnit, prescribedDuration: set.targetDuration })}
           {hasWeight && !needsWeight ? ` @ ${set.targetWeight}kg` : ""}
         </p>
-        {needsWeight && !logged && <p className="text-xs font-medium text-accent-700">Enter your weight</p>}
+        {needsWeight && !logged && <p className="text-xs font-medium text-accent-700">Weight (kg)</p>}
       </div>
 
       {logged ? (

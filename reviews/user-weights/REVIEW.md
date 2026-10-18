@@ -14,7 +14,7 @@
 | | |
 |---|---|
 | ![](01-strength-overview.png) | **01 · Overview.** Unchanged. |
-| ![](02-strength-squats-no-weight-yet.png) | **02 · No weight yet.** Each set says "Enter your weight", with an empty kg box. |
+| ![](02-strength-squats-no-weight-yet.png) | **02 · No weight yet.** Each set says "Weight (kg)", with an empty box. |
 | ![](03-strength-typing-first-weight.png) | **03 · Typing the first weight**, 20.25 kg. |
 | ![](04-strength-first-set-logged-rest-filled-in.png) | **04 · First set logged.** Sets 2 and 3 now target 20.25 kg. |
 | ![](05-strength-bodyweight-exercise.png) | **05 · Bodyweight exercise** (Plank): no weight box. A loaded exercise below (Russian Twists) still asks. |
@@ -36,7 +36,7 @@
 
 | | |
 |---|---|
-| ![](09-circuit-your-weight-and-weight-needed.png) | **09 · Your weight and weight needed.** Squats uses your 20.25 kg with the +/− buttons; Squat Pulse says "Weight needed" and shows a typed "Your weight" box. |
+| ![](09-circuit-your-weight-and-weight-needed.png) | **09 · Your weight and weight needed.** Squats uses your 20.25 kg with the +/− buttons; Squat Pulse says "Weight needed" and shows a typed "Weight (kg)" box. |
 | ![](10-circuit-typing-first-weight.png) | **10 · Typing a first weight** on Deadlifts, 35.25 kg. |
 | ![](11-circuit-first-weight-logged.png) | **11 · Logged.** Deadlifts now shows your 35.25 kg straight away. |
 | ![](12-circuit-bodyweight-exercise.png) | **12 · Bodyweight exercise** on Circuit. |
@@ -49,7 +49,7 @@
 Your local database is empty right now, so every weight will start blank, as you asked (D-003). The screenshots came from a separate review database, so your data wasn't touched.
 
 ## Placeholder UI (design-first)
-The empty weight box and its "Enter your weight" / "Your weight" labels are a **working skeleton only**. Entering a weight is part of set logging, which is design-first, so this stops here for your design.
+The empty weight box and its "Weight (kg)" label (your wording) are a **working skeleton only**. Entering a weight is part of set logging, which is design-first, so this stops here for your design.
 
 ## Deviations and things to know
 - **Fixed along the way, because 0.25 kg weights exposed them:**
@@ -62,4 +62,4 @@ The empty weight box and its "Enter your weight" / "Your weight" labels are a **
 - **Assisted exercises:** the logic is ready, but there's nothing to show until the pull-up arrives in Phase 1.
 
 ## Questions for you
-1. Wording: "Enter your weight" (Strength) and "Your weight" (Circuit) are placeholders. Any preference before the design pass?
+None. The kg/lb choice will be a setting in its own slice (see BACKLOG.md).

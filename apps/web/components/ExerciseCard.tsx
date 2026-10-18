@@ -102,7 +102,7 @@ export function ExerciseCard({ planned }: { planned: PlannedExercise }) {
             )}
             {needsWeight && (
               <label className="flex flex-col items-center gap-1">
-                <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Your weight</span>
+                <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Weight (kg)</span>
                 <input
                   type="number"
                   inputMode="decimal"

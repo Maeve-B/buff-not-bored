@@ -92,7 +92,7 @@ describe("Classic Strength — your weights (S-002)", () => {
     await user.click(screen.getByRole("button", { name: /start workout/i }));
 
     const squats = within(squatsCard());
-    expect(squats.getAllByText("Enter your weight")).toHaveLength(3);
+    expect(squats.getAllByText("Weight (kg)")).toHaveLength(3);
     expect(squats.getByRole("spinbutton", { name: "Set 1 weight" })).toHaveValue(null);
   });
 
