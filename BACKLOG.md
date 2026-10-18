@@ -29,7 +29,7 @@ _Breakdown approved 2026-10-18. Decisions D-002–D-006._
 - Notes: schema change (escalate at plan). Keep the v1 seven groups alongside the new fields (D-002). New values flagged for review, with a one-page table in the review pack (D-005).
 - Done when: all 33 existing exercises carry the §9.1 fields and pass validation; the existing app behaves as before.
 
-### S-002 · Your weights move out of the library — status: in-progress
+### S-002 · Your weights move out of the library — status: in-review (PR #9)
 - Epic: R-00 · Spec: §9.1 (`starting_weight` → user exercise state), §2, §10.1 (blank weights)
 - Screens: Strength and Circuit workouts and the exercise page, in three states: weight set, no weight yet, bodyweight. The assisted state is built and tested but can't be shown until Phase 1 adds an assisted exercise.
 - Design-first: partly. Entering a blank weight is part of set logging, so it's a working skeleton only.
