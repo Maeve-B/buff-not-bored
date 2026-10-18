@@ -15,7 +15,8 @@
  */
 
 import type { LoggedSetInput, LoggedWorkoutExerciseInput, LoggedWorkoutInput } from "@buff-not-bored/db";
-import type { PlannedExercise, StrengthExercise } from "@buff-not-bored/domain";
+import { EXERCISES } from "@buff-not-bored/domain";
+import type { Exercise, PlannedExercise, StrengthExercise } from "@buff-not-bored/domain";
 import type { SetLog, WorkoutSnapshot } from "./types";
 
 function circuitExerciseToLoggedExercise(planned: PlannedExercise, log: SetLog | undefined): LoggedWorkoutExerciseInput {
@@ -85,4 +86,21 @@ export function toLoggedWorkoutInput(snapshot: WorkoutSnapshot): LoggedWorkoutIn
     dateIso: snapshot.dateIso,
     exercises: snapshot.session.exercises.map(strengthExerciseToLoggedExercise),
   };
+}
+
+const LIBRARY_BY_ID = new Map(EXERCISES.map((exercise) => [exercise.id, exercise]));
+
+/**
+ * Every exercise a snapshot references, deduplicated by id, as the catalog
+ * entry to save. Library exercises are taken from the current library, not
+ * the snapshot's copy: a session restored from before a library change
+ * (for example, one held in localStorage) carries an older shape that would
+ * fail validation. Exercises the library doesn't know are saved as sent.
+ */
+export function catalogEntriesFor(snapshot: WorkoutSnapshot): Exercise[] {
+  const all =
+    snapshot.workoutType === "circuit"
+      ? snapshot.session.mainExercises.map((pe) => pe.exercise)
+      : snapshot.session.exercises.map((se) => se.exercise);
+  return Array.from(new Map(all.map((exercise) => [exercise.id, LIBRARY_BY_ID.get(exercise.id) ?? exercise])).values());
 }

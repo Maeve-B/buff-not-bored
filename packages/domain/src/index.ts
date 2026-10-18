@@ -13,6 +13,7 @@ export * from "./entities/workout-type.js";
 
 // Seed data
 export { EXERCISES } from "./data/exercises.js";
+export { EXERCISE_PROFILES, findExerciseProfile } from "./data/exercise-profiles.js";
 export { WARMUP_PLAN } from "./data/warmup.js";
 export { COOLDOWN_PLAN } from "./data/cooldown.js";
 export { PROGRAMME_TEMPLATE, PROGRAMME_ALLOCATION } from "./data/programme-template.js";

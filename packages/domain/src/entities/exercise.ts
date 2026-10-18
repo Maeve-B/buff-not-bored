@@ -85,6 +85,117 @@ export type RepsUnit = (typeof REPS_UNITS)[number];
  */
 export type MovementPattern = string;
 
+// ---------------------------------------------------------------------------
+// Library v2 vocabularies (PRODUCT_SPEC.md v2 §9.1). These sit alongside the
+// v1 fields above rather than replacing them: the v1 refresh, reduction and
+// equipment engines still run on programmeGroup/equipment/location until
+// their v2 rebuilds land (DECISIONS.md D-002, S-001).
+// ---------------------------------------------------------------------------
+
+/** One primary movement pattern per exercise (§9.1). Distinct from the free-form v1 `movementPatterns` tags. */
+export const PRIMARY_PATTERNS = [
+  "squat",
+  "hinge",
+  "lunge_unilateral",
+  "hip_extension",
+  "horizontal_push",
+  "vertical_push",
+  "horizontal_pull",
+  "vertical_pull",
+  "elbow_flexion",
+  "elbow_extension",
+  "shoulder_raise",
+  "calf",
+  "anti_extension",
+  "anti_rotation",
+  "lateral_flexion",
+  "rotation",
+  "carry",
+] as const;
+export type PrimaryPattern = (typeof PRIMARY_PATTERNS)[number];
+
+/** §6.3: compound = large muscle areas, two or more primary joints; isolation = one primary joint. */
+export const EXERCISE_CLASSES = ["compound", "isolation"] as const;
+export type ExerciseClass = (typeof EXERCISE_CLASSES)[number];
+
+export const SKILL_LEVELS = ["beginner", "intermediate", "advanced"] as const;
+export type SkillLevel = (typeof SKILL_LEVELS)[number];
+
+export const LOAD_TYPES = [
+  "barbell",
+  "dumbbell_pair",
+  "dumbbell_single",
+  "kettlebell",
+  "cable",
+  "machine",
+  "bodyweight",
+  "band",
+  "assisted_machine",
+] as const;
+export type LoadType = (typeof LOAD_TYPES)[number];
+
+/** Everything an exercise needs to be available (§6.1's equipment list) — v1's `equipment` holds only the load implement. */
+export const GYM_EQUIPMENT = [
+  "barbell",
+  "rack",
+  "dumbbells",
+  "kettlebell",
+  "bench",
+  "cable",
+  "machine",
+  "pull_up_bar",
+  "band",
+  "bodyweight",
+] as const;
+export type GymEquipment = (typeof GYM_EQUIPMENT)[number];
+
+/** Where the exercise is done (§9.1), for faff scoring and "equipment taken → swap". */
+export const STATIONS = ["rack", "bench", "cable_stack", "floor", "pull_up_bar", "machine", "open_space"] as const;
+export type Station = (typeof STATIONS)[number];
+
+/** `reduce_assistance`: the logged value is assistance in kg and a lower number is progress (§9.1). */
+export const LOAD_DIRECTIONS = ["add_load", "reduce_assistance"] as const;
+export type LoadDirection = (typeof LOAD_DIRECTIONS)[number];
+
+/** §6.5. `percentage` is for circuits only. */
+export const PROGRESSION_STRATEGIES = ["load_nudge", "double_progression", "ladder", "percentage", "technique"] as const;
+export type ProgressionStrategy = (typeof PROGRESSION_STRATEGIES)[number];
+
+export const JOINT_STRESS_TAGS = ["knee", "lower_back", "shoulder", "wrist", "elbow", "hip"] as const;
+export type JointStressTag = (typeof JOINT_STRESS_TAGS)[number];
+
+/** A setup cue plus one or two form cues, in our own words, for audio and the UI. */
+export interface ExerciseCues {
+  setup: string;
+  form: string[];
+}
+
+/** The §9.1 library fields added in v2. Authored per exercise in data/exercise-profiles.ts. */
+export interface ExerciseLibraryProfile {
+  movementPattern: PrimaryPattern;
+  exerciseClass: ExerciseClass;
+  skillLevel: SkillLevel;
+  loadType: LoadType;
+  equipmentNeeded: GymEquipment[];
+  station: Station;
+  unilateral: boolean;
+  /** Reps or seconds are counted per side. Only meaningful when `unilateral`. */
+  perSide: boolean;
+  /** Real available jumps in kg, smallest first. Empty for unloaded bodyweight exercises. */
+  incrementOptions: number[];
+  loadDirection: LoadDirection;
+  progressionStrategyDefault: ProgressionStrategy;
+  /** Less fatiguing variants in the same movement pattern (§6.6). May be empty until the Phase 1 library expansion. */
+  lightAlternativeIds: string[];
+  /** Exercises sharing a swap group are equivalent-stimulus alternatives. */
+  swapGroup?: string;
+  /** Ladder neighbours (§10.3). */
+  regressionId?: string;
+  progressionId?: string;
+  jointStressTags: JointStressTag[];
+  cues: ExerciseCues;
+}
+
 /**
  * A single exercise in the catalog, matching PRODUCT_SPEC.md §5 field-for-field.
  *
@@ -92,7 +203,7 @@ export type MovementPattern = string;
  * (e.g. Plank, Superman Holds) have `prescribedDuration` instead of
  * `prescribedReps`/`startingWeight`/`progressionPercentage`.
  */
-export interface Exercise {
+export interface Exercise extends ExerciseLibraryProfile {
   id: string;
   name: string;
   programmeGroup: ProgrammeGroup;
@@ -114,7 +225,10 @@ export interface Exercise {
   /** Duration-based exercises (e.g. Plank) set this instead of prescribedReps. Seconds. */
   prescribedDuration?: number;
 
-  /** Absent where the spec gives no progression percentage (bodyweight exercises with no load). */
+  /**
+   * Circuits only (v2 §9.1, §3.3): strength work never progresses by
+   * percentage. Absent where no percentage is given (unloaded bodyweight).
+   */
   progressionPercentage?: number;
 
   active: boolean;

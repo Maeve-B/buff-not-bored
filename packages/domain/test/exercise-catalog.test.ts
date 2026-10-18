@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { EXERCISE_PROFILES } from "../src/data/exercise-profiles.js";
 import { EXERCISES } from "../src/data/exercises.js";
 import { MUSCLES } from "../src/entities/exercise.js";
 import { validateCatalog } from "../src/validation/exercise.schema.js";
@@ -144,5 +145,60 @@ describe("muscle taxonomy correction", () => {
     expect(overheadPress?.primaryMuscles).toEqual(["anterior_deltoids"]);
     expect(overheadPress?.secondaryMuscles).toEqual(["lateral_deltoids", "triceps"]);
     expect(overheadPress?.needsReview).toBe(true);
+  });
+});
+
+describe("exercise library — v2 profile (§9.1, S-001)", () => {
+  it("gives every exercise a profile, and every profile belongs to an exercise", () => {
+    expect(Object.keys(EXERCISE_PROFILES).sort()).toEqual(EXERCISES.map((e) => e.id).sort());
+  });
+
+  it("keeps the v1 fields the existing engines run on (D-002)", () => {
+    for (const exercise of EXERCISES) {
+      expect(exercise.programmeGroup).toBeDefined();
+      expect(exercise.equipment).toBeDefined();
+      expect(exercise.location).toBeDefined();
+    }
+  });
+
+  it("hands out independent copies, so changing one exercise's increments can't change another's", () => {
+    const squats = EXERCISES.find((e) => e.id === "squats")!;
+    const deadlifts = EXERCISES.find((e) => e.id === "deadlifts")!;
+    expect(squats.incrementOptions).not.toBe(deadlifts.incrementOptions);
+    expect(squats.incrementOptions).not.toBe(EXERCISE_PROFILES.squats.incrementOptions);
+  });
+
+  it("never defaults strength work to percentage progression (§3.3)", () => {
+    expect(EXERCISES.filter((e) => e.progressionStrategyDefault === "percentage")).toEqual([]);
+  });
+
+  it("defaults compound lifts to the load nudge and isolation lifts to double progression, unless unloaded", () => {
+    for (const exercise of EXERCISES) {
+      const expected =
+        exercise.loadType === "bodyweight" ? "ladder" : exercise.exerciseClass === "compound" ? "load_nudge" : "double_progression";
+      expect(exercise.progressionStrategyDefault, exercise.id).toBe(expected);
+    }
+  });
+
+  it("derives station from the v1 location, so faff scoring sees the same layout", () => {
+    const stationFor = { rack: "rack", bench: "bench", standing: "open_space", floor: "floor", bench_or_floor: "floor" };
+    for (const exercise of EXERCISES) {
+      expect(exercise.station, exercise.id).toBe(stationFor[exercise.location]);
+    }
+  });
+
+  it("classes the core exercises as isolation (Maeve's call, S-001 Q3)", () => {
+    for (const id of ["plank", "russian-twists", "bicycle-crunches"]) {
+      expect(EXERCISES.find((e) => e.id === id)?.exerciseClass, id).toBe("isolation");
+    }
+  });
+
+  it("gives the combination exercises one primary pattern each (S-001 Q4)", () => {
+    expect(EXERCISES.find((e) => e.id === "rdl-upright-row")?.movementPattern).toBe("hinge");
+    expect(EXERCISES.find((e) => e.id === "squat-calf-raise")?.movementPattern).toBe("squat");
+  });
+
+  it("has no assisted exercises yet, so everything progresses by adding load", () => {
+    expect(EXERCISES.every((e) => e.loadDirection === "add_load")).toBe(true);
   });
 });

@@ -49,6 +49,29 @@ model Exercise {
   notes                 String?
   needsReview           Boolean @default(false)
 
+  /// Library v2 profile (PRODUCT_SPEC.md v2 §9.1). Nullable / empty-list
+  /// defaults only so rows saved before this column existed stay valid;
+  /// every save from the current library fills them all (see
+  /// mappers/exercise-mapper.ts).
+  movementPattern            String?
+  exerciseClass              String?
+  skillLevel                 String?
+  loadType                   String?
+  equipmentNeeded            String[] @default([])
+  station                    String?
+  unilateral                 Boolean?
+  perSide                    Boolean?
+  incrementOptions           Float[]  @default([])
+  loadDirection              String?
+  progressionStrategyDefault String?
+  lightAlternativeIds        String[] @default([])
+  swapGroup                  String?
+  regressionId               String?
+  progressionId              String?
+  jointStressTags            String[] @default([])
+  cueSetup                   String?
+  cueForm                    String[] @default([])
+
   workoutExercises WorkoutExercise[]
   capability       ExerciseCapability?
   weightLogs       ExerciseWeightLog[]

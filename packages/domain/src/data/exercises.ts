@@ -10,9 +10,11 @@
  * since it isn't part of the §5 field list.
  */
 
-import type { Exercise } from "../entities/exercise.js";
+import type { Exercise, ExerciseLibraryProfile } from "../entities/exercise.js";
+import { findExerciseProfile } from "./exercise-profiles.js";
 
-export const EXERCISES: Exercise[] = [
+/** The v1 fields of each exercise. The v2 §9.1 profile is merged in from data/exercise-profiles.ts below. */
+const BASE_EXERCISES: Omit<Exercise, keyof ExerciseLibraryProfile>[] = [
   // ---- LEGS ----
   {
     id: "squats",
@@ -621,3 +623,11 @@ export const EXERCISES: Exercise[] = [
     active: true,
   },
 ];
+
+export const EXERCISES: Exercise[] = BASE_EXERCISES.map((base) => {
+  const profile = findExerciseProfile(base.id);
+  if (!profile) {
+    throw new Error(`Exercise "${base.id}" has no library profile in data/exercise-profiles.ts.`);
+  }
+  return { ...base, ...profile };
+});

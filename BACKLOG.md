@@ -21,7 +21,7 @@ _Nothing yet._
 ## Now (epic R-00 · Phase 0 — Clean-up)
 _Breakdown approved 2026-10-18. Decisions D-002–D-006._
 
-### S-001 · Exercise library in the new shape — status: todo
+### S-001 · Exercise library in the new shape — status: in-progress
 - Epic: R-00 · Spec: §9.1, §10.2 (re-tag existing only)
 - Screens: none
 - Design-first: no
@@ -56,6 +56,7 @@ _Breakdown approved 2026-10-18. Decisions D-002–D-006._
 ## Discovered (untriaged)
 - Weight history has no pagination yet (from PR #6).
 - Same-day ordering between a workout entry and a manual weight entry is a simple sort (from PR #6).
+- CI uses GitHub actions (checkout, setup-node, pnpm) that run on retiring Node 20; bump to their next major versions.
 - Playwright is not yet installed, but the visual review pack needs it. Adding it is a new dependency, so it needs approval.
 
 ## Done
@@ -65,3 +66,4 @@ _Breakdown approved 2026-10-18. Decisions D-002–D-006._
 - PR #4 · Exercise capability foundation (`feature/exercise-capability`)
 - PR #5 · Exercise capability UI (`feature/exercise-capability-ui`)
 - PR #6 · Exercise weight history and independent weight tracking (`feature/weight-progression`)
+- PR #7 · Agent workflow scaffolding, roadmap and CI (`chore/agent-workflow-scaffolding`)

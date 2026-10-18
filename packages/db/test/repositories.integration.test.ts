@@ -6,6 +6,7 @@
  * packages/db/.env.example.
  */
 
+import { EXERCISE_PROFILES } from "@buff-not-bored/domain";
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import type { Exercise, ExerciseCapabilityInput } from "@buff-not-bored/domain";
 import { CapabilityValidationError } from "@buff-not-bored/domain";
@@ -27,6 +28,7 @@ import { LoggedWorkoutValidationError } from "../src/validation/logged-workout.s
 import type { LoggedWorkoutInput } from "../src/types.js";
 
 const testExercise: Exercise = {
+  ...EXERCISE_PROFILES.squats,
   id: "test-back-squat",
   name: "Back Squat",
   programmeGroup: "legs",
