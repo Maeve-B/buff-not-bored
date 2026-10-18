@@ -21,7 +21,7 @@ _Nothing yet._
 ## Now (epic R-00 · Phase 0 — Clean-up)
 _Breakdown approved 2026-10-18. Decisions D-002–D-006._
 
-### S-001 · Exercise library in the new shape — status: in-progress
+### S-001 · Exercise library in the new shape — status: in-review (PR #8)
 - Epic: R-00 · Spec: §9.1, §10.2 (re-tag existing only)
 - Screens: none
 - Design-first: no
