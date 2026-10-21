@@ -159,7 +159,9 @@ Quick workouts log to history like any other session.
 ### 5.7 Progression nudge
 See §7.4. **MVP.**
 
-### 5.8 History
+### 5.8 History — UX on hold, data still captured
+> **UX on hold (Maeve, 2026-10-21):** the History screen is parked while its UX is rethought; it may overlap with Progress (§5.9). Data capture is unaffected: logging still records sessions, programmes, and exercises done, skipped and swapped. See §14, decision 7.
+
 - Session count (per week, per month and all time) against the plan.
 - Programmes done, with start and end dates.
 - Exercises done and not done, skipped and swapped.
@@ -537,3 +539,4 @@ Within stage 3, progress is **reducing assistance**. Maeve is currently at stage
 4. **Feedback labels:** Easy / Good / Hard / Too hard / Failed, mapped onto the book's reps-in-reserve scale. ✅
 5. **AI needs-analysis chat:** moved to Phase 1. ✅
 6. **No body-weight tracking.** "Weight tracking" means load lifted. ✅
+7. **History UX on hold:** the History screen (§5.8) is parked while Maeve rethinks its UX, which may overlap with Progress (§5.9). Session and history data are still captured exactly as specced; no History UI is built for now. ⏸ (2026-10-21)
