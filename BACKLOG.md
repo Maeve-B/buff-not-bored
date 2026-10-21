@@ -38,7 +38,7 @@ _Breakdown approved 2026-10-18. Decisions D-002–D-006._
 
 _Re-planned 2026-10-21 (Maeve): Preset Programme 1 comes forward from Phase 1 and replaces the old 26-exercise Strength session (D-010). The old S-003 "Correct rep, set and rest defaults" is dropped: presets carry their own numbers, and the §6.3 goal defaults move to Phase 2's programme generator. Rest is shown as information only._
 
-### S-003 · New exercises for Preset Programme 1 — status: in-progress
+### S-003 · New exercises for Preset Programme 1 — status: in-review (PR #10)
 - Epic: R-00 (brought forward from R-01 item 1) · Spec: §10.1, §9.1, §10.2 (subset)
 - Screens: Exercises list; exercise page in three new states: assisted (no assistance yet / saved), weighted and timed (Farmer Carry), per side (Cable Woodchop)
 - Design-first: no
