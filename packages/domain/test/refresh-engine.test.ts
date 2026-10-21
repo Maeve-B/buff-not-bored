@@ -1,6 +1,7 @@
 import { EXERCISE_PROFILES } from "../src/data/exercise-profiles.js";
 import { describe, expect, it } from "vitest";
-import { EXERCISES } from "../src/data/exercises.js";
+// Circuit and classic Strength refresh against the classic library (apps/web workout-service).
+import { CLASSIC_EXERCISES as EXERCISES } from "../src/data/exercises.js";
 import { PROGRAMME_TEMPLATE } from "../src/data/programme-template.js";
 import type { Exercise } from "../src/entities/exercise.js";
 import { PROGRAMME_ORDER } from "../src/entities/programme.js";

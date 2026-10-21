@@ -1,4 +1,4 @@
-import { EXERCISE_PROFILES } from "@buff-not-bored/domain";
+import { EXERCISE_PROFILES, EXERCISES } from "@buff-not-bored/domain";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -126,5 +126,12 @@ describe("ExerciseCapabilityForm", () => {
     expect(await screen.findByText(/couldn't save this capability/i)).toBeInTheDocument();
     expect(screen.getByText(/at least one of weight, reps, or duration/)).toBeInTheDocument();
     expect(refresh).not.toHaveBeenCalled(); // a failed save must not refresh the page as if it had succeeded
+  });
+
+  it("asks for assistance rather than weight on an assisted exercise", () => {
+    const assisted = EXERCISES.find((exercise) => exercise.id === "assisted-pull-up")!;
+    render(<ExerciseCapabilityForm exercise={assisted} initialCapability={undefined} />);
+    expect(screen.getByLabelText("Assistance")).toHaveValue(null);
+    expect(screen.queryByLabelText("Weight")).not.toBeInTheDocument();
   });
 });

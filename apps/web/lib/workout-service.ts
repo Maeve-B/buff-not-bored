@@ -15,7 +15,7 @@ import {
   calculateMuscleCoverage,
   countTransitions,
   distinctEquipment,
-  EXERCISES,
+  CLASSIC_EXERCISES,
   getExposureCount,
   prescribeCurrentWeights,
   PROGRAMME_ORDER,
@@ -46,7 +46,7 @@ export const CIRCUIT_WORKOUT_TYPE = "circuit" as const;
 
 /** Today's workout, built from the authored programme template and prescribed your weights. */
 export function getTodayWorkout(currentWeights: CurrentWeights = {}): WorkoutSession {
-  return buildDefaultSession(EXERCISES, currentWeights);
+  return buildDefaultSession(CLASSIC_EXERCISES, currentWeights);
 }
 
 /** Today's session re-prescribed from your weights: everything if it hasn't started, only blank weights if it has (§3.3). */
@@ -88,7 +88,7 @@ export interface SwapResult {
 
 /** Swaps one exercise using the deterministic refresh engine, targeted at exactly that exercise. */
 export function swapExercise(session: WorkoutSession, exerciseId: string, currentWeights: CurrentWeights = {}): SwapResult {
-  const result = refreshWorkout(session, EXERCISES, {}, { targetExerciseIds: [exerciseId], currentWeights });
+  const result = refreshWorkout(session, CLASSIC_EXERCISES, {}, { targetExerciseIds: [exerciseId], currentWeights });
   const decision = result.decisions.find((d) => d.previousExerciseId === exerciseId);
   if (!decision) {
     throw new Error(`swapExercise: no decision produced for "${exerciseId}" — is it a main-role exercise in this session?`);
@@ -251,7 +251,7 @@ export function previewRefresh(
   }
 
   if (!error && choices.changeOnePerGroup) {
-    refreshResult = refreshWorkout(working, EXERCISES, { soft }, { currentWeights });
+    refreshResult = refreshWorkout(working, CLASSIC_EXERCISES, { soft }, { currentWeights });
     working = refreshResult.session;
   }
 

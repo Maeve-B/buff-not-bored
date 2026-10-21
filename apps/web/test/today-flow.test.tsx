@@ -46,7 +46,7 @@ describe("Flow 2: Start workout", () => {
     await user.click(screen.getByRole("button", { name: /start workout/i }));
 
     expect(screen.getByRole("heading", { name: "Full Body" })).toBeInTheDocument();
-    expect(screen.getByText("Squats")).toBeInTheDocument();
+    expect(screen.getByText("Back Squat")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /finish workout/i })).toBeInTheDocument();
     expect(screen.getByText(/0\/25 logged/)).toBeInTheDocument();
   });
@@ -88,9 +88,9 @@ describe("Your weights (S-002)", () => {
     render(<TodayScreen currentWeights={{ squats: 40 }} />);
     await user.click(screen.getByRole("button", { name: /start workout/i }));
 
-    expect(within(cardFor("Squats")).getByText(/^40kg ·/)).toBeInTheDocument();
-    expect(within(cardFor("Deadlifts")).getByText(/^Add baseline ·/)).toBeInTheDocument();
-    expect(within(cardFor("Deadlifts")).getByRole("spinbutton", { name: "Deadlifts weight" })).toHaveValue(null);
+    expect(within(cardFor("Back Squat")).getByText(/^40kg ·/)).toBeInTheDocument();
+    expect(within(cardFor("Conventional Deadlift")).getByText(/^Add baseline ·/)).toBeInTheDocument();
+    expect(within(cardFor("Conventional Deadlift")).getByRole("spinbutton", { name: "Conventional Deadlift weight" })).toHaveValue(null);
     expect(within(cardFor("Superman Holds")).getByText(/^Bodyweight ·/)).toBeInTheDocument();
   });
 
@@ -99,8 +99,8 @@ describe("Your weights (S-002)", () => {
     render(<TodayScreen currentWeights={{}} />);
     await user.click(screen.getByRole("button", { name: /start workout/i }));
 
-    const deadlifts = within(cardFor("Deadlifts"));
-    await user.type(deadlifts.getByRole("spinbutton", { name: "Deadlifts weight" }), "35.25");
+    const deadlifts = within(cardFor("Conventional Deadlift"));
+    await user.type(deadlifts.getByRole("spinbutton", { name: "Conventional Deadlift weight" }), "35.25");
     await user.click(deadlifts.getByRole("button", { name: /log set/i }));
 
     expect(deadlifts.getByText(/35\.25kg × 20 reps/)).toBeInTheDocument();
@@ -114,8 +114,8 @@ describe("Your weights (S-002)", () => {
     await user.click(screen.getByRole("button", { name: /start workout/i }));
 
     await user.click(screen.getAllByRole("button", { name: "Increase Weight" })[0]!); // Squats: 20 -> 22.5 for this session
-    await user.click(within(cardFor("Squats")).getByRole("button", { name: /log set/i }));
-    await user.click(within(cardFor("Deadlifts")).getByRole("button", { name: /log set/i }));
+    await user.click(within(cardFor("Back Squat")).getByRole("button", { name: /log set/i }));
+    await user.click(within(cardFor("Conventional Deadlift")).getByRole("button", { name: /log set/i }));
 
     expect(saveStartingWeight).not.toHaveBeenCalled();
     expect(useAppStore.getState().currentWeights).toEqual({ squats: 20 });
@@ -134,7 +134,7 @@ describe("Your weights — keeping your session (S-002 review)", () => {
 
     expect(useAppStore.getState().session.mainExercises.map((pe) => pe.exercise.id)).toEqual(idsAfterSwap);
     await user.click(screen.getByRole("button", { name: /start workout/i }));
-    expect(within(cardFor("Deadlifts")).getByText(/^60kg ·/)).toBeInTheDocument();
+    expect(within(cardFor("Conventional Deadlift")).getByText(/^60kg ·/)).toBeInTheDocument();
   });
 
   it("shows your new weight on the exercise straight after a first-use log", async () => {
@@ -142,8 +142,8 @@ describe("Your weights — keeping your session (S-002 review)", () => {
     render(<TodayScreen currentWeights={{}} />);
     await user.click(screen.getByRole("button", { name: /start workout/i }));
 
-    const deadlifts = within(cardFor("Deadlifts"));
-    await user.type(deadlifts.getByRole("spinbutton", { name: "Deadlifts weight" }), "35");
+    const deadlifts = within(cardFor("Conventional Deadlift"));
+    await user.type(deadlifts.getByRole("spinbutton", { name: "Conventional Deadlift weight" }), "35");
     await user.click(deadlifts.getByRole("button", { name: /log set/i }));
 
     expect(deadlifts.getByText(/^35kg ·/)).toBeInTheDocument();
@@ -156,18 +156,18 @@ describe("Flow 4: Swap an exercise", () => {
     render(<TodayScreen currentWeights={{}} />);
     await user.click(screen.getByRole("button", { name: /start workout/i }));
 
-    expect(screen.getByText("Squats")).toBeInTheDocument();
+    expect(screen.getByText("Back Squat")).toBeInTheDocument();
     await user.click(screen.getAllByRole("button", { name: /^swap$/i })[0]!);
 
     // Squats' only eligible library alternate is Bulgarian Split Squat (confirmed by the Phase 2 domain tests).
     // The exercise-card heading is gone — Squats no longer has its own card.
-    expect(screen.queryByRole("heading", { name: "Squats", level: 3 })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Back Squat", level: 3 })).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Bulgarian Split Squat", level: 3 })).toBeInTheDocument();
 
-    // The swap banner explains what changed (not just a silently-updated card) — "Squats" legitimately
+    // The swap banner explains what changed (not just a silently-updated card) — "Back Squat" legitimately
     // still appears here, struck through, as the "before" side of the comparison.
     expect(screen.getByText(/Swapped/)).toBeInTheDocument();
-    expect(screen.getByText("Squats")).toBeInTheDocument();
+    expect(screen.getByText("Back Squat")).toBeInTheDocument();
   });
 });
 
@@ -185,7 +185,7 @@ describe("Flow 8: Complete a workout", () => {
     expect(screen.getByText("1/25")).toBeInTheDocument();
     expect(screen.getByText("Progression recommendations")).toBeInTheDocument();
     // Squats logged at exactly prescribed weight/reps with default feedback -> "maintain".
-    const squatsRow = within(screen.getByText("Squats").closest("li")!);
+    const squatsRow = within(screen.getByText("Back Squat").closest("li")!);
     expect(squatsRow.getByText(/→ Maintain/)).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: /done/i }));

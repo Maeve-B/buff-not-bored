@@ -164,6 +164,16 @@ describe("validateCatalog — library references", () => {
     expect(issues).toEqual(['swap group "core" mixes movement patterns: anti_extension, rotation']);
   });
 
+  it("rejects pairing an assisted exercise with a loaded one, as a light alternative or a swap (§9.1)", () => {
+    const assisted: Exercise = { ...sibling, loadType: "assisted_machine", loadDirection: "reduce_assistance", incrementOptions: [2.5] };
+    expect(issuesFor([{ ...validExercise, lightAlternativeIds: ["sibling"], swapGroup: undefined }, { ...assisted, swapGroup: undefined }])).toEqual([
+      '[test-exercise] lightAlternativeIds: "sibling" records reduce_assistance, not add_load',
+    ]);
+    expect(issuesFor([{ ...validExercise, swapGroup: "pull" }, { ...assisted, swapGroup: "pull" }])).toEqual([
+      'swap group "pull" mixes load directions: add_load, reduce_assistance',
+    ]);
+  });
+
   it("rejects a ladder neighbour that points to the exercise itself", () => {
     expect(issuesFor([{ ...validExercise, progressionId: "test-exercise" }])).toEqual([
       "[test-exercise] progressionId: cannot point to itself",

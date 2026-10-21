@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { EXERCISE_PROFILES } from "../src/data/exercise-profiles.js";
-import { EXERCISES } from "../src/data/exercises.js";
+import { CLASSIC_EXERCISES, EXERCISES } from "../src/data/exercises.js";
 import { MUSCLES } from "../src/entities/exercise.js";
 import { validateCatalog } from "../src/validation/exercise.schema.js";
 
@@ -9,7 +9,41 @@ describe("exercise library", () => {
     // 24 from the original spec + 9 introduced by the PROGRAMME MODEL CORRECTION
     // (Lunges, Flat Bench Press, Bench Flyes, Bent-Over Row, Single-Arm Dumbbell Row,
     // Good Mornings, Close-Grip Bench Press, Barbell Curl, Upright Row).
-    expect(EXERCISES).toHaveLength(33);
+    expect(CLASSIC_EXERCISES).toHaveLength(33);
+  });
+
+  it("adds the 11 exercises Preset Programme 1 needs (spec §10.1, S-003)", () => {
+    const presetIds = EXERCISES.filter((e) => !CLASSIC_EXERCISES.includes(e)).map((e) => e.id);
+    expect(presetIds).toEqual([
+      "assisted-pull-up",
+      "assisted-dead-hang",
+      "lat-pulldown",
+      "seated-cable-row",
+      "chest-supported-db-row",
+      "leg-press",
+      "hip-thrust-machine",
+      "leg-curl",
+      "captains-chair-knee-raise",
+      "cable-woodchop",
+      "farmer-carry",
+    ]);
+  });
+
+  it("keeps the classic library self-contained, so Circuit and classic Strength never reach a new exercise", () => {
+    expect(() => validateCatalog(CLASSIC_EXERCISES)).not.toThrow();
+  });
+
+  it("names the existing exercises the way Preset Programme 1 does", () => {
+    const nameOf = (id: string) => EXERCISES.find((e) => e.id === id)?.name;
+    expect(nameOf("squats")).toBe("Back Squat");
+    expect(nameOf("deadlifts")).toBe("Conventional Deadlift");
+    expect(nameOf("flat-db-press")).toBe("DB Bench Press");
+  });
+
+  it("gives every Preset Programme 1 exercise a swap group (§10.1)", () => {
+    for (const exercise of EXERCISES.filter((e) => !CLASSIC_EXERCISES.includes(e))) {
+      expect(exercise.swapGroup, exercise.id).toBeDefined();
+    }
   });
 
   it("has unique ids", () => {
@@ -180,14 +214,27 @@ describe("exercise library — v2 profile (§9.1, S-001)", () => {
 
   it("defaults compound lifts to the load nudge and isolation lifts to double progression, unless unloaded", () => {
     for (const exercise of EXERCISES) {
+      // Unloaded bodyweight and assisted work are skills that progress on the ladder (§6.5, §10.3).
       const expected =
-        exercise.loadType === "bodyweight" ? "ladder" : exercise.exerciseClass === "compound" ? "load_nudge" : "double_progression";
+        exercise.loadType === "bodyweight" || exercise.loadType === "assisted_machine"
+          ? "ladder"
+          : exercise.exerciseClass === "compound"
+            ? "load_nudge"
+            : "double_progression";
       expect(exercise.progressionStrategyDefault, exercise.id).toBe(expected);
     }
   });
 
   it("derives station from the v1 location, so faff scoring sees the same layout", () => {
-    const stationFor = { rack: "rack", bench: "bench", standing: "open_space", floor: "floor", bench_or_floor: "floor" };
+    const stationFor = {
+      rack: "rack",
+      bench: "bench",
+      standing: "open_space",
+      floor: "floor",
+      bench_or_floor: "floor",
+      cable: "cable_stack",
+      machine: "machine",
+    };
     for (const exercise of EXERCISES) {
       expect(exercise.station, exercise.id).toBe(stationFor[exercise.location]);
     }
@@ -204,7 +251,9 @@ describe("exercise library — v2 profile (§9.1, S-001)", () => {
     expect(EXERCISES.find((e) => e.id === "squat-calf-raise")?.movementPattern).toBe("squat");
   });
 
-  it("has no assisted exercises yet, so everything progresses by adding load", () => {
-    expect(EXERCISES.every((e) => e.loadDirection === "add_load")).toBe(true);
+  it("records assistance on exactly the assisted exercises, where less is progress (§9.1)", () => {
+    const assisted = EXERCISES.filter((e) => e.loadDirection === "reduce_assistance").map((e) => e.id);
+    expect(assisted).toEqual(["assisted-pull-up", "assisted-dead-hang"]);
+    expect(EXERCISES.filter((e) => e.loadType === "assisted_machine").map((e) => e.id)).toEqual(assisted);
   });
 });

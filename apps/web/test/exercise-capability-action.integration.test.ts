@@ -8,7 +8,15 @@
  */
 
 import { EXERCISE_PROFILES } from "@buff-not-bored/domain";
-import { afterAll, beforeEach, describe, expect, it } from "vitest";
+import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
+
+/** A test-only library exercise with no database row, standing in for one you've never done in a workout. */
+const NEVER_DONE_ID = "integration-test-never-done-exercise";
+vi.mock("@buff-not-bored/domain", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@buff-not-bored/domain")>();
+  const neverDone = { ...actual.EXERCISES[0]!, id: "integration-test-never-done-exercise", name: "Integration Test Never Done" };
+  return { ...actual, EXERCISES: [...actual.EXERCISES, neverDone] };
+});
 import { prisma, STARTING_WEIGHT_LOG_NOTE, upsertExercise } from "@buff-not-bored/db";
 import type { Exercise } from "@buff-not-bored/domain";
 import {
@@ -134,5 +142,24 @@ describe("starting weight actions — real database (S-002)", () => {
     expect(await saveStartingWeight(testExercise.id, 25)).toEqual({ ok: true, saved: false });
     expect((await loadExerciseCapability(testExercise.id))?.weight).toBe(40);
     expect(await prisma.exerciseWeightLog.count({ where: { exerciseId: testExercise.id } })).toBe(1);
+  });
+});
+
+describe("saving on a library exercise you've never done in a workout (S-003)", () => {
+  async function removeNeverDone(): Promise<void> {
+    await prisma.exerciseWeightLog.deleteMany({ where: { exerciseId: NEVER_DONE_ID } });
+    await prisma.exerciseCapability.deleteMany({ where: { exerciseId: NEVER_DONE_ID } });
+    await prisma.exercise.deleteMany({ where: { id: NEVER_DONE_ID } });
+  }
+
+  it("adds the exercise to the database first, so the save succeeds", async () => {
+    await removeNeverDone();
+    try {
+      const result = await saveExerciseCapability({ exerciseId: NEVER_DONE_ID, weight: 22.5, weightUnit: "kg", source: "manual" });
+      expect(result.ok).toBe(true);
+      expect((await loadExerciseCapability(NEVER_DONE_ID))?.weight).toBe(22.5);
+    } finally {
+      await removeNeverDone();
+    }
   });
 });

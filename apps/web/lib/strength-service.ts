@@ -7,7 +7,7 @@
 import {
   applyStartingWeight,
   buildDefaultStrengthSession,
-  EXERCISES,
+  CLASSIC_EXERCISES,
   prescribeStrengthWeights,
   startingWeightToRecord,
   type CurrentWeights,
@@ -23,7 +23,7 @@ export const STRENGTH_WORKOUT_NAME = "Full Body Strength";
 
 /** Today's Classic Strength session — same library/template as Circuit, different session shape, prescribed your weights. */
 export function getTodayStrengthSession(currentWeights: CurrentWeights = {}): StrengthSession {
-  return buildDefaultStrengthSession(EXERCISES, { currentWeights });
+  return buildDefaultStrengthSession(CLASSIC_EXERCISES, { currentWeights });
 }
 
 /** The session re-prescribed from your weights: everything if it hasn't started, only blank weights if it has (§3.3). */

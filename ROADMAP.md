@@ -10,12 +10,12 @@ Buff, Not Bored is a programme creation and motivation app: it gets a person ont
 ## Now
 ### R-00 · Phase 0 — Clean-up
 - Migrate the library to the §9.1 model; move per-user state out of the library.
-- Correct the rep and set defaults (§6.3).
+- ~~Correct the rep and set defaults (§6.3).~~ Replaced (2026-10-21): Preset Programme 1's exercises and the programme itself come forward from R-01 items 1–2 and replace the old Strength session. The §6.3 goal defaults move to R-02's generator.
 - Refactor the progression engine to the nudge model (§7.4); remove percentage progression except for circuits.
 
 ### R-01 · Phase 1 — MVP: "follow a good programme and see yourself progress"
-1. Expanded library (§10.2), including pulling, glutes, core and light alternatives.
-2. Preset Programme 1 (§10.1), seeded exactly, with supersets and assisted exercises.
+1. Expanded library (§10.2), including pulling, glutes, core and light alternatives. *(Preset 1's exercises brought forward to R-00.)*
+2. Preset Programme 1 (§10.1), seeded exactly, with supersets and assisted exercises. *(Brought forward to R-00.)*
 3. Session start/end and fast logging with the RIR feedback scale (§7).
 4. Progression nudge at session start (§7.4).
 5. Light day and the "equipment taken → swap" action.
@@ -28,7 +28,7 @@ Buff, Not Bored is a programme creation and motivation app: it gets a person ont
 
 ## Next
 ### R-02 · Phase 2 — Programme creation
-- Needs-analysis form (§6.1) → deterministic programme generator (§6) with explanations.
+- Needs-analysis form (§6.1) → deterministic programme generator (§6) with explanations, including the §6.3 rep, set and rest defaults by goal.
 - Experienced-user onboarding goes through programme creation.
 - Pre-session check-in, deload offers, pain handling (§6.6).
 - Explicit favourite and avoid.

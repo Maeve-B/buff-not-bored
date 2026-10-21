@@ -8,10 +8,27 @@
  * Prisma, and never call the repository layer directly.
  */
 
-import { getExerciseCapability, listExerciseCapabilities, recordStartingWeight, upsertExerciseCapability } from "@buff-not-bored/db";
-import { currentWeightsFromCapabilities } from "@buff-not-bored/domain";
+import {
+  getExerciseCapability,
+  listExerciseCapabilities,
+  recordStartingWeight,
+  upsertExercise,
+  upsertExerciseCapability,
+} from "@buff-not-bored/db";
+import { currentWeightsFromCapabilities, EXERCISES } from "@buff-not-bored/domain";
 import type { CurrentWeights, ExerciseCapability, ExerciseCapabilityInput } from "@buff-not-bored/domain";
 import type { SaveCapabilityResult, SaveStartingWeightResult } from "@/lib/types";
+
+/**
+ * Makes sure a library exercise has its catalog row before a capability is
+ * saved against it (the capability's foreign key): an exercise you've never
+ * done in a workout has no row yet. Same approach as `persistWorkoutSnapshot`.
+ * Ids outside the library are left to the foreign key.
+ */
+async function ensureInCatalog(exerciseId: string): Promise<void> {
+  const exercise = EXERCISES.find((candidate) => candidate.id === exerciseId);
+  if (exercise) await upsertExercise(exercise);
+}
 
 /** The current capability for an exercise, or `undefined` if the user has never set one. */
 export async function loadExerciseCapability(exerciseId: string): Promise<ExerciseCapability | undefined> {
@@ -21,6 +38,7 @@ export async function loadExerciseCapability(exerciseId: string): Promise<Exerci
 /** Persists a manual capability edit. Returns a typed result rather than letting a validation failure propagate silently. */
 export async function saveExerciseCapability(input: ExerciseCapabilityInput): Promise<SaveCapabilityResult> {
   try {
+    await ensureInCatalog(input.exerciseId);
     const capability = await upsertExerciseCapability(input);
     return { ok: true, capability };
   } catch (error) {
@@ -40,6 +58,7 @@ export async function loadCurrentWeights(): Promise<CurrentWeights> {
  */
 export async function saveStartingWeight(exerciseId: string, weight: number): Promise<SaveStartingWeightResult> {
   try {
+    await ensureInCatalog(exerciseId);
     return { ok: true, saved: await recordStartingWeight(exerciseId, weight) };
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : "Unknown error while saving your starting weight" };

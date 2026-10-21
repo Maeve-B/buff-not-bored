@@ -29,7 +29,7 @@ function weightValues(card: HTMLElement): string[] {
 }
 
 function squatsCard(): HTMLElement {
-  return screen.getByRole("heading", { name: "Squats", level: 3 }).closest("div")!.parentElement!;
+  return screen.getByRole("heading", { name: "Back Squat", level: 3 }).closest("div")!.parentElement!;
 }
 
 describe("Classic Strength — has proper set-based semantics, distinct from Circuit", () => {
@@ -167,7 +167,7 @@ describe("Classic Strength — your weights, edge cases (S-002 review)", () => {
     rerender(<StrengthScreen currentWeights={{ squats: 30, deadlifts: 60 }} />);
 
     expect(weightValues(squatsCard())).toEqual(["20", "20", "20"]);
-    expect(weightValues(screen.getByRole("heading", { name: "Deadlifts", level: 3 }).closest("div")!.parentElement!)).toEqual(["60", "60", "60"]);
+    expect(weightValues(screen.getByRole("heading", { name: "Conventional Deadlift", level: 3 }).closest("div")!.parentElement!)).toEqual(["60", "60", "60"]);
   });
 
   it("says so if a starting weight doesn't save, and doesn't quietly save the next set instead", async () => {
@@ -179,7 +179,7 @@ describe("Classic Strength — your weights, edge cases (S-002 review)", () => {
     const squats = within(squatsCard());
     await user.type(squats.getByRole("spinbutton", { name: "Set 1 weight" }), "20");
     await user.click(squats.getByRole("button", { name: "Complete set 1" }));
-    expect(await screen.findByText(/Couldn't save 20kg as your Squats weight/)).toBeInTheDocument();
+    expect(await screen.findByText(/Couldn't save 20kg as your Back Squat weight/)).toBeInTheDocument();
 
     const set2 = squats.getByRole("spinbutton", { name: "Set 2 weight" });
     await user.clear(set2);

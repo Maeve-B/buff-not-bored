@@ -124,7 +124,7 @@ export const exerciseSchema = z
 /**
  * Catalog-level §9.1 checks: every referenced id exists, and light
  * alternatives (§6.6) and swap-group members (equivalent stimulus) share
- * the exercise's movement pattern.
+ * the exercise's movement pattern and load direction.
  */
 function checkLibraryReferences(catalog: Exercise[]): string[] {
   const issues: string[] = [];
@@ -142,6 +142,9 @@ function checkLibraryReferences(catalog: Exercise[]): string[] {
           `[${exercise.id}] lightAlternativeIds: "${altId}" is ${alt.movementPattern}, not ${exercise.movementPattern}`,
         );
       }
+      if (alt && alt.loadDirection !== exercise.loadDirection) {
+        issues.push(`[${exercise.id}] lightAlternativeIds: "${altId}" records ${alt.loadDirection}, not ${exercise.loadDirection}`);
+      }
     }
     for (const field of ["regressionId", "progressionId"] as const) {
       const ref = exercise[field];
@@ -154,15 +157,25 @@ function checkLibraryReferences(catalog: Exercise[]): string[] {
   }
 
   const patternsBySwapGroup = new Map<string, Set<string>>();
+  const directionsBySwapGroup = new Map<string, Set<string>>();
   for (const exercise of catalog) {
     if (exercise.swapGroup === undefined) continue;
     const patterns = patternsBySwapGroup.get(exercise.swapGroup) ?? new Set<string>();
     patterns.add(exercise.movementPattern);
     patternsBySwapGroup.set(exercise.swapGroup, patterns);
+    const directions = directionsBySwapGroup.get(exercise.swapGroup) ?? new Set<string>();
+    directions.add(exercise.loadDirection);
+    directionsBySwapGroup.set(exercise.swapGroup, directions);
   }
   for (const [group, patterns] of patternsBySwapGroup) {
     if (patterns.size > 1) {
       issues.push(`swap group "${group}" mixes movement patterns: ${[...patterns].join(", ")}`);
+    }
+  }
+  // Assistance (lower is progress) and load (higher is progress) can't stand in for each other (§9.1).
+  for (const [group, directions] of directionsBySwapGroup) {
+    if (directions.size > 1) {
+      issues.push(`swap group "${group}" mixes load directions: ${[...directions].join(", ")}`);
     }
   }
 

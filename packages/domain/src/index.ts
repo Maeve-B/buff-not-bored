@@ -13,7 +13,7 @@ export * from "./entities/workout-session.js";
 export * from "./entities/workout-type.js";
 
 // Seed data
-export { EXERCISES } from "./data/exercises.js";
+export { EXERCISES, CLASSIC_EXERCISES } from "./data/exercises.js";
 export { EXERCISE_PROFILES, findExerciseProfile } from "./data/exercise-profiles.js";
 export { WARMUP_PLAN } from "./data/warmup.js";
 export { COOLDOWN_PLAN } from "./data/cooldown.js";
