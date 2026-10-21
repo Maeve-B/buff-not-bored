@@ -29,7 +29,7 @@
 - Decision: v1 seed weights are not carried over. Maeve enters each weight at first use, to test that flow.
 - Alternatives: carrying over the old seed weights as current weights.
 
-### D-004 · Strength mode uses the strength goal defaults (2026-10-18)
+### D-004 · Strength mode uses the strength goal defaults (2026-10-18) — superseded by D-010
 - Decision: Strength mode prescribes compound 3 × 5 and isolation 3 × 8–12 (§6.3, spec decision 1).
 
 ### D-005 · Re-tagged library values get a review table (2026-10-18)
@@ -50,3 +50,18 @@
 - Alternatives: a separate "user exercise state" table (unnecessary while the capability already holds the current weight); updating your weight from every logged session (breaks §3.3).
 - Revisit if: multi-user arrives (capability gains a user id), or the progression nudge needs its own record of accepted increases.
 
+### D-009 · Reps always come before weight (2026-10-18, Maeve)
+- Decision: everywhere a set is entered or shown, reps come first and weight second ("20 reps × 20 kg"). Strength sets already do; Circuit and the logged-set text follow in S-004.
+
+### D-010 · Preset Programme 1 comes forward and replaces the old Strength session (2026-10-21, Maeve)
+- Context: the old 26-exercise Strength session isn't a real programme; Maeve's Mon/Wed/Fri programme is Preset Programme 1 (§10.1), planned for Phase 1.
+- Decision: build Preset 1's exercises (S-003) and the programme (S-004) now, ahead of the progression nudge. Drop the "correct rep, set and rest defaults" slice: presets carry their own numbers, and the §6.3 goal defaults belong to Phase 2's generator. Rest is shown as information only: no timer, nothing enforced.
+- Alternatives: tuning the old session's defaults first (effort spent on a session about to be replaced).
+
+### D-011 · Preset 1 starts blank and follows the rotation (2026-10-21, Maeve)
+- Decision: every Preset 1 weight starts blank, including those listed in §10.1 (D-003 kept). Today shows the next session due in the Mon → Wed → Fri rotation, whatever the calendar day, with no rest-day note; you can pick any of the three.
+
+### D-012 · Preset 1's exercises join the library; Circuit and classic Strength keep the original 33 (2026-10-21, S-003)
+- Context: the "I'm bored" refresh and swaps draw on the whole library, so new gym exercises would leak into Circuit.
+- Decision: the library holds every exercise; Circuit and the classic Strength session draw only on the original 33. Squats, Deadlifts and Flat DB Press are renamed Back Squat, Conventional Deadlift and DB Bench Press (Maeve). Assisted exercises have no separate light alternative: their lighter version is more assistance. Leg Curl is filed under the hinge pattern until the spec has a knee-flexion pattern. Cable and machine stacks offer the barbell jumps, from 0.25 kg (D-007).
+- Revisit if: Phase 1's "quick workout: full body with swap" wants the gym exercises.

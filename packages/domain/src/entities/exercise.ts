@@ -51,6 +51,7 @@ export const MUSCLES = [
   "trapezius",
   "lateral_deltoids",
   "anterior_deltoids",
+  "rear_deltoids",
   "chest",
   "upper_chest",
   "triceps",
@@ -59,17 +60,18 @@ export const MUSCLES = [
   "forearms",
   "abdominals",
   "obliques",
+  "hip_flexors",
 ] as const;
 export type Muscle = (typeof MUSCLES)[number];
 
 export const EXERCISE_TYPES = ["compound", "isolation", "bodyweight", "core"] as const;
 export type ExerciseType = (typeof EXERCISE_TYPES)[number];
 
-export const EQUIPMENT_TYPES = ["barbell", "dumbbell", "bodyweight"] as const;
+export const EQUIPMENT_TYPES = ["barbell", "dumbbell", "bodyweight", "cable", "machine"] as const;
 export type Equipment = (typeof EQUIPMENT_TYPES)[number];
 
 /** Where in the gym the exercise is performed — relevant later to equipment/faff optimisation (spec §13). */
-export const LOCATIONS = ["rack", "bench", "standing", "floor", "bench_or_floor"] as const;
+export const LOCATIONS = ["rack", "bench", "standing", "floor", "bench_or_floor", "cable", "machine"] as const;
 export type Location = (typeof LOCATIONS)[number];
 
 export const WEIGHT_UNITS = ["kg"] as const;
@@ -250,6 +252,14 @@ export interface Exercise extends ExerciseLibraryProfile {
    * means the data is confirmed.
    */
   needsReview?: boolean;
+}
+
+/**
+ * True when a lower logged value is progress: the value is assistance, not
+ * load (§9.1 `reduce_assistance`, e.g. the assisted pull-up).
+ */
+export function lowerIsProgress(exercise: Pick<Exercise, "loadDirection">): boolean {
+  return exercise.loadDirection === "reduce_assistance";
 }
 
 /** True when the exercise takes an external load or assistance, so a weight applies to it. Unloaded bodyweight work has none. */

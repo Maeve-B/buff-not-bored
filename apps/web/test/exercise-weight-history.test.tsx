@@ -3,9 +3,12 @@ import { describe, expect, it } from "vitest";
 import type { ExerciseWeightHistoryEntry } from "@buff-not-bored/db";
 import { ExerciseWeightHistory } from "@/components/ExerciseWeightHistory";
 
+const LOADED = { loadDirection: "add_load" } as const;
+const ASSISTED = { loadDirection: "reduce_assistance" } as const;
+
 describe("ExerciseWeightHistory", () => {
   it("shows an empty state when nothing has been recorded yet", () => {
-    render(<ExerciseWeightHistory history={[]} />);
+    render(<ExerciseWeightHistory exercise={LOADED} history={[]} />);
     expect(screen.getByText("No weight history yet")).toBeInTheDocument();
   });
 
@@ -16,7 +19,7 @@ describe("ExerciseWeightHistory", () => {
       { dateIso: "2026-09-21", weight: 42.5 },
       { dateIso: "2026-09-28", weight: 35 },
     ];
-    render(<ExerciseWeightHistory history={history} />);
+    render(<ExerciseWeightHistory exercise={LOADED} history={history} />);
 
     expect(screen.getByText("40kg")).toBeInTheDocument();
     expect(screen.getAllByText("42.5kg")).toHaveLength(2);
@@ -30,9 +33,26 @@ describe("ExerciseWeightHistory", () => {
       { dateIso: "2026-09-21", weight: 42.5 }, // unchanged
       { dateIso: "2026-09-28", weight: 35 }, // decrease
     ];
-    render(<ExerciseWeightHistory history={history} />);
+    render(<ExerciseWeightHistory exercise={LOADED} history={history} />);
 
     const icons = screen.getAllByText(/[↑↓→]/);
     expect(icons.map((el) => el.textContent)).toEqual(["↑", "→", "↓"]);
+  });
+
+  it("talks about assistance on an assisted exercise, and colours less assistance as progress", () => {
+    const { rerender } = render(<ExerciseWeightHistory exercise={ASSISTED} history={[]} />);
+    expect(screen.getByText("No assistance history yet")).toBeInTheDocument();
+
+    rerender(
+      <ExerciseWeightHistory
+        exercise={ASSISTED}
+        history={[
+          { dateIso: "2026-09-07", weight: 30 },
+          { dateIso: "2026-09-14", weight: 25 },
+        ]}
+      />,
+    );
+    expect(screen.getByText("Assistance History")).toBeInTheDocument();
+    expect(screen.getByText("↓")).toHaveClass("text-emerald-600");
   });
 });

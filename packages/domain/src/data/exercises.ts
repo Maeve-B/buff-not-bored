@@ -9,12 +9,14 @@
 import type { Exercise, ExerciseLibraryProfile } from "../entities/exercise.js";
 import { findExerciseProfile } from "./exercise-profiles.js";
 
+type BaseExercise = Omit<Exercise, keyof ExerciseLibraryProfile>;
+
 /** The v1 fields of each exercise. The v2 §9.1 profile is merged in from data/exercise-profiles.ts below. */
-const BASE_EXERCISES: Omit<Exercise, keyof ExerciseLibraryProfile>[] = [
+const CLASSIC_BASE_EXERCISES: BaseExercise[] = [
   // ---- LEGS ----
   {
     id: "squats",
-    name: "Squats",
+    name: "Back Squat",
     programmeGroup: "legs",
     primaryMuscles: ["quads"],
     secondaryMuscles: ["glutes", "adductors"],
@@ -110,7 +112,7 @@ const BASE_EXERCISES: Omit<Exercise, keyof ExerciseLibraryProfile>[] = [
   // ---- BACK ----
   {
     id: "deadlifts",
-    name: "Deadlifts",
+    name: "Conventional Deadlift",
     programmeGroup: "back",
     primaryMuscles: ["hamstrings", "glutes"],
     secondaryMuscles: ["spinal_erectors", "lats"],
@@ -251,7 +253,7 @@ const BASE_EXERCISES: Omit<Exercise, keyof ExerciseLibraryProfile>[] = [
   },
   {
     id: "flat-db-press",
-    name: "Flat DB Press",
+    name: "DB Bench Press",
     programmeGroup: "chest",
     primaryMuscles: ["chest"],
     secondaryMuscles: ["triceps", "anterior_deltoids"],
@@ -564,10 +566,181 @@ const BASE_EXERCISES: Omit<Exercise, keyof ExerciseLibraryProfile>[] = [
   },
 ];
 
-export const EXERCISES: Exercise[] = BASE_EXERCISES.map((base) => {
+/** Added for Preset Programme 1 (spec §10.1). */
+const PRESET_BASE_EXERCISES: BaseExercise[] = [
+  // Gym exercises Maeve's Mon/Wed/Fri programme needs. Muscles as listed in
+  // §10.1. Rep and duration values are the bottom of the programme's range;
+  // the programme itself carries the full ranges.
+  {
+    id: "assisted-pull-up",
+    name: "Assisted Pull-Up",
+    programmeGroup: "back",
+    primaryMuscles: ["lats", "upper_back"],
+    secondaryMuscles: ["biceps", "forearms"],
+    movementPatterns: ["vertical pull"],
+    exerciseType: "compound",
+    equipment: "machine",
+    location: "machine",
+    prescribedReps: 4,
+    repsUnit: "reps",
+    active: true,
+  },
+  {
+    id: "assisted-dead-hang",
+    name: "Assisted Dead Hang",
+    programmeGroup: "back",
+    primaryMuscles: ["forearms", "lats"],
+    secondaryMuscles: ["upper_back"],
+    movementPatterns: ["hang"],
+    exerciseType: "isolation",
+    equipment: "machine",
+    location: "machine",
+    prescribedDuration: 20,
+    active: true,
+  },
+  {
+    id: "lat-pulldown",
+    name: "Lat Pulldown",
+    programmeGroup: "back",
+    primaryMuscles: ["lats"],
+    secondaryMuscles: ["upper_back", "biceps"],
+    movementPatterns: ["vertical pull"],
+    exerciseType: "compound",
+    equipment: "cable",
+    location: "cable",
+    prescribedReps: 8,
+    repsUnit: "reps",
+    active: true,
+  },
+  {
+    id: "seated-cable-row",
+    name: "Seated Cable Row",
+    programmeGroup: "back",
+    primaryMuscles: ["upper_back", "lats"],
+    secondaryMuscles: ["biceps"],
+    movementPatterns: ["horizontal pull"],
+    exerciseType: "compound",
+    equipment: "cable",
+    location: "cable",
+    prescribedReps: 8,
+    repsUnit: "reps",
+    active: true,
+  },
+  {
+    id: "chest-supported-db-row",
+    name: "Chest-Supported DB Row",
+    programmeGroup: "back",
+    primaryMuscles: ["upper_back", "lats"],
+    secondaryMuscles: ["rear_deltoids", "biceps"],
+    movementPatterns: ["horizontal pull"],
+    exerciseType: "compound",
+    equipment: "dumbbell",
+    location: "bench",
+    prescribedReps: 8,
+    repsUnit: "reps",
+    progressionPercentage: 2.5,
+    active: true,
+  },
+  {
+    id: "leg-press",
+    name: "Leg Press",
+    programmeGroup: "legs",
+    primaryMuscles: ["quads", "glutes"],
+    secondaryMuscles: [],
+    movementPatterns: ["squat"],
+    exerciseType: "compound",
+    equipment: "machine",
+    location: "machine",
+    prescribedReps: 10,
+    repsUnit: "reps",
+    active: true,
+  },
+  {
+    id: "hip-thrust-machine",
+    name: "Hip Thrust Machine",
+    programmeGroup: "legs",
+    primaryMuscles: ["glutes"],
+    secondaryMuscles: ["hamstrings"],
+    movementPatterns: ["hip extension"],
+    exerciseType: "compound",
+    equipment: "machine",
+    location: "machine",
+    prescribedReps: 8,
+    repsUnit: "reps",
+    active: true,
+  },
+  {
+    id: "leg-curl",
+    name: "Leg Curl",
+    programmeGroup: "legs",
+    primaryMuscles: ["hamstrings"],
+    secondaryMuscles: [],
+    movementPatterns: ["knee flexion"],
+    exerciseType: "isolation",
+    equipment: "machine",
+    location: "machine",
+    prescribedReps: 10,
+    repsUnit: "reps",
+    active: true,
+  },
+  {
+    id: "captains-chair-knee-raise",
+    name: "Captain's Chair Knee Raise",
+    programmeGroup: "core",
+    primaryMuscles: ["abdominals"],
+    secondaryMuscles: ["hip_flexors"],
+    movementPatterns: ["knee raise"],
+    exerciseType: "core",
+    equipment: "bodyweight",
+    location: "machine",
+    prescribedReps: 8,
+    repsUnit: "reps",
+    active: true,
+  },
+  {
+    id: "cable-woodchop",
+    name: "Cable Woodchop",
+    programmeGroup: "core",
+    primaryMuscles: ["obliques"],
+    secondaryMuscles: ["abdominals"],
+    movementPatterns: ["rotation"],
+    exerciseType: "core",
+    equipment: "cable",
+    location: "cable",
+    prescribedReps: 10,
+    repsUnit: "per_side",
+    active: true,
+  },
+  {
+    id: "farmer-carry",
+    name: "Farmer Carry",
+    programmeGroup: "core",
+    primaryMuscles: ["forearms", "obliques"],
+    secondaryMuscles: ["abdominals"],
+    movementPatterns: ["carry"],
+    exerciseType: "core",
+    equipment: "dumbbell",
+    location: "standing",
+    prescribedDuration: 30,
+    progressionPercentage: 2.5,
+    active: true,
+  },
+];
+
+function withProfile(base: BaseExercise): Exercise {
   const profile = findExerciseProfile(base.id);
   if (!profile) {
     throw new Error(`Exercise "${base.id}" has no library profile in data/exercise-profiles.ts.`);
   }
   return { ...base, ...profile };
-});
+}
+
+/**
+ * The exercises Circuit and the classic Strength session draw on, including
+ * their swaps and "I'm bored" refreshes: the library as it was before
+ * Preset Programme 1, so those sessions don't change.
+ */
+export const CLASSIC_EXERCISES: Exercise[] = CLASSIC_BASE_EXERCISES.map(withProfile);
+
+/** The whole library. */
+export const EXERCISES: Exercise[] = [...CLASSIC_EXERCISES, ...PRESET_BASE_EXERCISES.map(withProfile)];

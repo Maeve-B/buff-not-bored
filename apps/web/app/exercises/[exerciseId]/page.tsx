@@ -20,7 +20,7 @@ export default async function ExerciseCapabilityPage({ params }: { params: Promi
     <div className="flex flex-col gap-4">
       <PageHeader title={exercise.name} subtitle="Your current working ability" />
       <ExerciseCapabilityForm exercise={exercise} initialCapability={capability} />
-      <ExerciseWeightHistory history={weightHistory} />
+      <ExerciseWeightHistory exercise={exercise} history={weightHistory} />
     </div>
   );
 }

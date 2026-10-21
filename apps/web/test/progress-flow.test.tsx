@@ -38,11 +38,11 @@ describe("Flow 10: View progression", () => {
     });
 
     render(<ProgressPage />);
-    expect(screen.getByText("Squats")).toBeInTheDocument();
+    expect(screen.getByText("Back Squat")).toBeInTheDocument();
     expect(screen.getByText(/20kg → 21kg/)).toBeInTheDocument();
     expect(screen.getByText(/Recommended progression/)).toBeInTheDocument();
 
-    expect(screen.getByText("Deadlifts")).toBeInTheDocument();
+    expect(screen.getByText("Conventional Deadlift")).toBeInTheDocument();
     expect(screen.getByText(/→ Maintain/)).toBeInTheDocument();
   });
 });

@@ -12,6 +12,8 @@ const EQUIPMENT_LABELS: Record<Equipment, string> = {
   barbell: "Barbell",
   dumbbell: "Dumbbell",
   bodyweight: "Bodyweight",
+  cable: "Cable",
+  machine: "Machine",
 };
 
 const LOCATION_LABELS: Record<Location, string> = {
@@ -20,6 +22,8 @@ const LOCATION_LABELS: Record<Location, string> = {
   standing: "Standing",
   floor: "Floor",
   bench_or_floor: "Bench or floor",
+  cable: "Cable stack",
+  machine: "Machine",
 };
 
 export function formatEquipment(equipment: Equipment): string {

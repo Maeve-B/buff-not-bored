@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { WEIGHT_STEP_KG, WEIGHT_UNITS, type Exercise, type ExerciseCapability, type ExerciseCapabilityInput } from "@buff-not-bored/domain";
+import { lowerIsProgress, WEIGHT_STEP_KG, WEIGHT_UNITS, type Exercise, type ExerciseCapability, type ExerciseCapabilityInput } from "@buff-not-bored/domain";
 import { saveExerciseCapability } from "@/lib/actions/exercise-capability";
 import type { SaveStatus } from "@/lib/store";
 import { Button } from "./ui/Button";
@@ -67,7 +67,7 @@ export function ExerciseCapabilityForm({
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div className="flex gap-3">
           <label className="flex-1 text-sm font-semibold text-slate-700">
-            Weight
+            {lowerIsProgress(exercise) ? "Assistance" : "Weight"}
             <input
               type="number"
               inputMode="decimal"

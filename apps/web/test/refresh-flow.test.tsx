@@ -77,7 +77,7 @@ describe("Flow 7: Accept the refreshed workout", () => {
 
     await user.click(screen.getByRole("button", { name: /start workout/i }));
     expect(screen.getByRole("heading", { name: "Bulgarian Split Squat", level: 3 })).toBeInTheDocument();
-    expect(screen.queryByRole("heading", { name: "Squats", level: 3 })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Back Squat", level: 3 })).not.toBeInTheDocument();
   });
 
   it("'Keep Current' discards the preview and leaves the session unchanged", async () => {
@@ -90,6 +90,6 @@ describe("Flow 7: Accept the refreshed workout", () => {
 
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /start workout/i }));
-    expect(screen.getByRole("heading", { name: "Squats", level: 3 })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Back Squat", level: 3 })).toBeInTheDocument();
   });
 });
