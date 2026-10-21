@@ -16,7 +16,13 @@
 ```
 
 ## Needs your decision
-_Nothing yet._
+### S-007 · History screen — status: needs-decision
+- Epic: R-01 (item 8, History half) · Spec: §5.8
+- Screens: History (none to be built for now)
+- Design-first: yes
+- Depends on: Maeve's UX decision
+- Notes: UX under review by Maeve — possible overlap with Progress. Data capture unaffected. Logging still records sessions, programmes, and exercises done, skipped and swapped. The Progress half of R-01 item 8 is unchanged.
+- Done when: Maeve decides the History UX (or folds it into Progress).
 
 ## Now (epic R-00 · Phase 0 — Clean-up)
 _Breakdown approved 2026-10-18. Decisions D-002–D-006._
