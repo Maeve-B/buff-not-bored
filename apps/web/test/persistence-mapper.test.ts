@@ -213,6 +213,22 @@ describe("toLoggedWorkoutInput — Classic Strength", () => {
     expect(exercise.finalWeight).toBeUndefined();
     expect(exercise.adjustments).toEqual([]);
   });
+
+  it("carries which preset session it was, for the rotation (D-011)", () => {
+    const snapshot: StrengthWorkoutSnapshot = {
+      id: "strength-3",
+      dateIso: "2026-10-21",
+      workoutName: "Monday · Squat and push",
+      workoutType: "classic_strength",
+      status: "in_progress",
+      session: { exercises: [] },
+      programmeId: "preset-programme-1",
+      scheduledWorkoutId: "monday",
+    };
+    const input = toLoggedWorkoutInput(snapshot);
+    expect(input.programmeId).toBe("preset-programme-1");
+    expect(input.scheduledWorkoutId).toBe("monday");
+  });
 });
 
 describe("catalogEntriesFor", () => {

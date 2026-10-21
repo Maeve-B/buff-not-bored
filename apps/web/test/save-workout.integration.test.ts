@@ -35,9 +35,8 @@ const testSquats: Exercise = {
 };
 
 async function resetTables(): Promise<void> {
-  await prisma.workoutSet.deleteMany();
-  await prisma.workoutExercise.deleteMany();
-  await prisma.workout.deleteMany();
+  // Only workouts that used this file's test exercise; their exercises and sets go with them (cascade).
+  await prisma.workout.deleteMany({ where: { exercises: { some: { exerciseId: testSquats.id } } } });
   await prisma.exerciseWeightLog.deleteMany({ where: { exerciseId: testSquats.id } });
   await prisma.exerciseCapability.deleteMany({ where: { exerciseId: testSquats.id } });
   await prisma.exercise.deleteMany({ where: { id: testSquats.id } });

@@ -1,10 +1,26 @@
-import { isLoaded, type StrengthExercise } from "@buff-not-bored/domain";
-import { formatEquipment, formatRestPeriod, getFormCue } from "@/lib/format";
+import type { StrengthExercise } from "@buff-not-bored/domain";
+import { formatEquipment, formatRecommendedRest, formatRestPeriod, formatSetsAndRange } from "@/lib/format";
 import { Card } from "../ui/Card";
 import { StrengthSetRow } from "./StrengthSetRow";
 
-export function StrengthExerciseCard({ strengthExercise }: { strengthExercise: StrengthExercise }) {
-  const cue = getFormCue(strengthExercise.exercise);
+/**
+ * One exercise and its sets. Inside a superset the pair shares one rest
+ * line (StrengthActiveWorkout), so `showRest` is off there.
+ */
+export function StrengthExerciseCard({
+  strengthExercise,
+  showRest = true,
+}: {
+  strengthExercise: StrengthExercise;
+  showRest?: boolean;
+}) {
+  // Any authored note first (e.g. Squat Pulse's range of motion), else the library's first form cue (§9.1).
+  const cue = strengthExercise.exercise.notes ?? strengthExercise.exercise.cues.form[0];
+  const rest = strengthExercise.recommendedRest
+    ? formatRecommendedRest(strengthExercise.recommendedRest)
+    : strengthExercise.restSeconds !== undefined
+      ? `Rest ${formatRestPeriod(strengthExercise.restSeconds)}`
+      : undefined;
 
   return (
     <Card className="p-4">
@@ -17,19 +33,14 @@ export function StrengthExerciseCard({ strengthExercise }: { strengthExercise: S
         )}
       </div>
       <p className="mt-0.5 text-sm text-slate-500">
-        {formatEquipment(strengthExercise.exercise.equipment)}
-        {strengthExercise.restSeconds !== undefined ? ` · Rest ${formatRestPeriod(strengthExercise.restSeconds)}` : ""}
+        {formatSetsAndRange(strengthExercise)} · {formatEquipment(strengthExercise.exercise.equipment)}
       </p>
+      {showRest && rest && <p className="text-xs text-slate-500">{rest}</p>}
       {cue && <p className="mt-1 text-xs text-slate-400">{cue}</p>}
 
       <div className="mt-3 flex flex-col gap-2">
         {strengthExercise.sets.map((set) => (
-          <StrengthSetRow
-            key={set.setNumber}
-            exerciseId={strengthExercise.exercise.id}
-            set={set}
-            loaded={isLoaded(strengthExercise.exercise)}
-          />
+          <StrengthSetRow key={set.setNumber} exercise={strengthExercise.exercise} set={set} />
         ))}
       </div>
     </Card>

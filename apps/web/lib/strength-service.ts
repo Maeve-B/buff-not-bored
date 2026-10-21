@@ -6,9 +6,14 @@
 
 import {
   applyStartingWeight,
-  buildDefaultStrengthSession,
-  CLASSIC_EXERCISES,
+  buildPresetStrengthSession,
+  EXERCISES,
+  findPresetSession,
+  nextPresetSession,
+  PRESET_PROGRAMME_1,
+  presetSessionName,
   prescribeStrengthWeights,
+  type PresetSession,
   startingWeightToRecord,
   type CurrentWeights,
   recommendProgression,
@@ -19,12 +24,29 @@ import {
 } from "@buff-not-bored/domain";
 import type { CompletedStrengthWorkout, HistoryEntry } from "./types";
 
-export const STRENGTH_WORKOUT_NAME = "Full Body Strength";
+/** Strength runs Preset Programme 1 (spec §10.1, DECISIONS.md D-010). */
+export const STRENGTH_PROGRAMME = PRESET_PROGRAMME_1;
 
-/** Today's Classic Strength session — same library/template as Circuit, different session shape, prescribed your weights. */
-export function getTodayStrengthSession(currentWeights: CurrentWeights = {}): StrengthSession {
-  return buildDefaultStrengthSession(CLASSIC_EXERCISES, { currentWeights });
+/** The programme's session with this id; an unknown id (say, from an older save) falls back to the first. */
+export function strengthSessionPlan(sessionId: string): PresetSession {
+  return findPresetSession(STRENGTH_PROGRAMME, sessionId) ?? STRENGTH_PROGRAMME.sessions[0]!;
 }
+
+/** "Monday · Squat and push". */
+export function strengthWorkoutName(sessionId: string): string {
+  return presetSessionName(strengthSessionPlan(sessionId));
+}
+
+/** The session after this one in the rotation (D-011). */
+export function nextStrengthSessionId(sessionId: string | undefined): string {
+  return nextPresetSession(STRENGTH_PROGRAMME, sessionId).id;
+}
+
+/** One of the programme's sessions, built and prescribed your weights. */
+export function buildStrengthSession(sessionId: string, currentWeights: CurrentWeights = {}): StrengthSession {
+  return buildPresetStrengthSession(EXERCISES, strengthSessionPlan(sessionId), { currentWeights });
+}
+
 
 /** The session re-prescribed from your weights: everything if it hasn't started, only blank weights if it has (§3.3). */
 export function prescribeSessionWeights(session: StrengthSession, currentWeights: CurrentWeights, started: boolean): StrengthSession {
@@ -89,7 +111,8 @@ export function computeProgressionForSet(strengthExercise: StrengthExercise, set
   return recommendProgression({
     exercise: strengthExercise.exercise,
     prescribedWeight: set.targetWeight,
-    prescribedReps: set.targetReps,
+    // In a rep range, reaching the bottom isn't a reason to add weight: judge against the top (§6.5 double progression).
+    prescribedReps: strengthExercise.targetRange?.max ?? set.targetReps,
     actualWeight: set.actualWeight,
     actualReps: set.actualReps,
     completed: set.completed,

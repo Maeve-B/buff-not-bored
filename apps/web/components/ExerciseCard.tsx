@@ -2,7 +2,7 @@
 
 import { isLoaded, parseEnteredWeight, WEIGHT_STEP_KG, type PlannedExercise } from "@buff-not-bored/domain";
 import { useEffect, useState } from "react";
-import { formatEquipment, formatTargetVolume, formatTargetWeight, getFormCue } from "@/lib/format";
+import { formatEquipment, formatLoggedSet, formatTargetVolume, formatTargetWeight, getFormCue } from "@/lib/format";
 import { useAppStore } from "@/lib/store";
 import { Button } from "./ui/Button";
 import { Card } from "./ui/Card";
@@ -60,7 +60,7 @@ export function ExerciseCard({ planned }: { planned: PlannedExercise }) {
             )}
           </div>
           <p className="mt-0.5 text-sm text-slate-500">
-            {formatTargetWeight(planned.exercise, planned.prescribedWeight)} · {formatTargetVolume(planned)} ·{" "}
+            {formatTargetVolume(planned)} · {formatTargetWeight(planned.exercise, planned.prescribedWeight)} ·{" "}
             {formatEquipment(planned.exercise.equipment)}
           </p>
           {cue && <p className="mt-1 text-xs text-slate-400">{cue}</p>}
@@ -84,13 +84,20 @@ export function ExerciseCard({ planned }: { planned: PlannedExercise }) {
             {log.completed ? "✓ Logged" : "Logged · below target"}
           </span>
           <span className={`text-sm ${log.completed ? "text-emerald-700" : "text-amber-700"}`}>
-            {hasWeight && log.actualWeight !== undefined ? `${log.actualWeight}kg × ` : ""}
-            {isDuration ? `${log.actualDuration}s` : `${log.actualReps} reps`}
+            {formatLoggedSet({ ...log, actualWeight: hasWeight ? log.actualWeight : undefined, repsUnit: planned.repsUnit })}
           </span>
         </div>
       ) : (
         <>
+          {/* Reps (or seconds) before weight, as everywhere (D-009). */}
           <div className="mt-4 flex flex-wrap items-center justify-around gap-x-4 gap-y-3 border-t border-slate-100 pt-4">
+            <Stepper
+              label={isDuration ? "Seconds" : "Reps"}
+              value={volume}
+              step={isDuration ? 5 : 1}
+              suffix={isDuration ? "s" : ""}
+              onChange={setVolume}
+            />
             {hasWeight && !needsWeight && (
               <Stepper
                 label="Weight"
@@ -116,13 +123,6 @@ export function ExerciseCard({ planned }: { planned: PlannedExercise }) {
                 />
               </label>
             )}
-            <Stepper
-              label={isDuration ? "Seconds" : "Reps"}
-              value={volume}
-              step={isDuration ? 5 : 1}
-              suffix={isDuration ? "s" : ""}
-              onChange={setVolume}
-            />
           </div>
           <Button className="mt-4 w-full" onClick={handleLogSet}>
             Log Set

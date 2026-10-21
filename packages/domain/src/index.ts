@@ -6,6 +6,7 @@ export * from "./entities/current-weights.js";
 export * from "./entities/muscle-coverage.js";
 export * from "./entities/programme.js";
 export * from "./entities/strength.js";
+export * from "./entities/preset-programme.js";
 export * from "./entities/training-programme.js";
 export * from "./entities/weight-adjustment.js";
 export * from "./entities/workout.js";
@@ -15,6 +16,7 @@ export * from "./entities/workout-type.js";
 // Seed data
 export { EXERCISES, CLASSIC_EXERCISES } from "./data/exercises.js";
 export { EXERCISE_PROFILES, findExerciseProfile } from "./data/exercise-profiles.js";
+export { PRESET_PROGRAMME_1 } from "./data/preset-programme-1.js";
 export { WARMUP_PLAN } from "./data/warmup.js";
 export { COOLDOWN_PLAN } from "./data/cooldown.js";
 export { PROGRAMME_TEMPLATE, PROGRAMME_ALLOCATION } from "./data/programme-template.js";
@@ -88,6 +90,7 @@ export {
 
 export {
   buildDefaultStrengthSession,
+  buildPresetStrengthSession,
   applyStartingWeight,
   buildStrengthSessionFromTemplate,
   prescribeStrengthWeights,

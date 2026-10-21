@@ -18,6 +18,7 @@ import {
   upsertExerciseCapability,
 } from "../src/repositories/exercise-capability-repository.js";
 import {
+  findLastTrainedProgrammeSession,
   getExerciseWeightHistory,
   getWorkoutById,
   listWorkoutSummaries,
@@ -182,6 +183,45 @@ describe("workout repository", () => {
     expect(summaries).toHaveLength(2);
     expect(summaries[0]!.dateIso).toBe("2026-09-28");
     expect(summaries[1]!.dateIso).toBe("2026-09-21");
+  });
+
+  describe("findLastTrainedProgrammeSession (preset rotation, D-011)", () => {
+    const presetWorkout = (scheduledWorkoutId: string, dateIso: string, logged: boolean): LoggedWorkoutInput => ({
+      ...workoutInput,
+      status: "in_progress",
+      dateIso,
+      programmeId: "preset-programme-1",
+      weekNumber: undefined,
+      scheduledWorkoutId,
+      exercises: [
+        {
+          ...workoutInput.exercises[0]!,
+          sets: [{ setNumber: 1, targetReps: 6, completed: false, ...(logged ? { actualReps: 6 } : {}) }],
+        },
+      ],
+    });
+
+    it("returns nothing when the programme has never been trained", async () => {
+      expect(await findLastTrainedProgrammeSession("preset-programme-1")).toBeUndefined();
+    });
+
+    it("returns the latest session with a logged set, ignoring ones started but not logged", async () => {
+      await saveWorkoutSnapshot("rotation-a", presetWorkout("monday", "2026-10-19", true));
+      await saveWorkoutSnapshot("rotation-b", presetWorkout("wednesday", "2026-10-21", true));
+      await saveWorkoutSnapshot("rotation-c", presetWorkout("friday", "2026-10-22", false));
+      expect(await findLastTrainedProgrammeSession("preset-programme-1")).toBe("wednesday");
+    });
+
+    it("on the same day, takes the one started last", async () => {
+      await saveWorkoutSnapshot("rotation-d", presetWorkout("monday", "2026-10-21", true));
+      await saveWorkoutSnapshot("rotation-e", presetWorkout("friday", "2026-10-21", true));
+      expect(await findLastTrainedProgrammeSession("preset-programme-1")).toBe("friday");
+    });
+
+    it("ignores other programmes", async () => {
+      await saveWorkoutSnapshot("rotation-f", { ...presetWorkout("monday", "2026-10-21", true), programmeId: "8-week-strength" });
+      expect(await findLastTrainedProgrammeSession("preset-programme-1")).toBeUndefined();
+    });
   });
 
   describe("saving the same session id repeatedly (start -> log -> complete)", () => {
