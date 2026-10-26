@@ -139,7 +139,7 @@ Every programme, preset or created, has:
 4. **Recovery and adjustment**: check-ins, light days, deloads and pain handling (§6.6).
 5. **A light-day option.** Any session can be switched to a light day (§6.6).
 
-**MVP slice:** Preset Programme 1 with schedule, progression nudge and light day. The programme *engine* comes in Phase 2.
+**MVP slice:** Preset Programme 1 with schedule, progression nudge and light day, plus a **scoped programme generator** (full body, 2–4 days a week, with a review step; §12 Phase 1, item 12). The full engine (splits, endurance, check-ins, deloads, pain handling) comes in Phase 2.
 
 ### 5.5 Quick workouts (standalone)
 **End state:** one-off sessions outside a programme, either preset or generated:
@@ -202,7 +202,7 @@ v1 §14 behaviour. Explicit favourite and avoid in Phase 2; inferred preferences
 It follows §4.1 strictly.
 
 **Phasing:**
-- **Phase 1:** needs-analysis chat. It produces the same structured needs profile as the form (§6.1), which the user confirms, saves and can edit. In Phase 1 the profile is used to recommend a preset and personalise onboarding. The Phase 2 generator consumes the same saved profile, so nothing has to be collected twice.
+- **Phase 1:** needs-analysis chat. It produces the same structured needs profile as the form (§6.1), which the user confirms, saves and can edit. In Phase 1 the profile is used to recommend a preset, personalise onboarding and feed the scoped programme generator (§12 Phase 1, item 12). The full Phase 2 generator consumes the same saved profile, so nothing has to be collected twice.
 - **Phase 4:** modifications and "explain why".
 
 ---
@@ -491,15 +491,25 @@ Within stage 3, progress is **reducing assistance**. Maeve is currently at stage
 9. Onboarding: MVA beginner path, experienced → preset, and skip (§5.1).
 10. Home-screen motivation with seed content and deterministic selection (§8.3).
 11. AI chat for the needs analysis (§5.14 Phase 1): it produces a confirmed, saved needs profile and recommends a preset.
+12. **Scoped programme generator** (§6), built after items 2 and 3 so Maeve can train on the app meanwhile:
+    - **Input:** the needs profile (§6.1) from the AI chat or the form. The AI only collects and structures the profile; the deterministic engine generates the programme (§4.1 unchanged).
+    - **Programme types:** full body only, 2–4 days a week.
+    - **Goals:** strength, hypertrophy or general fitness, plus an optional emphasis (for example glutes, core, pull-up).
+    - **Rules applied:** frequency and spacing (§6.2); sets, reps and rest by goal and exercise class (§6.3); all hard and soft rules in §6.4; a progression strategy per exercise (§6.5); a light alternative for every exercise (§6.6).
+    - **Limitations:** exclude exercises by `joint_stress_tags`, and respect avoids.
+    - **Exercises:** chosen from the existing library only. Never invented.
+    - **Explanations:** every choice recorded in `explanations[]` in plain language (§9.3).
+    - **Review step (design-first screen):** Maeve sees the generated programme with its explanations and can accept it, regenerate it, or swap per slot (reusing the swap logic) before it becomes her active programme.
+    - **Testing (required):** the same profile always produces the same programme; every generated programme passes every §6.4 hard rule across a spread of profiles (for example 2 or 4 days, dumbbells only, knee limitation, beginner and advanced); Maeve's own profile produces a sensible programme comparable to Preset Programme 1.
 
-**MVP is done when** Maeve can use the app for a full 6-week block of Preset Programme 1 with no workarounds, and the progress view shows each lift's trend.
+**MVP is done when** Maeve can (a) generate a programme from her needs profile, with explanations she agrees with, and (b) use the app for a 6-week block with no workarounds.
 
 ### Phase 2 — Programme creation
-- Needs-analysis form (§6.1) → deterministic programme generator (§6) with explanations.
+- The generator extended beyond the Phase 1 scope: splits (4+ days), the muscular endurance goal.
 - Experienced-user onboarding goes through programme creation.
 - Pre-session check-in, deload offers, pain handling (§6.6).
-- Explicit favourite and avoid.
-- The generator consumes the needs profile already saved in Phase 1.
+- Favourite and avoid management screens.
+- The generator keeps consuming the needs profile already saved in Phase 1.
 
 ### Phase 3 — Engagement
 - Audio walk-through (PWA first; decide on native here).
@@ -540,3 +550,4 @@ Within stage 3, progress is **reducing assistance**. Maeve is currently at stage
 5. **AI needs-analysis chat:** moved to Phase 1. ✅
 6. **No body-weight tracking.** "Weight tracking" means load lifted. ✅
 7. **History UX on hold:** the History screen (§5.8) is parked while Maeve rethinks its UX, which may overlap with Progress (§5.9). Session and history data are still captured exactly as specced; no History UI is built for now. ⏸ (2026-10-21)
+8. **Scoped programme generator moved into Phase 1 (MVP):** programming is the most important part of the product, so it is tested early. Full body only, 2–4 days a week, strength / hypertrophy / general fitness plus an optional emphasis, from the existing library only, with plain-language explanations and a review step (accept, regenerate, or swap per slot). Built after Preset Programme 1 and logging. The MVP definition (§12) now requires generating a programme from Maeve's needs profile, with explanations she agrees with. Splits, the endurance goal, check-ins, deloads, pain handling and favourite/avoid screens stay in Phase 2. ✅ (2026-10-26)

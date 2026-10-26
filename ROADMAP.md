@@ -5,7 +5,7 @@
 ## Direction
 Buff, Not Bored is a programme creation and motivation app: it gets a person onto a strength programme that suits them, makes following it effortless, and keeps them going by showing them that they are progressing and why (spec §1).
 
-**MVP is done when** Maeve can use the app for a full 6-week block of Preset Programme 1 with no workarounds, and the progress view shows each lift's trend.
+**MVP is done when** Maeve can (a) generate a programme from her needs profile, with explanations she agrees with, and (b) use the app for a 6-week block with no workarounds (spec §12, decision 8).
 
 ## Now
 ### R-00 · Phase 0 — Clean-up
@@ -25,14 +25,15 @@ Buff, Not Bored is a programme creation and motivation app: it gets a person ont
 9. Onboarding: MVA beginner path, experienced → preset, and skip (§5.1).
 10. Home-screen motivation with seed content and deterministic selection (§8.3).
 11. AI chat for the needs analysis (§5.14 Phase 1): a confirmed, saved needs profile that recommends a preset.
+12. **Scoped programme generator** (moved from Phase 2, 2026-10-26): full body, 2–4 days a week; strength, hypertrophy or general fitness plus an optional emphasis; existing library only; §6.2–§6.6 rules, including the §6.3 sets, reps and rest by goal; limitations and avoids respected; plain-language explanations; a review step to accept, regenerate or swap per slot (design-first). Built after items 2 and 3. Spec §12 Phase 1 item 12 has the full scope and the required tests.
 
 ## Next
 ### R-02 · Phase 2 — Programme creation
-- Needs-analysis form (§6.1) → deterministic programme generator (§6) with explanations, including the §6.3 rep, set and rest defaults by goal.
+- The generator beyond its Phase 1 scope: splits (4+ days), the muscular endurance goal.
 - Experienced-user onboarding goes through programme creation.
 - Pre-session check-in, deload offers, pain handling (§6.6).
-- Explicit favourite and avoid.
-- The generator consumes the needs profile already saved in Phase 1.
+- Favourite and avoid management screens.
+- The generator keeps consuming the needs profile already saved in Phase 1.
 
 ## Later
 ### R-03 · Phase 3 — Engagement

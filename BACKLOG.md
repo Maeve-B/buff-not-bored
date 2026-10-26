@@ -68,7 +68,7 @@ _Re-planned 2026-10-21 (Maeve): Preset Programme 1 comes forward from Phase 1 an
 - Notes: Preset 1 uses double progression: top of the range on every set, then you're offered a weight increase (or less assistance). The trigger uses reps only until set feedback is logged (D-006). Circuit keeps percentage progression. The old engines round weights to 0.5 kg; anything that stays must use the 0.25 kg step (D-007). Choosing which increment options become the nudge chips is a design question. Assisted exercises progress downwards: the engine must read the load direction, so a nudge offers less assistance, never more.
 - Done when: no strength screen suggests a weight automatically; the engine reports readiness and increment options.
 
-### S-006 · kg or lb, chosen in Settings — status: in-review (PR #14)
+### S-006 · kg or lb, chosen in Settings — status: done (PR #14)
 - Epic: R-00 (requested by Maeve, 2026-10-18; not in the spec)
 - Spec: none yet; extends D-007
 - Screens: Settings (unit choice); every weight label and box shows the chosen unit
@@ -76,6 +76,9 @@ _Re-planned 2026-10-21 (Maeve): Preset Programme 1 comes forward from Phase 1 an
 - Depends on: S-002 ✅
 - Notes: one unit everywhere, not per exercise. Store kg; convert for display and entry, so nothing saved changes. lb moves in 0.5 lb steps, with jumps such as +0.5 / +1 / +2.5 / +5 lb (confirmed by Maeve).
 - Done when: switching to lb shows and accepts every weight in lb, and switching back shows the same kg values as before.
+
+## Next (epic R-01 · Phase 1)
+_The scoped programme generator (R-01 item 12, spec decision 8) is being broken into slices with /plan-epic; its slices are added here once Maeve approves them. It's built after Preset Programme 1 (done) and logging (R-01 item 3, waiting on Maeve's set-logging design)._
 
 ## Discovered (untriaged)
 - Weight history has no pagination yet (from PR #6).
