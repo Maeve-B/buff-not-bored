@@ -52,7 +52,7 @@ _Re-planned 2026-10-21 (Maeve): Preset Programme 1 comes forward from Phase 1 an
 - Notes: 11 new exercises; Squats, Deadlifts and Flat DB Press renamed to Preset 1's names. Circuit and the classic Strength session keep the original 33 exercises. No schema change.
 - Done when: every Preset 1 exercise is in the library with a swap group, and the assisted ones record assistance.
 
-### S-004 · Preset Programme 1 replaces today's Strength session — status: in-progress
+### S-004 · Preset Programme 1 replaces today's Strength session — status: in-review (PR #12)
 - Epic: R-00 (brought forward from R-01 item 2) · Spec: §10.1, §9.3
 - Screens: Strength overview and set list for Monday, Wednesday and Friday; supersets; assisted and timed sets
 - Design-first: partly (set logging stays a working skeleton)
