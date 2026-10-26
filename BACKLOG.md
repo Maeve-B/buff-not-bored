@@ -60,7 +60,7 @@ _Re-planned 2026-10-21 (Maeve): Preset Programme 1 comes forward from Phase 1 an
 - Notes: rep ranges and supersets as in §10.1. Every weight starts blank (D-003 kept for Preset 1). Today shows the next session due in the Mon → Wed → Fri rotation, with no rest-day note (D-011); you can pick any of the three. Rest is shown as information only. Reps before weight everywhere, Circuit included (D-009). Set rows must take a weight (or assistance) on timed loaded exercises: Farmer Carry and Assisted Dead Hang; today a timed exercise never shows a weight box.
 - Done when: Strength shows Preset 1's session for the day, exactly as §10.1, and nothing else.
 
-### S-005 · Progression becomes a nudge — status: in-progress
+### S-005 · Progression becomes a nudge — status: in-review (PR #13)
 - Epic: R-00 · Spec: §7.4, §6.5, §3.3
 - Screens: Strength summary and Progress, in two states: ready to go up, not yet ready (placeholder text)
 - Design-first: yes. The real nudge screen comes in Phase 1, so this slice uses plain text only.
