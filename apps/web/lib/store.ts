@@ -34,7 +34,7 @@ import type { CurrentWeights, Exercise, ReplacementDecision, WorkoutSession } fr
 import { create } from "zustand";
 import { persistWorkoutSnapshot } from "./actions/save-workout";
 import { clearFallbackSnapshotIfRevision, writeFallbackSnapshot } from "./local-fallback";
-import { mergeServerWeights, persistStartingWeight } from "./starting-weight";
+import { mergeServerWeights, persistStartingWeight, type WeightSaveError } from "./starting-weight";
 import {
   buildSetLog,
   DEFAULT_REFRESH_CHOICES,
@@ -78,7 +78,7 @@ interface AppData {
   saveStatus: SaveStatus;
   saveError?: string;
   /** Set when a first-use starting weight didn't save. */
-  weightSaveError?: string;
+  weightSaveError?: WeightSaveError;
 }
 
 interface AppActions {

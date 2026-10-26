@@ -36,6 +36,7 @@ describe("assessReadiness (§6.5 double progression, one session — D-014)", ()
       direction: "add_load",
       incrementOptions: [0.25, 0.5, 1, 2.5, 5],
       top: 10,
+      currentWeight: 40,
     });
   });
 
@@ -93,7 +94,13 @@ describe("assessReadiness (§6.5 double progression, one session — D-014)", ()
 
   it("is ready with no increments on a bodyweight exercise", () => {
     const chair = exerciseFrom("monday", "captains-chair-knee-raise"); // 2 × 8–12
-    expect(assessReadiness(logged(chair, [[12], [12]]))).toEqual({ kind: "ready", direction: "add_load", incrementOptions: [], top: 12 });
+    expect(assessReadiness(logged(chair, [[12], [12]]))).toEqual({
+      kind: "ready",
+      direction: "add_load",
+      incrementOptions: [],
+      top: 12,
+      currentWeight: undefined,
+    });
   });
 
   it("isn't ready on a weighted exercise with no weight yet", () => {

@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Exercise, ExerciseCapability } from "@buff-not-bored/domain";
 import { ExerciseCapabilityForm } from "@/components/ExerciseCapabilityForm";
+import { WeightUnitProvider } from "@/lib/weight-unit";
 import { saveExerciseCapability } from "@/lib/actions/exercise-capability";
 
 // Persistence is exercised separately (test/exercise-capability-action.integration.test.ts) —
@@ -55,13 +56,13 @@ const existingCapability: ExerciseCapability = {
 describe("ExerciseCapabilityForm", () => {
   it("renders with empty fields when no capability has ever been set", () => {
     render(<ExerciseCapabilityForm exercise={backSquat} initialCapability={undefined} />);
-    expect(screen.getByLabelText("Weight")).toHaveValue(null);
+    expect(screen.getByLabelText("Weight (kg)")).toHaveValue(null);
     expect(screen.getByLabelText("Reps")).toHaveValue(null);
   });
 
   it("pre-fills fields from an existing capability", () => {
     render(<ExerciseCapabilityForm exercise={backSquat} initialCapability={existingCapability} />);
-    expect(screen.getByLabelText("Weight")).toHaveValue(60);
+    expect(screen.getByLabelText("Weight (kg)")).toHaveValue(60);
     expect(screen.getByLabelText("Reps")).toHaveValue(5);
     expect(screen.getByLabelText("Note (optional)")).toHaveValue("felt strong");
   });
@@ -74,8 +75,8 @@ describe("ExerciseCapabilityForm", () => {
     const user = userEvent.setup();
     render(<ExerciseCapabilityForm exercise={backSquat} initialCapability={existingCapability} />);
 
-    await user.clear(screen.getByLabelText("Weight"));
-    await user.type(screen.getByLabelText("Weight"), "65");
+    await user.clear(screen.getByLabelText("Weight (kg)"));
+    await user.type(screen.getByLabelText("Weight (kg)"), "65");
     await user.click(screen.getByRole("button", { name: /save/i }));
 
     expect(saveExerciseCapability).toHaveBeenCalledWith(
@@ -91,7 +92,7 @@ describe("ExerciseCapabilityForm", () => {
     const perSide: Exercise = { ...backSquat, repsUnit: "per_side", unilateral: true, perSide: true };
     render(<ExerciseCapabilityForm exercise={perSide} initialCapability={undefined} />);
 
-    expect(screen.getAllByRole("combobox")).toHaveLength(1); // only the weight unit remains
+    expect(screen.queryByRole("combobox")).not.toBeInTheDocument(); // no unit to choose here: Settings decides (S-006)
     await user.type(screen.getByLabelText("Reps"), "8");
     await user.click(screen.getByRole("button", { name: /save/i }));
 
@@ -106,7 +107,7 @@ describe("ExerciseCapabilityForm", () => {
     const user = userEvent.setup();
     render(<ExerciseCapabilityForm exercise={backSquat} initialCapability={existingCapability} />);
 
-    await user.clear(screen.getByLabelText("Weight"));
+    await user.clear(screen.getByLabelText("Weight (kg)"));
     await user.click(screen.getByRole("button", { name: /save/i }));
 
     expect(saveExerciseCapability).toHaveBeenCalledWith(
@@ -119,7 +120,7 @@ describe("ExerciseCapabilityForm", () => {
     const user = userEvent.setup();
     render(<ExerciseCapabilityForm exercise={backSquat} initialCapability={existingCapability} />);
 
-    await user.clear(screen.getByLabelText("Weight"));
+    await user.clear(screen.getByLabelText("Weight (kg)"));
     await user.clear(screen.getByLabelText("Reps"));
     await user.click(screen.getByRole("button", { name: /save/i }));
 
@@ -131,7 +132,38 @@ describe("ExerciseCapabilityForm", () => {
   it("asks for assistance rather than weight on an assisted exercise", () => {
     const assisted = EXERCISES.find((exercise) => exercise.id === "assisted-pull-up")!;
     render(<ExerciseCapabilityForm exercise={assisted} initialCapability={undefined} />);
-    expect(screen.getByLabelText("Assistance")).toHaveValue(null);
-    expect(screen.queryByLabelText("Weight")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Assistance (kg)")).toHaveValue(null);
+    expect(screen.queryByLabelText(/^Weight/)).not.toBeInTheDocument();
+  });
+
+  it("shows and takes your unit, and still saves kg (S-006)", async () => {
+    vi.mocked(saveExerciseCapability).mockResolvedValue({ ok: true, capability: existingCapability });
+    const user = userEvent.setup();
+    render(
+      <WeightUnitProvider unit="lb">
+        <ExerciseCapabilityForm exercise={backSquat} initialCapability={existingCapability} />
+      </WeightUnitProvider>,
+    );
+    const box = screen.getByLabelText("Weight (lb)");
+    expect(box).toHaveValue(132.5); // 60 kg = 132.28 lb, shown to the nearest 0.5 lb
+    await user.click(screen.getByRole("button", { name: /save/i }));
+    expect(saveExerciseCapability).toHaveBeenLastCalledWith(expect.objectContaining({ weight: 60, weightUnit: "kg" }));
+
+    await user.clear(box);
+    await user.type(box, "135");
+    await user.click(screen.getByRole("button", { name: /save/i }));
+    expect(vi.mocked(saveExerciseCapability).mock.lastCall![0].weight).toBeCloseTo(61.235, 3);
+  });
+
+  it("won't save 0 or a negative weight, so a saved weight is never quietly cleared", async () => {
+    vi.mocked(saveExerciseCapability).mockClear();
+    const user = userEvent.setup();
+    render(<ExerciseCapabilityForm exercise={backSquat} initialCapability={existingCapability} />);
+    const box = screen.getByLabelText("Weight (kg)");
+    await user.clear(box);
+    await user.type(box, "0");
+    await user.click(screen.getByRole("button", { name: /save/i }));
+    expect(saveExerciseCapability).not.toHaveBeenCalled();
+    expect(screen.getByText(/enter a weight above 0 kg, or leave it blank/)).toBeInTheDocument();
   });
 });

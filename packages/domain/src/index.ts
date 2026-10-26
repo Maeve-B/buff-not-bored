@@ -1,6 +1,7 @@
 // Entities
 export * from "./entities/constraints.js";
 export * from "./entities/exercise.js";
+export * from "./entities/display-unit.js";
 export * from "./entities/exercise-capability.js";
 export * from "./entities/current-weights.js";
 export * from "./entities/muscle-coverage.js";

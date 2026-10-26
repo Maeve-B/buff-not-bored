@@ -78,3 +78,10 @@
 - Next time (Maeve, 2026-10-26): the "ready" message also shows when you next do the exercise, from your last finished workout with it, until you change that weight. On the overview it links to the exercise page; on the exercise card mid-workout it has no link, because a change made then applies from the next session (§3.3).
 - Circuit keeps percentage progression (§3.3), now rounded to 0.25 kg steps like everything else (D-007).
 - Alternatives: §7.4's general "two sessions in a row" rule (kept for any future fixed-rep load nudge); buttons that change the weight (Phase 1's design-first nudge screen).
+
+### D-015 · kg or lb: one unit everywhere, weights stored in kg (2026-10-26, Maeve, S-006)
+- Decision: a single weight unit, chosen in Settings and saved in the database (one settings row until multi-user accounts), so every device agrees. Weights stay stored in kg; lb is only how they're shown and entered. kg moves in 0.25 kg steps; lb in 0.5 lb steps, with jumps of +0.5 / +1 / +2.5 / +5 lb and Circuit taps of 5 lb (barbell) / 1 lb.
+- Because 0.5 lb is finer than 0.25 kg, a weight entered in lb is stored to the gram, not rounded to 0.25 kg, so 45.5 lb stays 45.5 lb. Your own weight is never rounded when it's prescribed (only session adjustments land on the 0.25 kg step). A weight shown in lb and logged back unchanged keeps its exact kg.
+- Consequence: a weight entered in lb, viewed in kg, is shown to the nearest 0.25 kg (88 lb reads as 40 kg; stored as 39.916 kg).
+- The ⚙️ button opens Settings (Maeve), which links to Exercises. If the database can't be reached, the app shows kg rather than failing.
+- Alternatives: a per-device setting (no schema change, but phone and laptop could disagree); rounding lb entries to 0.25 kg (45.5 lb would drift).

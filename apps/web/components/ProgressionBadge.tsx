@@ -1,4 +1,8 @@
+"use client";
+
 import type { ProgressionRecommendation } from "@buff-not-bored/domain";
+import { formatWeight } from "@/lib/format";
+import { useWeightUnit } from "@/lib/weight-unit";
 
 const ICONS: Record<ProgressionRecommendation["type"], string> = {
   increase: "↑",
@@ -30,11 +34,12 @@ export function ProgressionBadge({
   prescribedWeight?: number;
 }) {
   const { type, suggestedWeight } = recommendation;
+  const unit = useWeightUnit();
   return (
     <span className={`flex flex-col items-end text-sm font-semibold ${COLORS[type]}`}>
       {prescribedWeight !== undefined && suggestedWeight !== undefined && (
         <span className="text-xs font-normal text-slate-500">
-          {prescribedWeight}kg → {suggestedWeight}kg
+          {formatWeight(prescribedWeight, unit)} → {formatWeight(suggestedWeight, unit)}
         </span>
       )}
       <span>

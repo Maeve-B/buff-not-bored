@@ -33,8 +33,8 @@ export function AppShell({ children }: { children: ReactNode }) {
             ))}
           </nav>
           <Link
-            href="/exercises"
-            aria-label="Exercises"
+            href="/settings"
+            aria-label="Settings"
             className="rounded-full p-2 text-lg text-slate-500 hover:bg-slate-100"
           >
             ⚙️

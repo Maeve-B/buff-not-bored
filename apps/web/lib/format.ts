@@ -7,8 +7,11 @@
  */
 
 import {
+  incrementOptionsIn,
   isLoaded,
   lowerIsProgress,
+  toDisplayWeight,
+  type DisplayUnit,
   type Equipment,
   type Exercise,
   type Location,
@@ -48,11 +51,16 @@ export function formatProgrammeGroup(group: string): string {
   return group.charAt(0).toUpperCase() + group.slice(1);
 }
 
+/** A stored kg weight in your unit: "20.25kg" / "44.5lb" (S-006). */
+export function formatWeight(kg: number, unit: DisplayUnit = "kg"): string {
+  return `${toDisplayWeight(kg, unit)}${unit}`;
+}
+
 /** "20kg" / "8kg each" (a dumbbell pair's weight is per dumbbell) / "Add baseline" (loaded, no weight yet) / "Bodyweight". */
-export function formatTargetWeight(exercise: Exercise, weight?: number): string {
+export function formatTargetWeight(exercise: Exercise, weight?: number, unit: DisplayUnit = "kg"): string {
   if (weight === undefined) return isLoaded(exercise) ? "Add baseline" : "Bodyweight";
   const suffix = exercise.loadType === "dumbbell_pair" ? " each" : "";
-  return `${weight}kg${suffix}`;
+  return `${formatWeight(weight, unit)}${suffix}`;
 }
 
 /** "20 reps" / "12 reps/side" / "45 sec". */
@@ -85,19 +93,22 @@ export function formatRecommendedRest(rest: TargetRange): string {
   return `Recommended rest ${amount}`;
 }
 
-/** The small label under a set's weight box: "weight (kg)", "weight each (kg)" for a dumbbell pair, or "assistance (kg)". */
-export function formatWeightInputLabel(exercise: Pick<Exercise, "loadType" | "loadDirection">): string {
-  if (lowerIsProgress(exercise)) return "assistance (kg)";
-  return exercise.loadType === "dumbbell_pair" ? "weight each (kg)" : "weight (kg)";
+/** The small label under a set's weight box: "weight (kg)", "weight each (kg)" for a dumbbell pair, or "assistance (kg)"; lb when that's your unit. */
+export function formatWeightInputLabel(exercise: Pick<Exercise, "loadType" | "loadDirection">, unit: DisplayUnit = "kg"): string {
+  if (lowerIsProgress(exercise)) return `assistance (${unit})`;
+  return exercise.loadType === "dumbbell_pair" ? `weight each (${unit})` : `weight (${unit})`;
 }
 
 /** A logged set, reps (or seconds) before weight (D-009): "8 reps × 20kg", "30s × 16kg", "10 reps/side". */
-export function formatLoggedSet(logged: { actualReps?: number; actualDuration?: number; actualWeight?: number; repsUnit?: string }): string {
+export function formatLoggedSet(
+  logged: { actualReps?: number; actualDuration?: number; actualWeight?: number; repsUnit?: string },
+  unit: DisplayUnit = "kg",
+): string {
   const volume =
     logged.actualDuration !== undefined
       ? `${logged.actualDuration}s`
       : `${logged.actualReps} ${logged.repsUnit === "per_side" ? "reps/side" : "reps"}`;
-  return logged.actualWeight !== undefined ? `${volume} × ${logged.actualWeight}kg` : volume;
+  return logged.actualWeight !== undefined ? `${volume} × ${formatWeight(logged.actualWeight, unit)}` : volume;
 }
 
 /**
@@ -108,6 +119,7 @@ export function formatLoggedSet(logged: { actualReps?: number; actualDuration?: 
 export function formatReadiness(
   strengthExercise: Pick<StrengthExercise, "exercise" | "sets">,
   readiness: Readiness,
+  weightUnit: DisplayUnit = "kg",
 ): { headline: string; detail: string } {
   const { exercise, sets } = strengthExercise;
   const timed = sets[0]?.targetDuration !== undefined;
@@ -115,15 +127,17 @@ export function formatReadiness(
   const assisted = lowerIsProgress(exercise);
   if (readiness.kind === "ready") {
     const reached = `${readiness.top}${unit} on every set.`;
-    if (readiness.incrementOptions.length === 0) return { headline: "Top of the range", detail: reached };
+    const jumps = incrementOptionsIn(weightUnit, readiness.incrementOptions, assisted ? readiness.currentWeight : undefined);
+    if (jumps.length === 0) return { headline: "Top of the range", detail: reached };
     const sign = readiness.direction === "reduce_assistance" ? "−" : "+";
-    const options = readiness.incrementOptions.map((jump) => `${sign}${jump}`).join(" / ");
+    const options = jumps.map((jump) => `${sign}${jump}`).join(" / ");
     return {
       headline: readiness.direction === "reduce_assistance" ? "Ready to drop assistance" : "Ready to go up",
-      detail: `${reached} Options: ${options} kg.`,
+      detail: `${reached} Options: ${options} ${weightUnit}.`,
     };
   }
-  const at = readiness.currentWeight !== undefined ? ` at ${readiness.currentWeight}kg${assisted ? " assistance" : ""}` : "";
+  const current = readiness.currentWeight !== undefined ? formatWeight(readiness.currentWeight, weightUnit) : "";
+  const at = readiness.currentWeight !== undefined ? ` at ${current}${assisted ? " assistance" : ""}` : "";
   switch (readiness.reason) {
     case "below_top":
       return {
@@ -134,8 +148,8 @@ export function formatReadiness(
       return {
         headline: "Not yet",
         detail: assisted
-          ? `A set had more assistance than your ${readiness.currentWeight}kg, so this one doesn't count.`
-          : `A set was lighter than your ${readiness.currentWeight}kg, so this one doesn't count.`,
+          ? `A set had more assistance than your ${current}, so this one doesn't count.`
+          : `A set was lighter than your ${current}, so this one doesn't count.`,
       };
     case "missing_weight":
       return { headline: "Not yet", detail: `A set was logged without ${assisted ? "its assistance" : "a weight"}, so this one doesn't count.` };
@@ -173,9 +187,6 @@ export function formatDate(iso: string): string {
   return date.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
 }
 
-export function formatWeightDelta(before: number, after: number): string {
-  return `${before}kg → ${after}kg`;
-}
 
 /** "90 sec" / "2 min" — rest periods are usually spoken in minutes once they exceed a minute. */
 export function formatRestPeriod(seconds: number): string {

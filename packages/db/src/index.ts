@@ -21,6 +21,7 @@ export { toDomainLoggedWorkout, toWorkoutUpsertInput } from "./mappers/workout-m
 export { toDomainExerciseCapability, toExerciseCapabilityRow } from "./mappers/exercise-capability-mapper.js";
 
 // Repositories
+export { getAppSettings, saveWeightUnit, type AppSettings } from "./repositories/settings-repository.js";
 export { upsertExercise, findExerciseById, listExercises } from "./repositories/exercise-repository.js";
 export {
   saveWorkoutSnapshot,

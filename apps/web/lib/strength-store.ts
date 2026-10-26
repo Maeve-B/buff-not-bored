@@ -14,7 +14,7 @@ import { countCompletedSets, hasLoggedSet, isSetLogged } from "@buff-not-bored/d
 import { create } from "zustand";
 import { persistWorkoutSnapshot } from "./actions/save-workout";
 import { clearFallbackSnapshotIfRevision, writeFallbackSnapshot } from "./local-fallback";
-import { mergeServerWeights, persistStartingWeight } from "./starting-weight";
+import { mergeServerWeights, persistStartingWeight, type WeightSaveError } from "./starting-weight";
 import {
   buildStrengthSession,
   logStrengthSet,
@@ -49,7 +49,7 @@ interface StrengthAppData {
   saveStatus: SaveStatus;
   saveError?: string;
   /** Set when a first-use starting weight didn't save. */
-  weightSaveError?: string;
+  weightSaveError?: WeightSaveError;
   /** What you did last time on each exercise, for the "ready to go up" nudge (D-014). */
   lastTime: Record<string, LastTimeOnExercise>;
   /** Exercises finished in this tab, newer than anything the page loaded. */
