@@ -71,3 +71,9 @@
 - Context: Home's "Your Programme" card and the Programmes screen run on the old seeded "8 Week Strength" (Mon/Wed) schedule.
 - Decision: leave both untouched until Maeve designs Home. Strength runs Preset 1 on its own rotation, read from saved workouts; Home's Start button still opens Strength.
 - Revisit when: the Home design lands.
+
+### D-014 · The progression nudge is a notification, judged on one session (2026-10-26, Maeve, S-005)
+- Decision: for a rep (or seconds) range, you're ready to progress when every set of one session reached the top of the range at no less than your current weight (no more than your current assistance). Otherwise the app suggests more reps or a longer hold. It's information only: options come from the exercise's real jumps, and you change your weight yourself on the exercise page. Nothing changes a weight automatically (§3.3).
+- Also: assistance cuts larger than your current assistance aren't offered. A set logged with no weight doesn't count.
+- Circuit keeps percentage progression (§3.3), now rounded to 0.25 kg steps like everything else (D-007).
+- Alternatives: §7.4's general "two sessions in a row" rule (kept for any future fixed-rep load nudge); buttons that change the weight (Phase 1's design-first nudge screen).

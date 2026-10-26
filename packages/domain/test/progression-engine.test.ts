@@ -151,7 +151,7 @@ describe("recommendProgression — exercise-specific progression percentage", ()
       feedback: "easy",
     });
     expect(result.type).toBe("increase");
-    expect(result.suggestedWeight).toBe(8); // 8 * 1.025 = 8.2, rounded to the nearest 0.5 -> 8
+    expect(result.suggestedWeight).toBe(8.25); // 8 * 1.025 = 8.2, rounded to the nearest 0.25 kg step (D-007) -> 8.25
   });
 
   it("recommends increase qualitatively but no suggestedWeight when there's no weight data at all (bodyweight exercise)", () => {
@@ -209,6 +209,6 @@ describe("recommendProgression — exercise-specific progression percentage", ()
       completed: true,
       feedback: "easy",
     });
-    expect(result.suggestedWeight).toBe(23.5); // 22.5 * 1.05 = 23.625 -> rounded to nearest 0.5
+    expect(result.suggestedWeight).toBe(23.75); // 22.5 * 1.05 = 23.625 -> rounded to the nearest 0.25 kg step (D-007)
   });
 });

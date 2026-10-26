@@ -13,6 +13,7 @@ import {
   type Exercise,
   type Location,
   type PlannedExercise,
+  type Readiness,
   type StrengthExercise,
   type TargetRange,
 } from "@buff-not-bored/domain";
@@ -97,6 +98,50 @@ export function formatLoggedSet(logged: { actualReps?: number; actualDuration?: 
       ? `${logged.actualDuration}s`
       : `${logged.actualReps} ${logged.repsUnit === "per_side" ? "reps/side" : "reps"}`;
   return logged.actualWeight !== undefined ? `${volume} × ${logged.actualWeight}kg` : volume;
+}
+
+/**
+ * The plain-text progression notification for one exercise (§7.4, D-014):
+ * a headline and a detail line. Information only: you change your weight
+ * yourself on the exercise page.
+ */
+export function formatReadiness(
+  strengthExercise: Pick<StrengthExercise, "exercise" | "sets">,
+  readiness: Readiness,
+): { headline: string; detail: string } {
+  const { exercise, sets } = strengthExercise;
+  const timed = sets[0]?.targetDuration !== undefined;
+  const unit = timed ? "s" : sets[0]?.repsUnit === "per_side" ? " reps per side" : " reps";
+  const assisted = lowerIsProgress(exercise);
+  if (readiness.kind === "ready") {
+    const reached = `${readiness.top}${unit} on every set.`;
+    if (readiness.incrementOptions.length === 0) return { headline: "Top of the range", detail: reached };
+    const sign = readiness.direction === "reduce_assistance" ? "−" : "+";
+    const options = readiness.incrementOptions.map((jump) => `${sign}${jump}`).join(" / ");
+    return {
+      headline: readiness.direction === "reduce_assistance" ? "Ready to drop assistance" : "Ready to go up",
+      detail: `${reached} Options: ${options} kg.`,
+    };
+  }
+  const at = readiness.currentWeight !== undefined ? ` at ${readiness.currentWeight}kg${assisted ? " assistance" : ""}` : "";
+  switch (readiness.reason) {
+    case "below_top":
+      return {
+        headline: "Not yet",
+        detail: `${readiness.setsAtTop} of ${readiness.totalSets} sets reached ${readiness.top}${unit}. Aim for ${timed ? "longer holds" : "more reps"} next time${at}.`,
+      };
+    case "below_current_weight":
+      return {
+        headline: "Not yet",
+        detail: assisted
+          ? `A set had more assistance than your ${readiness.currentWeight}kg, so this one doesn't count.`
+          : `A set was lighter than your ${readiness.currentWeight}kg, so this one doesn't count.`,
+      };
+    case "missing_weight":
+      return { headline: "Not yet", detail: `A set was logged without ${assisted ? "its assistance" : "a weight"}, so this one doesn't count.` };
+    case "no_weight":
+      return { headline: "Not yet", detail: "Add your weight to track progress." };
+  }
 }
 
 /**

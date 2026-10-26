@@ -52,7 +52,7 @@ _Re-planned 2026-10-21 (Maeve): Preset Programme 1 comes forward from Phase 1 an
 - Notes: 11 new exercises; Squats, Deadlifts and Flat DB Press renamed to Preset 1's names. Circuit and the classic Strength session keep the original 33 exercises. No schema change.
 - Done when: every Preset 1 exercise is in the library with a swap group, and the assisted ones record assistance.
 
-### S-004 · Preset Programme 1 replaces today's Strength session — status: in-review (PR #12)
+### S-004 · Preset Programme 1 replaces today's Strength session — status: done (PR #12)
 - Epic: R-00 (brought forward from R-01 item 2) · Spec: §10.1, §9.3
 - Screens: Strength overview and set list for Monday, Wednesday and Friday; supersets; assisted and timed sets
 - Design-first: partly (set logging stays a working skeleton)
@@ -60,7 +60,7 @@ _Re-planned 2026-10-21 (Maeve): Preset Programme 1 comes forward from Phase 1 an
 - Notes: rep ranges and supersets as in §10.1. Every weight starts blank (D-003 kept for Preset 1). Today shows the next session due in the Mon → Wed → Fri rotation, with no rest-day note (D-011); you can pick any of the three. Rest is shown as information only. Reps before weight everywhere, Circuit included (D-009). Set rows must take a weight (or assistance) on timed loaded exercises: Farmer Carry and Assisted Dead Hang; today a timed exercise never shows a weight box.
 - Done when: Strength shows Preset 1's session for the day, exactly as §10.1, and nothing else.
 
-### S-005 · Progression becomes a nudge — status: todo
+### S-005 · Progression becomes a nudge — status: in-progress
 - Epic: R-00 · Spec: §7.4, §6.5, §3.3
 - Screens: Strength summary and Progress, in two states: ready to go up, not yet ready (placeholder text)
 - Design-first: yes. The real nudge screen comes in Phase 1, so this slice uses plain text only.
@@ -89,6 +89,8 @@ _Re-planned 2026-10-21 (Maeve): Preset Programme 1 comes forward from Phase 1 an
 - `pnpm test` empties the local database: packages/db's integration tests clear every table before each test (pre-existing). Point tests at their own database so your local data survives.
 - Saved Strength sets record only the bottom of the rep range as their target; the full range lives in the programme. History and Progress may want the range later.
 - The Strength summary's "progression recommendations" still come from the old engine; S-005 replaces them with the nudge.
+- The progression notification is judged from the session just finished. Phase 1's nudge at session start (with chips to tap, "Not yet" snoozing and logged decisions) needs past sessions read back, and somewhere to store decisions (a schema change).
+- Circuit's percentage suggestions now land on 0.25 kg steps, which its tap stepper (2.5 / 0.5 kg taps) can't always reach. Revisit with the set-logging design.
 - Saving on the exercise page used to fail for an exercise never done in a workout (no database row yet). Fixed in S-003; first-use weight saves get the same fix.
 
 ## Done

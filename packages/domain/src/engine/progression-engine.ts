@@ -14,6 +14,7 @@
  */
 
 import type { Exercise } from "../entities/exercise.js";
+import { roundToWeightStep } from "../entities/weight-adjustment.js";
 
 export const FEEDBACK_OPTIONS = ["easy", "good", "hard", "too_hard", "failed"] as const;
 export type Feedback = (typeof FEEDBACK_OPTIONS)[number];
@@ -40,9 +41,6 @@ export interface ProgressionRecommendation {
   confidence: "high" | "low";
 }
 
-function roundToNearestHalf(value: number): number {
-  return Math.round(value * 2) / 2;
-}
 
 type Directive = "increase" | "maintain" | "reduce";
 
@@ -152,7 +150,7 @@ export function recommendProgression(input: ProgressionInput): ProgressionRecomm
       );
     } else {
       const multiplier = directive === "increase" ? 1 + exercise.progressionPercentage / 100 : 1 - exercise.progressionPercentage / 100;
-      suggestedWeight = roundToNearestHalf(baseWeight * multiplier);
+      suggestedWeight = roundToWeightStep(baseWeight * multiplier);
       rationale.push(
         `suggested weight: ${baseWeight}kg -> ${suggestedWeight}kg (${directive === "increase" ? "+" : "-"}${exercise.progressionPercentage}%, this exercise's own progression rate)`,
       );

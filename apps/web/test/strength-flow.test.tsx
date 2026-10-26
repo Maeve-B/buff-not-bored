@@ -211,7 +211,7 @@ describe("Strength — per-set logging and the summary", () => {
     expect(screen.getByText(/1\/\d+ sets logged/)).toBeInTheDocument();
   });
 
-  it("finishing the workout shows a completion summary with set counts and progression recommendations", async () => {
+  it("finishing the workout shows a completion summary with set counts and the progress notification", async () => {
     const user = userEvent.setup();
     render(<StrengthScreen currentWeights={{ squats: 20 }} />);
     await startSession(user);
@@ -221,26 +221,114 @@ describe("Strength — per-set logging and the summary", () => {
 
     expect(screen.getByText("Workout Complete")).toBeInTheDocument();
     expect(screen.getByText(/^1\/\d+$/)).toBeInTheDocument();
-    expect(screen.getByText("Progression recommendations")).toBeInTheDocument();
+    expect(screen.getByText("Progress this session")).toBeInTheDocument();
   });
 });
 
-describe("Strength — the summary judges a rep range by its top (§6.5)", () => {
-  it("doesn't suggest more weight for reps inside the range", async () => {
+describe("The progress notification (S-005, §7.4 — information only)", () => {
+  /** Logs every set of an exercise at the given reps (or seconds), optionally retyping the weight. */
+  async function logAll(user: ReturnType<typeof userEvent.setup>, name: string, amount: number, weight?: string) {
+    const card = within(cardFor(name));
+    const sets = card.getAllByRole("button", { name: /^Complete set \d$/ }).length;
+    for (let n = 1; n <= sets; n++) {
+      const box = card.getByRole("spinbutton", { name: new RegExp(`^Set ${n} (reps|duration)$`) });
+      await user.clear(box);
+      await user.type(box, String(amount));
+      if (weight !== undefined) {
+        const weightBox = card.getByRole("spinbutton", { name: `Set ${n} weight` });
+        await user.clear(weightBox);
+        await user.type(weightBox, weight);
+      }
+      await user.click(card.getByRole("button", { name: `Complete set ${n}` }));
+    }
+  }
+
+  function notification(name: string): HTMLElement {
+    return screen.getByRole("link", { name }).closest("li")!;
+  }
+
+  it("says you're ready to go up when every set reached the top, with the real jumps as options", async () => {
+    const user = userEvent.setup();
+    render(<StrengthScreen currentWeights={{ squats: 40 }} />);
+    await startSession(user);
+    await logAll(user, "Back Squat", 10);
+    await user.click(screen.getByRole("button", { name: /finish workout/i }));
+
+    const row = within(notification("Back Squat"));
+    expect(row.getByText("Ready to go up")).toBeInTheDocument();
+    expect(row.getByText("10 reps on every set. Options: +0.25 / +0.5 / +1 / +2.5 / +5 kg.")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Back Squat" })).toHaveAttribute("href", "/exercises/squats");
+  });
+
+  it("suggests more reps when not every set reached the top", async () => {
     const user = userEvent.setup();
     render(<StrengthScreen currentWeights={{ "flat-db-press": 10 }} />);
     await startSession(user);
-
-    const bench = within(cardFor("DB Bench Press"));
-    const reps = bench.getByRole("spinbutton", { name: "Set 1 reps" });
-    await user.clear(reps);
-    await user.type(reps, "9");
-    await user.click(bench.getByRole("button", { name: "Complete set 1" }));
+    await logAll(user, "DB Bench Press", 9);
     await user.click(screen.getByRole("button", { name: /finish workout/i }));
 
-    const row = within(screen.getByText("DB Bench Press").closest("li")!);
-    expect(row.getByText(/→ Maintain/)).toBeInTheDocument();
-    expect(row.queryByText(/Recommended progression/)).not.toBeInTheDocument();
+    const row = within(notification("DB Bench Press"));
+    expect(row.getByText("Not yet")).toBeInTheDocument();
+    expect(row.getByText("0 of 3 sets reached 12 reps. Aim for more reps next time at 10kg.")).toBeInTheDocument();
+  });
+
+  it("offers less assistance on the assisted pull-up", async () => {
+    const user = userEvent.setup();
+    render(<StrengthScreen currentWeights={{ "assisted-pull-up": 25 }} />);
+    await startSession(user);
+    await logAll(user, "Assisted Pull-Up", 8);
+    await user.click(screen.getByRole("button", { name: /finish workout/i }));
+
+    const row = within(notification("Assisted Pull-Up"));
+    expect(row.getByText("Ready to drop assistance")).toBeInTheDocument();
+    expect(row.getByText(/^8 reps on every set\. Options: −0\.25 \/ −0\.5/)).toBeInTheDocument();
+  });
+
+  it("says reps per side, and assistance rather than load, where that's how the exercise counts", async () => {
+    const user = userEvent.setup();
+    render(<StrengthScreen currentWeights={{ "cable-woodchop": 10, "assisted-pull-up": 25 }} nextSessionId="wednesday" />);
+    await startSession(user);
+    await logAll(user, "Cable Woodchop", 10);
+    await logAll(user, "Assisted Pull-Up", 5);
+    await user.click(screen.getByRole("button", { name: /finish workout/i }));
+
+    expect(within(notification("Cable Woodchop")).getByText(/^10 reps per side on every set\./)).toBeInTheDocument();
+    expect(within(notification("Assisted Pull-Up")).getByText("0 of 3 sets reached 8 reps. Aim for more reps next time at 25kg assistance.")).toBeInTheDocument();
+  });
+
+  it("doesn't count a lighter day", async () => {
+    const user = userEvent.setup();
+    render(<StrengthScreen currentWeights={{ squats: 40 }} />);
+    await startSession(user);
+    await logAll(user, "Back Squat", 10, "35");
+    await user.click(screen.getByRole("button", { name: /finish workout/i }));
+
+    expect(within(notification("Back Squat")).getByText("A set was lighter than your 40kg, so this one doesn't count.")).toBeInTheDocument();
+  });
+
+  it("never changes your weight: the next session prescribes the same (§3.3)", async () => {
+    const user = userEvent.setup();
+    render(<StrengthScreen currentWeights={{ squats: 40 }} />);
+    await startSession(user);
+    await logAll(user, "Back Squat", 10);
+    await user.click(screen.getByRole("button", { name: /finish workout/i }));
+    expect(screen.getByText("Ready to go up")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /done/i }));
+    await startSession(user, "Mon");
+    expect(weightValues(squatsCard())).toEqual(["40", "40", "40"]);
+    expect(useStrengthStore.getState().currentWeights).toEqual({ squats: 40 });
+    expect(saveStartingWeight).not.toHaveBeenCalled();
+  });
+
+  it("no longer shows the old percentage suggestions", async () => {
+    const user = userEvent.setup();
+    render(<StrengthScreen currentWeights={{ squats: 40 }} />);
+    await startSession(user);
+    await logAll(user, "Back Squat", 10);
+    await user.click(screen.getByRole("button", { name: /finish workout/i }));
+    expect(screen.queryByText("Progression recommendations")).not.toBeInTheDocument();
+    expect(screen.queryByText(/kg → /)).not.toBeInTheDocument();
   });
 });
 

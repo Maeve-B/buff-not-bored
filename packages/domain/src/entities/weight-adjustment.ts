@@ -51,7 +51,7 @@ export interface WeightRecommendation {
 }
 
 /** Rounds to the app's finest weight step (0.25 kg, DECISIONS.md D-007), so an entered weight like 20.25 kg survives unchanged. */
-function roundToWeightStep(value: number): number {
+export function roundToWeightStep(value: number): number {
   return Math.round(value / WEIGHT_STEP_KG) * WEIGHT_STEP_KG;
 }
 
