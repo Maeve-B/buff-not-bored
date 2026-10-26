@@ -332,6 +332,82 @@ describe("The progress notification (S-005, §7.4 — information only)", () => 
   });
 });
 
+describe("Ready to go up, next time you do the exercise (D-014)", () => {
+  const atTop = { actualReps: 10, actualWeight: 40 };
+  const lastTime = { squats: { workoutId: "earlier", dateIso: "2026-10-19", weight: 40, sets: [atTop, atTop, atTop] } };
+
+  it("shows on the overview, linking to the exercise page, and on the card without a link", async () => {
+    const user = userEvent.setup();
+    render(<StrengthScreen currentWeights={{ squats: 40 }} lastTime={lastTime} />);
+    expect(screen.getByRole("link", { name: "Ready to go up: change weight" })).toHaveAttribute("href", "/exercises/squats");
+
+    await startSession(user);
+    const card = within(squatsCard());
+    expect(card.getByText(/Last time: 10 reps on every set\. Options: \+0\.25/)).toBeInTheDocument();
+    expect(card.queryByRole("link")).not.toBeInTheDocument();
+  });
+
+  it("prefers the newer record when this tab and the page disagree", async () => {
+    const user = userEvent.setup();
+    const { rerender } = render(<StrengthScreen currentWeights={{ squats: 40 }} lastTime={{}} />);
+    await startSession(user);
+    const card = within(squatsCard());
+    for (const n of [1, 2, 3]) {
+      const reps = card.getByRole("spinbutton", { name: `Set ${n} reps` });
+      await user.clear(reps);
+      await user.type(reps, "10");
+      await user.click(card.getByRole("button", { name: `Complete set ${n}` }));
+    }
+    await user.click(screen.getByRole("button", { name: /finish workout/i }));
+    await user.click(screen.getByRole("button", { name: /done/i }));
+
+    // A later session elsewhere (say, your phone) that didn't reach the top.
+    const short = { actualReps: 7, actualWeight: 40 };
+    rerender(
+      <StrengthScreen currentWeights={{ squats: 40 }} lastTime={{ squats: { workoutId: "phone", dateIso: "2999-01-01", weight: 40, sets: [short, short, short] } }} />,
+    );
+    await user.click(screen.getByRole("button", { name: "Mon" }));
+    expect(screen.queryByRole("link", { name: "Ready to go up: change weight" })).not.toBeInTheDocument();
+  });
+
+  it("doesn't offer to change the weight on a bodyweight exercise", () => {
+    const twelve = { actualReps: 12 };
+    render(
+      <StrengthScreen
+        currentWeights={{}}
+        lastTime={{ "captains-chair-knee-raise": { workoutId: "earlier", dateIso: "2026-10-19", sets: [twelve, twelve] } }}
+      />,
+    );
+    expect(screen.getByText("Captain's Chair Knee Raise").closest("li")!).toHaveTextContent("Top of the range");
+    expect(screen.queryByRole("link", { name: /Top of the range/ })).not.toBeInTheDocument();
+  });
+
+  it("goes away once you've changed the weight", () => {
+    render(<StrengthScreen currentWeights={{ squats: 42.5 }} lastTime={lastTime} />);
+    expect(screen.queryByText("Ready to go up")).not.toBeInTheDocument();
+  });
+
+  it("shows next time after a session in this tab, but not during the session itself", async () => {
+    const user = userEvent.setup();
+    render(<StrengthScreen currentWeights={{ squats: 40 }} lastTime={{}} />);
+    await startSession(user);
+    const card = within(squatsCard());
+    for (const n of [1, 2, 3]) {
+      const reps = card.getByRole("spinbutton", { name: `Set ${n} reps` });
+      await user.clear(reps);
+      await user.type(reps, "10");
+      await user.click(card.getByRole("button", { name: `Complete set ${n}` }));
+    }
+    expect(card.queryByText(/^Last time:/)).not.toBeInTheDocument();
+    expect(card.queryByText("Ready to go up.")).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /finish workout/i }));
+    await user.click(screen.getByRole("button", { name: /done/i }));
+    await user.click(screen.getByRole("button", { name: "Mon" }));
+    expect(screen.getByRole("link", { name: "Ready to go up: change weight" })).toBeInTheDocument();
+  });
+});
+
 describe("Strength — your weights (S-002)", () => {
   it("asks for a weight on a loaded exercise you haven't set one for", async () => {
     const user = userEvent.setup();

@@ -12,6 +12,7 @@
 
 import { isLoaded, lowerIsProgress } from "../entities/exercise.js";
 import { isSetLogged, type StrengthExercise, type StrengthSet } from "../entities/strength.js";
+import { buildWeightRecommendation } from "../entities/weight-adjustment.js";
 
 export type Readiness =
   | {
@@ -84,4 +85,37 @@ export function assessReadiness(strengthExercise: StrengthExercise): Readiness |
       : [...exercise.incrementOptions],
     top,
   };
+}
+
+/** What you did on an exercise the last time you logged it: enough to judge readiness again next time. */
+export interface LastTimeOnExercise {
+  /** The workout it came from, so the one you're in now can be told apart. */
+  workoutId: string;
+  /** The session's date (YYYY-MM-DD), to tell which of two records is newer. */
+  dateIso: string;
+  /** Your own weight (or assistance) then, before any session adjustment. */
+  weight?: number;
+  /** Every prescribed set, logged or not. */
+  sets: Array<Pick<StrengthSet, "actualReps" | "actualDuration" | "actualWeight">>;
+}
+
+/**
+ * "Ready to go up" carried into the next time you do the exercise (§7.4:
+ * the nudge belongs at session start). Ready only if last time was ready
+ * against today's range, and you haven't changed the weight since: once
+ * you've acted on it, there's nothing to say. Only a ready result is
+ * returned; it never changes a weight (§3.3).
+ */
+export function readinessFromLastTime(current: StrengthExercise, last: LastTimeOnExercise): Extract<Readiness, { kind: "ready" }> | undefined {
+  const currentWeight = isLoaded(current.exercise) ? current.recommendation?.baseWeight : undefined;
+  const lastWeight = isLoaded(current.exercise) ? last.weight : undefined;
+  if (currentWeight !== lastWeight) return undefined;
+
+  const then: StrengthExercise = {
+    ...current,
+    recommendation: lastWeight !== undefined ? buildWeightRecommendation(lastWeight) : undefined,
+    sets: last.sets.map((set, i) => ({ ...set, setNumber: i + 1, completed: isSetLogged(set) })),
+  };
+  const readiness = assessReadiness(then);
+  return readiness?.kind === "ready" ? readiness : undefined;
 }

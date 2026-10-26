@@ -5,6 +5,7 @@ import { STRENGTH_PROGRAMME, strengthSessionPlan } from "@/lib/strength-service"
 import { useStrengthStore } from "@/lib/strength-store";
 import { Button } from "../ui/Button";
 import { Card } from "../ui/Card";
+import { LastTimeNudge } from "./LastTimeNudge";
 
 /**
  * The session due next in the programme, with a picker for any of its
@@ -61,6 +62,7 @@ export function StrengthOverview() {
               <span className="font-semibold text-slate-800">
                 {se.exercise.name}
                 {se.supersetGroup && <span className="ml-2 text-xs font-bold uppercase text-accent-700">superset</span>}
+                <LastTimeNudge strengthExercise={se} compact />
               </span>
               <span className="shrink-0 tabular-nums text-slate-500">{formatSetsAndRange(se)}</span>
             </li>

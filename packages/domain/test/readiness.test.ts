@@ -3,7 +3,7 @@ import { EXERCISES } from "../src/data/exercises.js";
 import { PRESET_PROGRAMME_1 } from "../src/data/preset-programme-1.js";
 import { findPresetSession } from "../src/entities/preset-programme.js";
 import type { StrengthExercise, StrengthSet } from "../src/entities/strength.js";
-import { assessReadiness } from "../src/engine/readiness.js";
+import { assessReadiness, readinessFromLastTime } from "../src/engine/readiness.js";
 import { buildPresetStrengthSession } from "../src/engine/strength-builder.js";
 
 const WEIGHTS = { squats: 40, "assisted-pull-up": 25, "assisted-dead-hang": 20 };
@@ -110,5 +110,36 @@ describe("assessReadiness (§6.5 double progression, one session — D-014)", ()
     assessReadiness(before);
     expect(before.recommendation?.finalWeight).toBe(40);
     expect(before.sets.map((set) => set.targetWeight)).toEqual([40, 40, 40]);
+  });
+});
+
+describe("readinessFromLastTime (the nudge, next time you do the exercise)", () => {
+  const squat = exerciseFrom("monday", "squats"); // today: 3 × 6–10 at 40 kg
+  const atTop = [
+    { actualReps: 10, actualWeight: 40 },
+    { actualReps: 10, actualWeight: 40 },
+    { actualReps: 10, actualWeight: 40 },
+  ];
+
+  it("says you're ready when last time every set reached the top at the weight you still have", () => {
+    expect(readinessFromLastTime(squat, { workoutId: "w1", dateIso: "2026-10-19", weight: 40, sets: atTop })).toMatchObject({ kind: "ready", direction: "add_load" });
+  });
+
+  it("says nothing once you've changed the weight since", () => {
+    const raised = { ...squat, recommendation: { baseWeight: 42.5, adjustments: [], finalWeight: 42.5 } };
+    expect(readinessFromLastTime(raised, { workoutId: "w1", dateIso: "2026-10-19", weight: 40, sets: atTop })).toBeUndefined();
+  });
+
+  it("says nothing when last time wasn't ready, including a set left unlogged", () => {
+    expect(readinessFromLastTime(squat, { workoutId: "w1", dateIso: "2026-10-19", weight: 40, sets: [atTop[0]!, atTop[1]!, { actualReps: 8, actualWeight: 40 }] })).toBeUndefined();
+    expect(readinessFromLastTime(squat, { workoutId: "w1", dateIso: "2026-10-19", weight: 40, sets: [atTop[0]!, atTop[1]!, {}] })).toBeUndefined();
+  });
+
+  it("works for assistance and bodyweight too", () => {
+    const pullUp = exerciseFrom("monday", "assisted-pull-up"); // 25 kg assistance, 4–8
+    const eight = { actualReps: 8, actualWeight: 25 };
+    expect(readinessFromLastTime(pullUp, { workoutId: "w1", dateIso: "2026-10-19", weight: 25, sets: [eight, eight, eight] })).toMatchObject({ direction: "reduce_assistance" });
+    const chair = exerciseFrom("monday", "captains-chair-knee-raise");
+    expect(readinessFromLastTime(chair, { workoutId: "w1", dateIso: "2026-10-19", sets: [{ actualReps: 12 }, { actualReps: 12 }] })).toMatchObject({ kind: "ready" });
   });
 });

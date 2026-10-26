@@ -89,7 +89,7 @@ _Re-planned 2026-10-21 (Maeve): Preset Programme 1 comes forward from Phase 1 an
 - `pnpm test` empties the local database: packages/db's integration tests clear every table before each test (pre-existing). Point tests at their own database so your local data survives.
 - Saved Strength sets record only the bottom of the rep range as their target; the full range lives in the programme. History and Progress may want the range later.
 - The Strength summary's "progression recommendations" still come from the old engine; S-005 replaces them with the nudge.
-- The progression notification is judged from the session just finished. Phase 1's nudge at session start (with chips to tap, "Not yet" snoozing and logged decisions) needs past sessions read back, and somewhere to store decisions (a schema change).
+- Phase 1's nudge at session start (chips to tap, "Not yet" snoozing, logged decisions) needs somewhere to store decisions (a schema change). Reading the last finished session back already exists (S-005).
 - Circuit's percentage suggestions now land on 0.25 kg steps, which its tap stepper (2.5 / 0.5 kg taps) can't always reach. Revisit with the set-logging design.
 - Saving on the exercise page used to fail for an exercise never done in a workout (no database row yet). Fixed in S-003; first-use weight saves get the same fix.
 

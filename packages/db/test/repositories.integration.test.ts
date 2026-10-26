@@ -18,6 +18,7 @@ import {
   upsertExerciseCapability,
 } from "../src/repositories/exercise-capability-repository.js";
 import {
+  findLastLoggedStrengthExercises,
   findLastTrainedProgrammeSession,
   getExerciseWeightHistory,
   getWorkoutById,
@@ -221,6 +222,58 @@ describe("workout repository", () => {
     it("ignores other programmes", async () => {
       await saveWorkoutSnapshot("rotation-f", { ...presetWorkout("monday", "2026-10-21", true), programmeId: "8-week-strength" });
       expect(await findLastTrainedProgrammeSession("preset-programme-1")).toBeUndefined();
+    });
+  });
+
+  describe("findLastLoggedStrengthExercises (the nudge next time, D-014)", () => {
+    const withSets = (dateIso: string, finalWeight: number, reps: Array<number | undefined>): LoggedWorkoutInput => ({
+      ...workoutInput,
+      status: "completed",
+      dateIso,
+      exercises: [
+        {
+          ...workoutInput.exercises[0]!,
+          baseWeight: finalWeight,
+          adjustments: [],
+          finalWeight,
+          sets: reps.map((actualReps, i) => ({
+            setNumber: i + 1,
+            targetReps: 6,
+            targetWeight: finalWeight,
+            completed: actualReps !== undefined,
+            ...(actualReps !== undefined ? { actualReps, actualWeight: finalWeight } : {}),
+          })),
+        },
+      ],
+    });
+
+    it("returns the latest logged time per exercise, with every set in order", async () => {
+      await saveWorkoutSnapshot("last-a", withSets("2026-10-19", 40, [10, 10, 10]));
+      await saveWorkoutSnapshot("last-b", withSets("2026-10-21", 42.5, [8, 7, undefined]));
+      expect(await findLastLoggedStrengthExercises([testExercise.id, "never-logged"])).toEqual({
+        [testExercise.id]: {
+          workoutId: "last-b",
+          dateIso: "2026-10-21",
+          weight: 42.5,
+          sets: [
+            { actualReps: 8, actualDuration: undefined, actualWeight: 42.5 },
+            { actualReps: 7, actualDuration: undefined, actualWeight: 42.5 },
+            { actualReps: undefined, actualDuration: undefined, actualWeight: undefined },
+          ],
+        },
+      });
+    });
+
+    it("ignores workouts that weren't finished", async () => {
+      await saveWorkoutSnapshot("last-e", withSets("2026-10-19", 40, [10, 10, 10]));
+      await saveWorkoutSnapshot("last-f", { ...withSets("2026-10-21", 40, [6, undefined, undefined]), status: "in_progress" });
+      expect((await findLastLoggedStrengthExercises([testExercise.id]))[testExercise.id]?.workoutId).toBe("last-e");
+    });
+
+    it("skips a workout where the exercise was never logged", async () => {
+      await saveWorkoutSnapshot("last-c", withSets("2026-10-19", 40, [10, 10, 10]));
+      await saveWorkoutSnapshot("last-d", withSets("2026-10-21", 40, [undefined, undefined, undefined]));
+      expect((await findLastLoggedStrengthExercises([testExercise.id]))[testExercise.id]?.workoutId).toBe("last-c");
     });
   });
 
