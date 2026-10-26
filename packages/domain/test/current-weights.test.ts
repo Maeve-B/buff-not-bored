@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
+import { parseDisplayedWeight } from "../src/entities/display-unit.js";
 import { EXERCISES } from "../src/data/exercises.js";
 import {
   currentWeightFor,
   currentWeightsFromCapabilities,
   needsStartingWeight,
-  parseEnteredWeight,
   startingWeightCapability,
   startingWeightToRecord,
 } from "../src/entities/current-weights.js";
@@ -93,16 +93,16 @@ describe("startingWeightCapability", () => {
   });
 });
 
-describe("parseEnteredWeight", () => {
+describe("parseDisplayedWeight in kg", () => {
   it("accepts positive weights, rounded to the 0.25 kg step", () => {
-    expect(parseEnteredWeight("20.25")).toBe(20.25);
-    expect(parseEnteredWeight("20.3")).toBe(20.25);
-    expect(parseEnteredWeight(" 40 ")).toBe(40);
+    expect(parseDisplayedWeight("20.25", "kg")).toBe(20.25);
+    expect(parseDisplayedWeight("20.3", "kg")).toBe(20.25);
+    expect(parseDisplayedWeight(" 40 ", "kg")).toBe(40);
   });
 
   it("rejects blank, zero, negative and non-numeric entries", () => {
     for (const text of ["", "  ", "0", "-5", "abc", "0.1"]) {
-      expect(parseEnteredWeight(text), JSON.stringify(text)).toBeUndefined();
+      expect(parseDisplayedWeight(text, "kg"), JSON.stringify(text)).toBeUndefined();
     }
   });
 });

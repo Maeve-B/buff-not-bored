@@ -241,3 +241,15 @@ model WorkoutSet {
   @@unique([workoutExerciseId, setNumber])
   @@map("workout_sets")
 }
+
+/// App-wide settings. A single row (id "app") until multi-user accounts
+/// exist; then this gains a user id. Weights are always stored in kg —
+/// `weightUnit` only chooses how they're shown and entered (S-006).
+model AppSettings {
+  id         String   @id @default("app")
+  /// "kg" | "lb" (packages/domain DISPLAY_UNITS) — plain string, like the other vocabularies.
+  weightUnit String   @default("kg")
+  updatedAt  DateTime @updatedAt
+
+  @@map("app_settings")
+}

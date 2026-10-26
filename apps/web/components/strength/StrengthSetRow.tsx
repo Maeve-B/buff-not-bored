@@ -1,10 +1,11 @@
 "use client";
 
-import { isLoaded, isSetLogged, parseEnteredWeight, WEIGHT_STEP_KG } from "@buff-not-bored/domain";
+import { displayWeightStep, isLoaded, isSetLogged, parseDisplayedWeight, toDisplayWeight } from "@buff-not-bored/domain";
 import type { Exercise, StrengthSet } from "@buff-not-bored/domain";
 import { useEffect, useState } from "react";
 import { formatLoggedSet, formatWeightInputLabel } from "@/lib/format";
 import { useStrengthStore } from "@/lib/strength-store";
+import { useWeightUnit } from "@/lib/weight-unit";
 
 /**
  * One set: reps (or seconds) then weight, each with a small label beneath
@@ -15,20 +16,23 @@ import { useStrengthStore } from "@/lib/strength-store";
  */
 export function StrengthSetRow({ exercise, set }: { exercise: Exercise; set: StrengthSet }) {
   const logSet = useStrengthStore((s) => s.logSet);
+  const unit = useWeightUnit();
   const exerciseId = exercise.id;
   const isDuration = set.targetDuration !== undefined;
   const hasWeight = isLoaded(exercise);
   const logged = isSetLogged(set);
 
-  const [weight, setWeight] = useState(set.targetWeight?.toString() ?? "");
+  // The weight box shows and takes your unit (S-006); the target itself stays in kg.
+  const shownTarget = set.targetWeight !== undefined ? toDisplayWeight(set.targetWeight, unit).toString() : "";
+  const [weight, setWeight] = useState(shownTarget);
 
   // When a first-use weight fills this set's target, show it — unless you've already typed something here.
   useEffect(() => {
-    if (set.targetWeight !== undefined) setWeight((typed) => (typed === "" ? set.targetWeight!.toString() : typed));
-  }, [set.targetWeight]);
+    if (shownTarget !== "") setWeight((typed) => (typed === "" ? shownTarget : typed));
+  }, [shownTarget]);
   const [volume, setVolume] = useState(set.targetReps ?? set.targetDuration ?? 0);
 
-  const loggedWeight = hasWeight ? parseEnteredWeight(weight) : undefined;
+  const loggedWeight = hasWeight ? parseDisplayedWeight(weight, unit, set.targetWeight) : undefined;
 
   function handleComplete() {
     logSet(
@@ -48,7 +52,7 @@ export function StrengthSetRow({ exercise, set }: { exercise: Exercise; set: Str
 
       {logged ? (
         <span className={`text-sm font-semibold ${set.completed ? "text-emerald-700" : "text-amber-700"}`}>
-          {formatLoggedSet(set)}
+          {formatLoggedSet(set, unit)}
         </span>
       ) : (
         <div className="flex items-start gap-2">
@@ -64,11 +68,11 @@ export function StrengthSetRow({ exercise, set }: { exercise: Exercise; set: Str
             />
           </LabelledInput>
           {hasWeight && (
-            <LabelledInput label={formatWeightInputLabel(exercise)}>
+            <LabelledInput label={formatWeightInputLabel(exercise, unit)}>
               <input
                 type="number"
                 inputMode="decimal"
-                step={WEIGHT_STEP_KG}
+                step={displayWeightStep(unit)}
                 value={weight}
                 onChange={(e) => setWeight(e.target.value)}
                 aria-label={`Set ${set.setNumber} weight`}

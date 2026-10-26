@@ -26,6 +26,8 @@ export type Readiness =
        */
       incrementOptions: number[];
       top: number;
+      /** Your current weight (or assistance), if the exercise takes one. */
+      currentWeight?: number;
     }
   | {
       kind: "not_yet";
@@ -84,6 +86,7 @@ export function assessReadiness(strengthExercise: StrengthExercise): Readiness |
       ? exercise.incrementOptions.filter((jump) => jump <= (currentWeight ?? 0))
       : [...exercise.incrementOptions],
     top,
+    currentWeight,
   };
 }
 

@@ -4,6 +4,7 @@ import { readinessFromLastTime, type StrengthExercise } from "@buff-not-bored/do
 import Link from "next/link";
 import { formatReadiness } from "@/lib/format";
 import { useStrengthStore } from "@/lib/strength-store";
+import { useWeightUnit } from "@/lib/weight-unit";
 
 /**
  * "Ready to go up" from the last time you did this exercise (§7.4, D-014):
@@ -16,11 +17,12 @@ import { useStrengthStore } from "@/lib/strength-store";
 export function LastTimeNudge({ strengthExercise, compact = false }: { strengthExercise: StrengthExercise; compact?: boolean }) {
   const last = useStrengthStore((s) => s.lastTime[strengthExercise.exercise.id]);
   const workoutId = useStrengthStore((s) => s.workoutId);
+  const unit = useWeightUnit();
   if (!last || last.workoutId === workoutId) return null;
 
   const readiness = readinessFromLastTime(strengthExercise, last);
   if (!readiness) return null;
-  const { headline, detail } = formatReadiness(strengthExercise, readiness);
+  const { headline, detail } = formatReadiness(strengthExercise, readiness, unit);
 
   if (compact) {
     // Bodyweight work has no weight to change, so there's nothing to link to.

@@ -13,18 +13,29 @@ export function mergeServerWeights(local: CurrentWeights, fromServer: CurrentWei
   return { ...local, ...fromServer };
 }
 
+/** A first-use starting weight that didn't save, for SaveStatusNote to word in your unit. */
+export interface WeightSaveError {
+  exerciseName: string;
+  /** kg */
+  weight: number;
+}
+
 /**
- * Saves a first-use starting weight and returns a message for the person if
- * it didn't save, or undefined if it did (or the exercise already had one).
+ * Saves a first-use starting weight and returns what didn't save, or
+ * undefined if it did (or the exercise already had one).
  * The local weight is deliberately kept on failure: dropping it would make
  * the next logged set silently become the starting weight instead.
  */
-export async function persistStartingWeight(exerciseName: string, exerciseId: string, weight: number): Promise<string | undefined> {
+export async function persistStartingWeight(
+  exerciseName: string,
+  exerciseId: string,
+  weight: number,
+): Promise<WeightSaveError | undefined> {
   try {
     const result = await saveStartingWeight(exerciseId, weight);
     if (result.ok) return undefined;
   } catch {
     // Network failure: fall through to the same message.
   }
-  return `Couldn't save ${weight}kg as your ${exerciseName} weight. You'll be asked again next session.`;
+  return { exerciseName, weight };
 }

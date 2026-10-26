@@ -1,14 +1,24 @@
 "use client";
 
-import { isLoaded, parseEnteredWeight, WEIGHT_STEP_KG, type PlannedExercise } from "@buff-not-bored/domain";
+import {
+  displayWeightStep,
+  fromDisplayWeight,
+  isLoaded,
+  parseDisplayedWeight,
+  tapWeightStep,
+  toDisplayWeight,
+  type PlannedExercise,
+} from "@buff-not-bored/domain";
 import { useEffect, useState } from "react";
 import { formatEquipment, formatLoggedSet, formatTargetVolume, formatTargetWeight, getFormCue } from "@/lib/format";
 import { useAppStore } from "@/lib/store";
+import { useWeightUnit } from "@/lib/weight-unit";
 import { Button } from "./ui/Button";
 import { Card } from "./ui/Card";
 import { Stepper } from "./ui/Stepper";
 
 export function ExerciseCard({ planned }: { planned: PlannedExercise }) {
+  const unit = useWeightUnit();
   const exerciseId = planned.exercise.id;
   const log = useAppStore((s) => s.setLogs[exerciseId]);
   const logSet = useAppStore((s) => s.logSet);
@@ -20,13 +30,15 @@ export function ExerciseCard({ planned }: { planned: PlannedExercise }) {
   // Working skeleton only, as part of the design-first set-logging screen.
   const needsWeight = hasWeight && planned.prescribedWeight === undefined;
 
-  const [weight, setWeight] = useState(planned.prescribedWeight ?? 0);
+  // The stepper shows your unit; the prescription itself stays in kg (S-006).
+  const shownPrescribed = planned.prescribedWeight !== undefined ? toDisplayWeight(planned.prescribedWeight, unit) : 0;
+  const [weight, setWeight] = useState(shownPrescribed);
   const [typedWeight, setTypedWeight] = useState("");
   const [volume, setVolume] = useState(planned.prescribedReps ?? planned.prescribedDuration ?? 0);
 
   // If this exercise gets swapped for a different one (new id, new defaults), reset the local inputs.
   useEffect(() => {
-    setWeight(planned.prescribedWeight ?? 0);
+    setWeight(shownPrescribed);
     setTypedWeight("");
     setVolume(planned.prescribedReps ?? planned.prescribedDuration ?? 0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -34,8 +46,11 @@ export function ExerciseCard({ planned }: { planned: PlannedExercise }) {
 
   function loggedWeight(): number | undefined {
     if (!hasWeight) return undefined;
-    if (!needsWeight) return weight;
-    return parseEnteredWeight(typedWeight);
+    if (!needsWeight) {
+      // Left as prescribed, it logs the prescription exactly; otherwise the shown number, converted to kg.
+      return weight === shownPrescribed && planned.prescribedWeight !== undefined ? planned.prescribedWeight : fromDisplayWeight(weight, unit);
+    }
+    return parseDisplayedWeight(typedWeight, unit);
   }
 
   function handleLogSet() {
@@ -60,7 +75,7 @@ export function ExerciseCard({ planned }: { planned: PlannedExercise }) {
             )}
           </div>
           <p className="mt-0.5 text-sm text-slate-500">
-            {formatTargetVolume(planned)} · {formatTargetWeight(planned.exercise, planned.prescribedWeight)} ·{" "}
+            {formatTargetVolume(planned)} · {formatTargetWeight(planned.exercise, planned.prescribedWeight, unit)} ·{" "}
             {formatEquipment(planned.exercise.equipment)}
           </p>
           {cue && <p className="mt-1 text-xs text-slate-400">{cue}</p>}
@@ -84,7 +99,7 @@ export function ExerciseCard({ planned }: { planned: PlannedExercise }) {
             {log.completed ? "✓ Logged" : "Logged · below target"}
           </span>
           <span className={`text-sm ${log.completed ? "text-emerald-700" : "text-amber-700"}`}>
-            {formatLoggedSet({ ...log, actualWeight: hasWeight ? log.actualWeight : undefined, repsUnit: planned.repsUnit })}
+            {formatLoggedSet({ ...log, actualWeight: hasWeight ? log.actualWeight : undefined, repsUnit: planned.repsUnit }, unit)}
           </span>
         </div>
       ) : (
@@ -102,20 +117,20 @@ export function ExerciseCard({ planned }: { planned: PlannedExercise }) {
               <Stepper
                 label="Weight"
                 value={weight}
-                step={planned.exercise.equipment === "barbell" ? 2.5 : 0.5}
-                suffix="kg"
+                step={tapWeightStep(planned.exercise.equipment === "barbell", unit)}
+                suffix={unit}
                 onChange={setWeight}
               />
             )}
             {needsWeight && (
               <label className="flex flex-col items-center gap-1">
-                <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Weight (kg)</span>
+                <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Weight ({unit})</span>
                 <input
                   type="number"
                   inputMode="decimal"
-                  step={WEIGHT_STEP_KG}
+                  step={displayWeightStep(unit)}
                   min={0}
-                  placeholder="kg"
+                  placeholder={unit}
                   value={typedWeight}
                   onChange={(e) => setTypedWeight(e.target.value)}
                   aria-label={`${planned.exercise.name} weight`}

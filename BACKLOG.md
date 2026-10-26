@@ -60,7 +60,7 @@ _Re-planned 2026-10-21 (Maeve): Preset Programme 1 comes forward from Phase 1 an
 - Notes: rep ranges and supersets as in §10.1. Every weight starts blank (D-003 kept for Preset 1). Today shows the next session due in the Mon → Wed → Fri rotation, with no rest-day note (D-011); you can pick any of the three. Rest is shown as information only. Reps before weight everywhere, Circuit included (D-009). Set rows must take a weight (or assistance) on timed loaded exercises: Farmer Carry and Assisted Dead Hang; today a timed exercise never shows a weight box.
 - Done when: Strength shows Preset 1's session for the day, exactly as §10.1, and nothing else.
 
-### S-005 · Progression becomes a nudge — status: in-review (PR #13)
+### S-005 · Progression becomes a nudge — status: done (PR #13)
 - Epic: R-00 · Spec: §7.4, §6.5, §3.3
 - Screens: Strength summary and Progress, in two states: ready to go up, not yet ready (placeholder text)
 - Design-first: yes. The real nudge screen comes in Phase 1, so this slice uses plain text only.
@@ -68,7 +68,7 @@ _Re-planned 2026-10-21 (Maeve): Preset Programme 1 comes forward from Phase 1 an
 - Notes: Preset 1 uses double progression: top of the range on every set, then you're offered a weight increase (or less assistance). The trigger uses reps only until set feedback is logged (D-006). Circuit keeps percentage progression. The old engines round weights to 0.5 kg; anything that stays must use the 0.25 kg step (D-007). Choosing which increment options become the nudge chips is a design question. Assisted exercises progress downwards: the engine must read the load direction, so a nudge offers less assistance, never more.
 - Done when: no strength screen suggests a weight automatically; the engine reports readiness and increment options.
 
-### S-006 · kg or lb, chosen in Settings — status: todo
+### S-006 · kg or lb, chosen in Settings — status: in-review (PR #14)
 - Epic: R-00 (requested by Maeve, 2026-10-18; not in the spec)
 - Spec: none yet; extends D-007
 - Screens: Settings (unit choice); every weight label and box shows the chosen unit
@@ -91,6 +91,7 @@ _Re-planned 2026-10-21 (Maeve): Preset Programme 1 comes forward from Phase 1 an
 - The Strength summary's "progression recommendations" still come from the old engine; S-005 replaces them with the nudge.
 - Phase 1's nudge at session start (chips to tap, "Not yet" snoozing, logged decisions) needs somewhere to store decisions (a schema change). Reading the last finished session back already exists (S-005).
 - Circuit's percentage suggestions now land on 0.25 kg steps, which its tap stepper (2.5 / 0.5 kg taps) can't always reach. Revisit with the set-logging design.
+- `server-only` (a tiny Next.js package) would guard server-side modules such as lib/settings.ts from ever being imported in the browser. Not added: it's a new dependency, so it needs your OK.
 - Saving on the exercise page used to fail for an exercise never done in a workout (no database row yet). Fixed in S-003; first-use weight saves get the same fix.
 
 ## Done

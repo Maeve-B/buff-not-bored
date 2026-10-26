@@ -11,7 +11,7 @@
  */
 
 import type { ExerciseCapability } from "./exercise-capability.js";
-import { isLoaded, WEIGHT_STEP_KG, type Exercise } from "./exercise.js";
+import { isLoaded, type Exercise } from "./exercise.js";
 import type { ExerciseCapabilityInput } from "../validation/exercise-capability.schema.js";
 
 /** Exercise id → current weight in kg. A plain record so it can cross the server/client boundary. */
@@ -24,18 +24,6 @@ export function currentWeightsFromCapabilities(capabilities: ExerciseCapability[
     if (capability.weight !== undefined) weights[capability.exerciseId] = capability.weight;
   }
   return weights;
-}
-
-/**
- * A weight typed by the person, as kg rounded to the 0.25 kg step (D-007),
- * or undefined if it isn't a positive number. Zero, negative, blank and
- * non-numeric entries never become a logged or starting weight.
- */
-export function parseEnteredWeight(text: string): number | undefined {
-  const value = Number(text);
-  if (text.trim() === "" || !Number.isFinite(value) || value <= 0) return undefined;
-  const rounded = Math.round(value / WEIGHT_STEP_KG) * WEIGHT_STEP_KG;
-  return rounded > 0 ? rounded : undefined;
 }
 
 /** The weight to prescribe for an exercise: your current weight if it's loaded and you have one, otherwise none. */

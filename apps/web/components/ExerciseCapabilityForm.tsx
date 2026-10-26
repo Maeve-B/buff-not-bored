@@ -2,8 +2,17 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { lowerIsProgress, WEIGHT_STEP_KG, WEIGHT_UNITS, type Exercise, type ExerciseCapability, type ExerciseCapabilityInput } from "@buff-not-bored/domain";
+import {
+  displayWeightStep,
+  lowerIsProgress,
+  parseDisplayedWeight,
+  toDisplayWeight,
+  type Exercise,
+  type ExerciseCapability,
+  type ExerciseCapabilityInput,
+} from "@buff-not-bored/domain";
 import { saveExerciseCapability } from "@/lib/actions/exercise-capability";
+import { useWeightUnit } from "@/lib/weight-unit";
 import type { SaveStatus } from "@/lib/store";
 import { Button } from "./ui/Button";
 import { Card } from "./ui/Card";
@@ -23,8 +32,10 @@ export function ExerciseCapabilityForm({
   initialCapability: ExerciseCapability | undefined;
 }) {
   const router = useRouter();
-  const [weight, setWeight] = useState(initialCapability?.weight?.toString() ?? "");
-  const [weightUnit, setWeightUnit] = useState(initialCapability?.weightUnit ?? WEIGHT_UNITS[0]);
+  // Shown and typed in your unit (S-006); always saved in kg.
+  const unit = useWeightUnit();
+  const savedWeight = initialCapability?.weight;
+  const [weight, setWeight] = useState(savedWeight !== undefined ? toDisplayWeight(savedWeight, unit).toString() : "");
   const [reps, setReps] = useState(initialCapability?.reps?.toString() ?? "");
   const [duration, setDuration] = useState(initialCapability?.duration?.toString() ?? "");
   const [note, setNote] = useState(initialCapability?.note ?? "");
@@ -34,14 +45,19 @@ export function ExerciseCapabilityForm({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    const parsedWeight = parseOptionalNumber(weight);
+    const parsedWeight = parseDisplayedWeight(weight, unit, savedWeight);
+    if (weight.trim() !== "" && parsedWeight === undefined) {
+      setStatus("error");
+      setError(`enter a ${lowerIsProgress(exercise) ? "assistance" : "weight"} above 0 ${unit}, or leave it blank`);
+      return;
+    }
     const parsedReps = parseOptionalNumber(reps);
     const parsedDuration = parseOptionalNumber(duration);
 
     const input: ExerciseCapabilityInput = {
       exerciseId: exercise.id,
       weight: parsedWeight,
-      weightUnit: parsedWeight !== undefined ? weightUnit : undefined,
+      weightUnit: parsedWeight !== undefined ? "kg" : undefined,
       reps: parsedReps,
       // Reps are counted the way the exercise defines them (per side or total); there's no unit to choose.
       repsUnit: parsedReps !== undefined ? (exercise.repsUnit ?? "reps") : undefined,
@@ -65,33 +81,17 @@ export function ExerciseCapabilityForm({
   return (
     <Card className="p-4">
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <div className="flex gap-3">
-          <label className="flex-1 text-sm font-semibold text-slate-700">
-            {lowerIsProgress(exercise) ? "Assistance" : "Weight"}
-            <input
-              type="number"
-              inputMode="decimal"
-              step={WEIGHT_STEP_KG}
-              value={weight}
-              onChange={(e) => setWeight(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-            />
-          </label>
-          <label className="w-28 text-sm font-semibold text-slate-700">
-            Unit
-            <select
-              value={weightUnit}
-              onChange={(e) => setWeightUnit(e.target.value as (typeof WEIGHT_UNITS)[number])}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-            >
-              {WEIGHT_UNITS.map((unit) => (
-                <option key={unit} value={unit}>
-                  {unit}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
+        <label className="text-sm font-semibold text-slate-700">
+          {lowerIsProgress(exercise) ? "Assistance" : "Weight"} ({unit})
+          <input
+            type="number"
+            inputMode="decimal"
+            step={displayWeightStep(unit)}
+            value={weight}
+            onChange={(e) => setWeight(e.target.value)}
+            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+          />
+        </label>
 
         <label className="text-sm font-semibold text-slate-700">
           Reps

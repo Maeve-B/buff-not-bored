@@ -4,6 +4,7 @@ import { assessReadiness, countCompletedSets } from "@buff-not-bored/domain";
 import Link from "next/link";
 import { formatDurationMinutes, formatReadiness } from "@/lib/format";
 import { useStrengthStore } from "@/lib/strength-store";
+import { useWeightUnit } from "@/lib/weight-unit";
 import { SaveStatusNote } from "../SaveStatusNote";
 import { Button } from "../ui/Button";
 import { Card } from "../ui/Card";
@@ -16,6 +17,7 @@ export function StrengthComplete() {
   const saveStatus = useStrengthStore((s) => s.saveStatus);
   const saveError = useStrengthStore((s) => s.saveError);
 
+  const unit = useWeightUnit();
   const { completed, total } = countCompletedSets(session);
   const durationMs = (completedAt ?? Date.now()) - (startedAt ?? completedAt ?? Date.now());
 
@@ -52,7 +54,7 @@ export function StrengthComplete() {
           <p className="mt-1 text-xs text-slate-500">Change a weight on its exercise page whenever you choose.</p>
           <ul className="mt-3 flex flex-col gap-3">
             {notifications.map(({ se, readiness }) => {
-              const { headline, detail } = formatReadiness(se, readiness);
+              const { headline, detail } = formatReadiness(se, readiness, unit);
               return (
                 <li key={se.exercise.id} className="flex flex-col">
                   <span className="flex items-baseline justify-between gap-3">

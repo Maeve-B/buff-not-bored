@@ -66,8 +66,14 @@ function applyOneAdjustment(weight: number, adjustment: WeightAdjustment): numbe
   }
 }
 
-/** Applies a list of adjustments to a base weight, in order. Pure — same inputs always produce the same output. */
+/**
+ * Applies a list of adjustments to a base weight, in order. Pure — same
+ * inputs always produce the same output. With no adjustments the base comes
+ * back exactly: your own weight is never rounded (a weight entered in lb is
+ * stored to the gram, D-015). Adjusted weights land on the 0.25 kg step.
+ */
 export function applyWeightAdjustments(baseWeight: number, adjustments: WeightAdjustment[]): number {
+  if (adjustments.length === 0) return baseWeight;
   const raw = adjustments.reduce((weight, adjustment) => applyOneAdjustment(weight, adjustment), baseWeight);
   return roundToWeightStep(raw);
 }

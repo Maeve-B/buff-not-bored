@@ -1,11 +1,21 @@
+"use client";
+
+import { formatWeight } from "@/lib/format";
+import type { WeightSaveError } from "@/lib/starting-weight";
 import type { SaveStatus } from "@/lib/store";
+import { useWeightUnit } from "@/lib/weight-unit";
 
 /** Save-status indicator (plus any first-use weight that failed to save) for a completion screen — shared by Circuit and Classic Strength so a failed save is never silently indistinguishable from a successful one. */
-export function SaveStatusNote({ status, error, weightError }: { status: SaveStatus; error?: string; weightError?: string }) {
+export function SaveStatusNote({ status, error, weightError }: { status: SaveStatus; error?: string; weightError?: WeightSaveError }) {
+  const unit = useWeightUnit();
   return (
     <>
       <WorkoutSaveStatus status={status} error={error} />
-      {weightError && <p className="mt-1 text-xs font-medium text-red-600">{weightError}</p>}
+      {weightError && (
+        <p className="mt-1 text-xs font-medium text-red-600">
+          Couldn&apos;t save {formatWeight(weightError.weight, unit)} as your {weightError.exerciseName} weight. You&apos;ll be asked again next session.
+        </p>
+      )}
     </>
   );
 }
