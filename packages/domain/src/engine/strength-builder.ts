@@ -14,7 +14,8 @@ import { PROGRAMME_TEMPLATE } from "../data/programme-template.js";
 import { currentWeightFor, type CurrentWeights } from "../entities/current-weights.js";
 import type { Exercise } from "../entities/exercise.js";
 import type { ProgrammeTemplate } from "../entities/programme.js";
-import type { StrengthExercise, StrengthSession, StrengthSet } from "../entities/strength.js";
+import { recommendedRestSeconds, type PresetSession } from "../entities/preset-programme.js";
+import { isSetLogged, type StrengthExercise, type StrengthSession, type StrengthSet } from "../entities/strength.js";
 import { buildWeightRecommendation } from "../entities/weight-adjustment.js";
 
 /**
@@ -94,8 +95,57 @@ export function buildDefaultStrengthSession(library: Exercise[], options: BuildS
   return buildStrengthSessionFromTemplate(library, PROGRAMME_TEMPLATE, options);
 }
 
-function isLogged(set: StrengthSet): boolean {
-  return set.actualReps !== undefined || set.actualDuration !== undefined;
+/**
+ * Builds one session of a preset programme (§10.1) in the order the preset
+ * gives. Every set targets the bottom of its range (D-011), and is
+ * prescribed your current weight, or none to be entered at first use.
+ */
+export function buildPresetStrengthSession(
+  library: Exercise[],
+  session: PresetSession,
+  options: Pick<BuildStrengthSessionOptions, "currentWeights"> = {},
+): StrengthSession {
+  const libraryById = new Map(library.map((exercise) => [exercise.id, exercise]));
+
+  const exercises: StrengthExercise[] = session.slots.map((slot) => {
+    const exercise = libraryById.get(slot.exerciseId);
+    if (!exercise) {
+      throw new StrengthBuilderError(`Preset session "${session.id}" references unknown exercise id "${slot.exerciseId}".`);
+    }
+    const range = slot.reps ?? slot.seconds;
+    if (!range || (slot.reps !== undefined) === (slot.seconds !== undefined)) {
+      throw new StrengthBuilderError(`Preset slot "${slot.exerciseId}" in "${session.id}" needs exactly one of reps or seconds.`);
+    }
+    if (!Number.isInteger(slot.sets) || slot.sets < 1 || range.min < 1 || range.min > range.max) {
+      throw new StrengthBuilderError(`Preset slot "${slot.exerciseId}" in "${session.id}" needs at least one set and a range from low to high.`);
+    }
+    if ((slot.seconds !== undefined) !== (exercise.prescribedDuration !== undefined)) {
+      throw new StrengthBuilderError(`Preset slot "${slot.exerciseId}" in "${session.id}" doesn't match how the exercise is counted.`);
+    }
+
+    const weight = currentWeightFor(exercise, options.currentWeights ?? {});
+    const recommendation = weight !== undefined ? buildWeightRecommendation(weight) : undefined;
+    const sets: StrengthSet[] = Array.from({ length: slot.sets }, (_, i) => ({
+      setNumber: i + 1,
+      targetReps: slot.reps?.min,
+      repsUnit: slot.reps ? exercise.repsUnit : undefined,
+      targetDuration: slot.seconds?.min,
+      targetWeight: recommendation?.finalWeight,
+      completed: false,
+    }));
+
+    return {
+      exercise,
+      role: "main",
+      sets,
+      recommendation,
+      targetRange: { ...range },
+      supersetGroup: slot.supersetGroup,
+      recommendedRest: recommendedRestSeconds(exercise.exerciseClass),
+    };
+  });
+
+  return { exercises };
 }
 
 /** One exercise re-prescribed at `weight` (or none): its recommendation and every set not yet logged. Logged sets keep what was lifted. */
@@ -104,7 +154,7 @@ function prescribe(strengthExercise: StrengthExercise, weight: number | undefine
   return {
     ...strengthExercise,
     recommendation,
-    sets: strengthExercise.sets.map((set) => (isLogged(set) ? set : { ...set, targetWeight: recommendation?.finalWeight })),
+    sets: strengthExercise.sets.map((set) => (isSetLogged(set) ? set : { ...set, targetWeight: recommendation?.finalWeight })),
   };
 }
 

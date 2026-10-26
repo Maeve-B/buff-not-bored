@@ -103,6 +103,26 @@ export async function listWorkoutSummaries(): Promise<LoggedWorkoutSummary[]> {
 }
 
 /**
+ * The session id (`scheduledWorkoutId`) of the most recent workout in a
+ * programme that has at least one set logged, or undefined if there's none.
+ * Drives a preset's rotation (DECISIONS.md D-011): a session counts once
+ * you've logged a set, whether or not you tapped Finish. Most recent means
+ * latest session date, then latest started.
+ */
+export async function findLastTrainedProgrammeSession(programmeId: string): Promise<string | undefined> {
+  const row = await prisma.workout.findFirst({
+    where: {
+      programmeId,
+      scheduledWorkoutId: { not: null },
+      exercises: { some: { sets: { some: { OR: [{ actualReps: { not: null } }, { actualDuration: { not: null } }] } } } },
+    },
+    orderBy: [{ dateIso: "desc" }, { createdAt: "desc" }],
+    select: { scheduledWorkoutId: true },
+  });
+  return row?.scheduledWorkoutId ?? undefined;
+}
+
+/**
  * Every actual weight ever recorded for an exercise, in chronological
  * order — one entry per completed set, across completed workouts only. An
  * in-progress workout (`status !== "completed"`) and an uncompleted set

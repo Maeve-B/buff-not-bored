@@ -44,7 +44,7 @@ _Breakdown approved 2026-10-18. Decisions D-002–D-006._
 
 _Re-planned 2026-10-21 (Maeve): Preset Programme 1 comes forward from Phase 1 and replaces the old 26-exercise Strength session (D-010). The old S-003 "Correct rep, set and rest defaults" is dropped: presets carry their own numbers, and the §6.3 goal defaults move to Phase 2's programme generator. Rest is shown as information only._
 
-### S-003 · New exercises for Preset Programme 1 — status: in-review (PR #10)
+### S-003 · New exercises for Preset Programme 1 — status: done (PR #10)
 - Epic: R-00 (brought forward from R-01 item 1) · Spec: §10.1, §9.1, §10.2 (subset)
 - Screens: Exercises list; exercise page in three new states: assisted (no assistance yet / saved), weighted and timed (Farmer Carry), per side (Cable Woodchop)
 - Design-first: no
@@ -52,11 +52,11 @@ _Re-planned 2026-10-21 (Maeve): Preset Programme 1 comes forward from Phase 1 an
 - Notes: 11 new exercises; Squats, Deadlifts and Flat DB Press renamed to Preset 1's names. Circuit and the classic Strength session keep the original 33 exercises. No schema change.
 - Done when: every Preset 1 exercise is in the library with a swap group, and the assisted ones record assistance.
 
-### S-004 · Preset Programme 1 replaces today's Strength session — status: todo
+### S-004 · Preset Programme 1 replaces today's Strength session — status: in-review (PR #12)
 - Epic: R-00 (brought forward from R-01 item 2) · Spec: §10.1, §9.3
 - Screens: Strength overview and set list for Monday, Wednesday and Friday; supersets; assisted and timed sets
 - Design-first: partly (set logging stays a working skeleton)
-- Depends on: S-003
+- Depends on: S-003 ✅
 - Notes: rep ranges and supersets as in §10.1. Every weight starts blank (D-003 kept for Preset 1). Today shows the next session due in the Mon → Wed → Fri rotation, with no rest-day note (D-011); you can pick any of the three. Rest is shown as information only. Reps before weight everywhere, Circuit included (D-009). Set rows must take a weight (or assistance) on timed loaded exercises: Farmer Carry and Assisted Dead Hang; today a timed exercise never shows a weight box.
 - Done when: Strength shows Preset 1's session for the day, exactly as §10.1, and nothing else.
 
@@ -85,6 +85,10 @@ _Re-planned 2026-10-21 (Maeve): Preset Programme 1 comes forward from Phase 1 an
 - §9.1 has no knee-flexion movement pattern, so Leg Curl is filed under hinge (S-003). Propose adding one to the spec.
 - Assisted Pull-Up and Assisted Dead Hang are alone in their swap groups until the library expansion adds band-assisted and negative pull-ups (§10.2). Swap has nothing to offer them yet.
 - The exercise page offers a weight box even for unloaded exercises (Plank, Captain's Chair Knee Raise).
+- Home and Programmes still show the old seeded "8 Week Strength" (Mon/Wed) while Strength runs Preset 1. Left as is until Maeve designs Home (2026-10-21).
+- `pnpm test` empties the local database: packages/db's integration tests clear every table before each test (pre-existing). Point tests at their own database so your local data survives.
+- Saved Strength sets record only the bottom of the rep range as their target; the full range lives in the programme. History and Progress may want the range later.
+- The Strength summary's "progression recommendations" still come from the old engine; S-005 replaces them with the nudge.
 - Saving on the exercise page used to fail for an exercise never done in a workout (no database row yet). Fixed in S-003; first-use weight saves get the same fix.
 
 ## Done

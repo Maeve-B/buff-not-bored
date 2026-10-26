@@ -1,22 +1,24 @@
 "use client";
 
-import { parseEnteredWeight, WEIGHT_STEP_KG } from "@buff-not-bored/domain";
-import type { StrengthSet } from "@buff-not-bored/domain";
+import { isLoaded, isSetLogged, parseEnteredWeight, WEIGHT_STEP_KG } from "@buff-not-bored/domain";
+import type { Exercise, StrengthSet } from "@buff-not-bored/domain";
 import { useEffect, useState } from "react";
+import { formatLoggedSet, formatWeightInputLabel } from "@/lib/format";
 import { useStrengthStore } from "@/lib/strength-store";
 
 /**
- * One set: reps (or seconds) then weight, each with a small label beneath.
- * `loaded` says whether the exercise takes a weight at all; a loaded set
- * with no target weight is a first use, so its weight box starts empty for
- * you to fill in (spec §10.1). Working skeleton only: this is
- * part of the design-first set-logging screen.
+ * One set: reps (or seconds) then weight, each with a small label beneath
+ * (D-009). A loaded exercise takes a weight (or assistance) whether it's
+ * counted in reps or seconds; a loaded set with no target weight is a first
+ * use, so its weight box starts empty for you to fill in (spec §10.1).
+ * Working skeleton only: this is part of the design-first set-logging screen.
  */
-export function StrengthSetRow({ exerciseId, set, loaded }: { exerciseId: string; set: StrengthSet; loaded: boolean }) {
+export function StrengthSetRow({ exercise, set }: { exercise: Exercise; set: StrengthSet }) {
   const logSet = useStrengthStore((s) => s.logSet);
+  const exerciseId = exercise.id;
   const isDuration = set.targetDuration !== undefined;
-  const hasWeight = loaded && !isDuration;
-  const logged = set.actualReps !== undefined || set.actualDuration !== undefined;
+  const hasWeight = isLoaded(exercise);
+  const logged = isSetLogged(set);
 
   const [weight, setWeight] = useState(set.targetWeight?.toString() ?? "");
 
@@ -26,13 +28,13 @@ export function StrengthSetRow({ exerciseId, set, loaded }: { exerciseId: string
   }, [set.targetWeight]);
   const [volume, setVolume] = useState(set.targetReps ?? set.targetDuration ?? 0);
 
+  const loggedWeight = hasWeight ? parseEnteredWeight(weight) : undefined;
+
   function handleComplete() {
     logSet(
       exerciseId,
       set.setNumber,
-      isDuration
-        ? { actualDuration: volume }
-        : { actualWeight: hasWeight ? parseEnteredWeight(weight) : undefined, actualReps: volume },
+      isDuration ? { actualDuration: volume, actualWeight: loggedWeight } : { actualReps: volume, actualWeight: loggedWeight },
     );
   }
 
@@ -46,12 +48,11 @@ export function StrengthSetRow({ exerciseId, set, loaded }: { exerciseId: string
 
       {logged ? (
         <span className={`text-sm font-semibold ${set.completed ? "text-emerald-700" : "text-amber-700"}`}>
-          {set.actualWeight !== undefined ? `${set.actualWeight}kg × ` : ""}
-          {isDuration ? `${set.actualDuration}s` : `${set.actualReps} reps`}
+          {formatLoggedSet(set)}
         </span>
       ) : (
         <div className="flex items-start gap-2">
-          <LabelledInput label={isDuration ? "seconds" : "reps"}>
+          <LabelledInput label={isDuration ? "seconds" : set.repsUnit === "per_side" ? "reps / side" : "reps"}>
             <input
               type="number"
               inputMode="numeric"
@@ -63,7 +64,7 @@ export function StrengthSetRow({ exerciseId, set, loaded }: { exerciseId: string
             />
           </LabelledInput>
           {hasWeight && (
-            <LabelledInput label="weight (kg)">
+            <LabelledInput label={formatWeightInputLabel(exercise)}>
               <input
                 type="number"
                 inputMode="decimal"

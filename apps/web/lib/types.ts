@@ -92,6 +92,9 @@ export interface StrengthWorkoutSnapshot {
   workoutType: "classic_strength";
   status: WorkoutStatus;
   session: StrengthSession;
+  /** The preset programme and which of its sessions this is — what the rotation reads back (D-011). */
+  programmeId?: string;
+  scheduledWorkoutId?: string;
 }
 
 export type WorkoutSnapshot = CircuitWorkoutSnapshot | StrengthWorkoutSnapshot;

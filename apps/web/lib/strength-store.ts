@@ -10,17 +10,19 @@
  */
 
 import type { CurrentWeights, StrengthSession } from "@buff-not-bored/domain";
-import { countCompletedSets } from "@buff-not-bored/domain";
+import { countCompletedSets, hasLoggedSet } from "@buff-not-bored/domain";
 import { create } from "zustand";
 import { persistWorkoutSnapshot } from "./actions/save-workout";
 import { clearFallbackSnapshotIfRevision, writeFallbackSnapshot } from "./local-fallback";
 import { mergeServerWeights, persistStartingWeight } from "./starting-weight";
 import {
-  getTodayStrengthSession,
+  buildStrengthSession,
   logStrengthSet,
+  nextStrengthSessionId,
   prescribeSessionWeights,
   resolveStartingWeight,
-  STRENGTH_WORKOUT_NAME,
+  STRENGTH_PROGRAMME,
+  strengthWorkoutName,
   type StrengthSetLogInput,
 } from "./strength-service";
 import type { CompletedStrengthWorkout, SaveStatus, StrengthWorkoutSnapshot } from "./types";
@@ -33,6 +35,10 @@ type PersistableStatus = "in_progress" | "completed";
 
 interface StrengthAppData {
   workoutId: string;
+  /** Which of the programme's sessions this is, e.g. "monday". */
+  sessionId: string;
+  /** True once you've picked a session yourself, or the rotation moved on in this tab, so the page's suggestion no longer replaces it. */
+  sessionChosen: boolean;
   session: StrengthSession;
   /** Your weights, loaded by the page from the server; first-use weights are added here as you log them. */
   currentWeights: CurrentWeights;
@@ -48,6 +54,10 @@ interface StrengthAppData {
 
 interface StrengthAppActions {
   applyCurrentWeights: (weights: CurrentWeights) => void;
+  /** The session the rotation says is due. Applied only before you start, and only if you haven't picked one. */
+  applyNextSession: (sessionId: string) => void;
+  /** Picks one of the programme's sessions before starting. */
+  chooseSession: (sessionId: string) => void;
   startWorkout: () => void;
   logSet: (exerciseId: string, setNumber: number, input: StrengthSetLogInput) => void;
   completeWorkout: () => void;
@@ -56,10 +66,12 @@ interface StrengthAppActions {
 
 type StrengthAppState = StrengthAppData & StrengthAppActions;
 
-function freshData(currentWeights: CurrentWeights = {}): StrengthAppData {
+function freshData(currentWeights: CurrentWeights = {}, sessionId = nextStrengthSessionId(undefined)): StrengthAppData {
   return {
     workoutId: crypto.randomUUID(),
-    session: getTodayStrengthSession(currentWeights),
+    sessionId,
+    sessionChosen: false,
+    session: buildStrengthSession(sessionId, currentWeights),
     currentWeights,
     status: "idle",
     startedAt: undefined,
@@ -80,10 +92,12 @@ function buildSnapshot(state: StrengthAppData, status: PersistableStatus): Stren
   return {
     id: state.workoutId,
     dateIso: new Date().toISOString(),
-    workoutName: STRENGTH_WORKOUT_NAME,
+    workoutName: strengthWorkoutName(state.sessionId),
     workoutType: "classic_strength",
     status,
     session: state.session,
+    programmeId: STRENGTH_PROGRAMME.id,
+    scheduledWorkoutId: state.sessionId,
   };
 }
 
@@ -140,6 +154,18 @@ export const useStrengthStore = create<StrengthAppState>((set, get) => {
         return { currentWeights, session: prescribeSessionWeights(state.session, currentWeights, state.status !== "idle") };
       }),
 
+    applyNextSession: (sessionId) =>
+      set((state) => {
+        if (state.status !== "idle" || state.sessionChosen || state.sessionId === sessionId) return {};
+        return { sessionId, session: buildStrengthSession(sessionId, state.currentWeights) };
+      }),
+
+    chooseSession: (sessionId) =>
+      set((state) => {
+        if (state.status !== "idle") return {};
+        return { sessionId, sessionChosen: true, session: buildStrengthSession(sessionId, state.currentWeights) };
+      }),
+
     startWorkout: () => {
       set({ status: "in_progress", startedAt: Date.now() });
       persistAndTrack("in_progress");
@@ -163,7 +189,7 @@ export const useStrengthStore = create<StrengthAppState>((set, get) => {
       const entry: CompletedStrengthWorkout = {
         id: state.workoutId,
         dateIso: new Date(completedAt).toISOString(),
-        workoutName: STRENGTH_WORKOUT_NAME,
+        workoutName: strengthWorkoutName(state.sessionId),
         workoutType: "classic_strength",
         durationMs: completedAt - (state.startedAt ?? completedAt),
         totalSets: total,
@@ -178,6 +204,13 @@ export const useStrengthStore = create<StrengthAppState>((set, get) => {
     // an unsynced entry must survive the user moving on, for a future
     // recovery feature. It's only ever removed by its own save succeeding
     // (see persistAndTrack above).
-    startNewWorkout: () => set((state) => ({ ...freshData(state.currentWeights), history: state.history })),
+    // The rotation moves on once a set was logged (D-011); otherwise the same session is offered again.
+    // Once it has moved on here, a page still holding an older suggestion can't move it back.
+    startNewWorkout: () =>
+      set((state) => {
+        const advanced = hasLoggedSet(state.session);
+        const sessionId = advanced ? nextStrengthSessionId(state.sessionId) : state.sessionId;
+        return { ...freshData(state.currentWeights, sessionId), sessionChosen: advanced, history: state.history };
+      }),
   };
 });

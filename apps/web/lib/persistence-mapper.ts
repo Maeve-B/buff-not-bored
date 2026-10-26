@@ -84,6 +84,8 @@ export function toLoggedWorkoutInput(snapshot: WorkoutSnapshot): LoggedWorkoutIn
     name: snapshot.workoutName,
     status: snapshot.status,
     dateIso: snapshot.dateIso,
+    programmeId: snapshot.programmeId,
+    scheduledWorkoutId: snapshot.scheduledWorkoutId,
     exercises: snapshot.session.exercises.map(strengthExerciseToLoggedExercise),
   };
 }

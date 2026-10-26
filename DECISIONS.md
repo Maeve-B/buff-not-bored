@@ -60,8 +60,14 @@
 
 ### D-011 · Preset 1 starts blank and follows the rotation (2026-10-21, Maeve)
 - Decision: every Preset 1 weight starts blank, including those listed in §10.1 (D-003 kept). Today shows the next session due in the Mon → Wed → Fri rotation, whatever the calendar day, with no rest-day note; you can pick any of the three.
+- Detail (S-004, Maeve): the reps box starts at the bottom of the range. The rotation moves on once a session has at least one logged set, whether or not you tapped Finish. Rest is worded as a recommendation ("Recommended rest 2–3 min").
 
 ### D-012 · Preset 1's exercises join the library; Circuit and classic Strength keep the original 33 (2026-10-21, S-003)
 - Context: the "I'm bored" refresh and swaps draw on the whole library, so new gym exercises would leak into Circuit.
 - Decision: the library holds every exercise; Circuit and the classic Strength session draw only on the original 33. Squats, Deadlifts and Flat DB Press are renamed Back Squat, Conventional Deadlift and DB Bench Press (Maeve). Assisted exercises have no separate light alternative: their lighter version is more assistance. Leg Curl is filed under the hinge pattern until the spec has a knee-flexion pattern. Cable and machine stacks offer the barbell jumps, from 0.25 kg (D-007).
 - Revisit if: Phase 1's "quick workout: full body with swap" wants the gym exercises.
+
+### D-013 · Home and Programmes wait for the Home design (2026-10-21, Maeve, S-004)
+- Context: Home's "Your Programme" card and the Programmes screen run on the old seeded "8 Week Strength" (Mon/Wed) schedule.
+- Decision: leave both untouched until Maeve designs Home. Strength runs Preset 1 on its own rotation, read from saved workouts; Home's Start button still opens Strength.
+- Revisit when: the Home design lands.

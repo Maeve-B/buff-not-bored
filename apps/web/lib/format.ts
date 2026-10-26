@@ -6,7 +6,16 @@
  * to @buff-not-bored/domain.
  */
 
-import { isLoaded, type Equipment, type Exercise, type Location, type PlannedExercise } from "@buff-not-bored/domain";
+import {
+  isLoaded,
+  lowerIsProgress,
+  type Equipment,
+  type Exercise,
+  type Location,
+  type PlannedExercise,
+  type StrengthExercise,
+  type TargetRange,
+} from "@buff-not-bored/domain";
 
 const EQUIPMENT_LABELS: Record<Equipment, string> = {
   barbell: "Barbell",
@@ -54,6 +63,40 @@ export function formatTargetVolume(planned: Pick<PlannedExercise, "prescribedRep
     return planned.repsUnit === "per_side" ? `${planned.prescribedReps} reps/side` : `${planned.prescribedReps} reps`;
   }
   return "—";
+}
+
+function formatRange(range: TargetRange): string {
+  return range.min === range.max ? `${range.min}` : `${range.min}–${range.max}`;
+}
+
+/** A preset prescription: "3 × 8–12" / "3 × 20–30 s" / "2 × 10 per side". */
+export function formatSetsAndRange(strengthExercise: Pick<StrengthExercise, "exercise" | "sets" | "targetRange">): string {
+  const { exercise, sets, targetRange } = strengthExercise;
+  if (!targetRange) return `${sets.length} sets`;
+  const timed = sets[0]?.targetDuration !== undefined;
+  const unit = timed ? " s" : sets[0]?.repsUnit === "per_side" ? " per side" : "";
+  return `${sets.length} × ${formatRange(targetRange)}${unit}`;
+}
+
+/** "Recommended rest 2–3 min" / "Recommended rest 60–90 s" — information only, never timed (D-010). */
+export function formatRecommendedRest(rest: TargetRange): string {
+  const amount = rest.min >= 60 && rest.min % 60 === 0 && rest.max % 60 === 0 ? `${rest.min / 60}–${rest.max / 60} min` : `${rest.min}–${rest.max} s`;
+  return `Recommended rest ${amount}`;
+}
+
+/** The small label under a set's weight box: "weight (kg)", "weight each (kg)" for a dumbbell pair, or "assistance (kg)". */
+export function formatWeightInputLabel(exercise: Pick<Exercise, "loadType" | "loadDirection">): string {
+  if (lowerIsProgress(exercise)) return "assistance (kg)";
+  return exercise.loadType === "dumbbell_pair" ? "weight each (kg)" : "weight (kg)";
+}
+
+/** A logged set, reps (or seconds) before weight (D-009): "8 reps × 20kg", "30s × 16kg", "10 reps/side". */
+export function formatLoggedSet(logged: { actualReps?: number; actualDuration?: number; actualWeight?: number; repsUnit?: string }): string {
+  const volume =
+    logged.actualDuration !== undefined
+      ? `${logged.actualDuration}s`
+      : `${logged.actualReps} ${logged.repsUnit === "per_side" ? "reps/side" : "reps"}`;
+  return logged.actualWeight !== undefined ? `${volume} × ${logged.actualWeight}kg` : volume;
 }
 
 /**

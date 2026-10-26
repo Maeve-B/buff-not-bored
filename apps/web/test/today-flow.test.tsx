@@ -78,7 +78,7 @@ describe("Flow 3: Log a set", () => {
     await user.click(screen.getAllByRole("button", { name: "Increase Reps" })[0]!);
     await user.click(screen.getAllByRole("button", { name: /log set/i })[0]!);
 
-    expect(screen.getByText(/22\.5kg × 21 reps/)).toBeInTheDocument();
+    expect(screen.getByText(/^21 reps × 22\.5kg$/)).toBeInTheDocument();
   });
 });
 
@@ -88,10 +88,10 @@ describe("Your weights (S-002)", () => {
     render(<TodayScreen currentWeights={{ squats: 40 }} />);
     await user.click(screen.getByRole("button", { name: /start workout/i }));
 
-    expect(within(cardFor("Back Squat")).getByText(/^40kg ·/)).toBeInTheDocument();
-    expect(within(cardFor("Conventional Deadlift")).getByText(/^Add baseline ·/)).toBeInTheDocument();
+    expect(within(cardFor("Back Squat")).getByText(/^20 reps · 40kg ·/)).toBeInTheDocument();
+    expect(within(cardFor("Conventional Deadlift")).getByText(/^20 reps · Add baseline ·/)).toBeInTheDocument();
     expect(within(cardFor("Conventional Deadlift")).getByRole("spinbutton", { name: "Conventional Deadlift weight" })).toHaveValue(null);
-    expect(within(cardFor("Superman Holds")).getByText(/^Bodyweight ·/)).toBeInTheDocument();
+    expect(within(cardFor("Superman Holds")).getByText(/^30 sec · Bodyweight ·/)).toBeInTheDocument();
   });
 
   it("saves the first weight you log as your starting weight, in 0.25 kg steps", async () => {
@@ -103,7 +103,7 @@ describe("Your weights (S-002)", () => {
     await user.type(deadlifts.getByRole("spinbutton", { name: "Conventional Deadlift weight" }), "35.25");
     await user.click(deadlifts.getByRole("button", { name: /log set/i }));
 
-    expect(deadlifts.getByText(/35\.25kg × 20 reps/)).toBeInTheDocument();
+    expect(deadlifts.getByText(/^20 reps × 35\.25kg$/)).toBeInTheDocument();
     expect(saveStartingWeight).toHaveBeenCalledWith("deadlifts", 35.25);
     expect(useAppStore.getState().currentWeights).toMatchObject({ deadlifts: 35.25 });
   });
@@ -134,7 +134,7 @@ describe("Your weights — keeping your session (S-002 review)", () => {
 
     expect(useAppStore.getState().session.mainExercises.map((pe) => pe.exercise.id)).toEqual(idsAfterSwap);
     await user.click(screen.getByRole("button", { name: /start workout/i }));
-    expect(within(cardFor("Conventional Deadlift")).getByText(/^60kg ·/)).toBeInTheDocument();
+    expect(within(cardFor("Conventional Deadlift")).getByText(/^20 reps · 60kg ·/)).toBeInTheDocument();
   });
 
   it("shows your new weight on the exercise straight after a first-use log", async () => {
@@ -146,7 +146,7 @@ describe("Your weights — keeping your session (S-002 review)", () => {
     await user.type(deadlifts.getByRole("spinbutton", { name: "Conventional Deadlift weight" }), "35");
     await user.click(deadlifts.getByRole("button", { name: /log set/i }));
 
-    expect(deadlifts.getByText(/^35kg ·/)).toBeInTheDocument();
+    expect(deadlifts.getByText(/^20 reps · 35kg ·/)).toBeInTheDocument();
   });
 });
 

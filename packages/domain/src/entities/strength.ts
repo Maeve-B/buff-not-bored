@@ -8,6 +8,7 @@
  */
 
 import type { Exercise, RepsUnit } from "./exercise.js";
+import type { TargetRange } from "./preset-programme.js";
 import type { SlotRole } from "./programme.js";
 import type { WeightRecommendation } from "./weight-adjustment.js";
 
@@ -40,15 +41,35 @@ export interface StrengthExercise {
   restSeconds?: number;
   /** Absent for bodyweight-only exercises with no weight to recommend. */
   recommendation?: WeightRecommendation;
+  /**
+   * A preset's rep (or seconds) range for every set, e.g. 8–12. Each set's
+   * target is the bottom of the range (D-011); the range is what you work
+   * up through (double progression, §6.5).
+   */
+  targetRange?: TargetRange;
+  /** Exercises sharing a superset group are done as a pair, alternating sets. */
+  supersetGroup?: string;
+  /** Recommended rest in seconds — information only, never timed (D-010). */
+  recommendedRest?: TargetRange;
 }
 
 export interface StrengthSession {
   exercises: StrengthExercise[];
 }
 
+/** A set counts as logged once reps or seconds are recorded. */
+export function isSetLogged(set: Pick<StrengthSet, "actualReps" | "actualDuration">): boolean {
+  return set.actualReps !== undefined || set.actualDuration !== undefined;
+}
+
+/** True once any set in the session has been logged: the point at which a preset's rotation moves on (D-011). */
+export function hasLoggedSet(session: StrengthSession): boolean {
+  return session.exercises.some((se) => se.sets.some(isSetLogged));
+}
+
 /** True once every set on every exercise has been logged (regardless of whether each hit its target — that's `completed` per set). */
 export function isStrengthSessionFullyLogged(session: StrengthSession): boolean {
-  return session.exercises.every((se) => se.sets.every((set) => set.actualReps !== undefined || set.actualDuration !== undefined));
+  return session.exercises.every((se) => se.sets.every(isSetLogged));
 }
 
 /** Total sets across the session that are marked `completed` (hit their target), vs. the total set count. */
