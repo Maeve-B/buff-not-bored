@@ -100,6 +100,8 @@ export {
   type BuildStrengthSessionOptions,
 } from "./engine/strength-builder.js";
 
+export { assessReadiness, readinessFromLastTime, type LastTimeOnExercise, type Readiness } from "./engine/readiness.js";
+
 export {
   buildWorkoutForScheduledWorkout,
   resolveTodaysWorkout,

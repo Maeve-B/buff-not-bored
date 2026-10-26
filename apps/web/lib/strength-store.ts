@@ -9,8 +9,8 @@
  * snapshot/save-queue/local-fallback pattern applies here identically.
  */
 
-import type { CurrentWeights, StrengthSession } from "@buff-not-bored/domain";
-import { countCompletedSets, hasLoggedSet } from "@buff-not-bored/domain";
+import type { CurrentWeights, LastTimeOnExercise, StrengthSession } from "@buff-not-bored/domain";
+import { countCompletedSets, hasLoggedSet, isSetLogged } from "@buff-not-bored/domain";
 import { create } from "zustand";
 import { persistWorkoutSnapshot } from "./actions/save-workout";
 import { clearFallbackSnapshotIfRevision, writeFallbackSnapshot } from "./local-fallback";
@@ -50,10 +50,15 @@ interface StrengthAppData {
   saveError?: string;
   /** Set when a first-use starting weight didn't save. */
   weightSaveError?: string;
+  /** What you did last time on each exercise, for the "ready to go up" nudge (D-014). */
+  lastTime: Record<string, LastTimeOnExercise>;
+  /** Exercises finished in this tab, newer than anything the page loaded. */
+  lastTimeThisTab: Record<string, LastTimeOnExercise>;
 }
 
 interface StrengthAppActions {
   applyCurrentWeights: (weights: CurrentWeights) => void;
+  applyLastTime: (lastTime: Record<string, LastTimeOnExercise>) => void;
   /** The session the rotation says is due. Applied only before you start, and only if you haven't picked one. */
   applyNextSession: (sessionId: string) => void;
   /** Picks one of the programme's sessions before starting. */
@@ -80,7 +85,42 @@ function freshData(currentWeights: CurrentWeights = {}, sessionId = nextStrength
     saveStatus: "idle",
     saveError: undefined,
     weightSaveError: undefined,
+    lastTime: {},
+    lastTimeThisTab: {},
   };
+}
+
+function todayIso(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+/** Per exercise, the newer of two "last time" records; the page's wins a tie, as it may come from another device. */
+function newerOf(
+  fromPage: Record<string, LastTimeOnExercise>,
+  fromThisTab: Record<string, LastTimeOnExercise>,
+): Record<string, LastTimeOnExercise> {
+  const merged = { ...fromPage };
+  for (const [id, entry] of Object.entries(fromThisTab)) {
+    const page = merged[id];
+    if (!page || entry.dateIso > page.dateIso) merged[id] = entry;
+  }
+  return merged;
+}
+
+/** The exercises you logged in this session, as "last time" for the next one. */
+function lastTimeFrom(workoutId: string, dateIso: string, session: StrengthSession): Record<string, LastTimeOnExercise> {
+  const entries = session.exercises
+    .filter((se) => se.sets.some(isSetLogged))
+    .map((se): [string, LastTimeOnExercise] => [
+      se.exercise.id,
+      {
+        workoutId,
+        dateIso,
+        weight: se.recommendation?.baseWeight,
+        sets: se.sets.map(({ actualReps, actualDuration, actualWeight }) => ({ actualReps, actualDuration, actualWeight })),
+      },
+    ]);
+  return Object.fromEntries(entries);
 }
 
 /** Exported so tests can reset the store's data fields between cases. */
@@ -154,6 +194,8 @@ export const useStrengthStore = create<StrengthAppState>((set, get) => {
         return { currentWeights, session: prescribeSessionWeights(state.session, currentWeights, state.status !== "idle") };
       }),
 
+    applyLastTime: (lastTime) => set((state) => ({ lastTime: newerOf(lastTime, state.lastTimeThisTab) })),
+
     applyNextSession: (sessionId) =>
       set((state) => {
         if (state.status !== "idle" || state.sessionChosen || state.sessionId === sessionId) return {};
@@ -210,7 +252,16 @@ export const useStrengthStore = create<StrengthAppState>((set, get) => {
       set((state) => {
         const advanced = hasLoggedSet(state.session);
         const sessionId = advanced ? nextStrengthSessionId(state.sessionId) : state.sessionId;
-        return { ...freshData(state.currentWeights, sessionId), sessionChosen: advanced, history: state.history };
+        // Only a finished session counts as "last time", as on the server.
+        const finished = state.status === "completed" ? lastTimeFrom(state.workoutId, todayIso(), state.session) : {};
+        const lastTimeThisTab = { ...state.lastTimeThisTab, ...finished };
+        return {
+          ...freshData(state.currentWeights, sessionId),
+          sessionChosen: advanced,
+          history: state.history,
+          lastTimeThisTab,
+          lastTime: newerOf(state.lastTime, lastTimeThisTab),
+        };
       }),
   };
 });

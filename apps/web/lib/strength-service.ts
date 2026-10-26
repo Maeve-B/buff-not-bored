@@ -16,8 +16,6 @@ import {
   type PresetSession,
   startingWeightToRecord,
   type CurrentWeights,
-  recommendProgression,
-  type ProgressionRecommendation,
   type StrengthExercise,
   type StrengthSession,
   type StrengthSet,
@@ -104,19 +102,6 @@ export function logStrengthSet(
       };
     }),
   };
-}
-
-/** Progression recommendation for one logged set, via the existing progression engine — no second system. */
-export function computeProgressionForSet(strengthExercise: StrengthExercise, set: StrengthSet): ProgressionRecommendation {
-  return recommendProgression({
-    exercise: strengthExercise.exercise,
-    prescribedWeight: set.targetWeight,
-    // In a rep range, reaching the bottom isn't a reason to add weight: judge against the top (§6.5 double progression).
-    prescribedReps: strengthExercise.targetRange?.max ?? set.targetReps,
-    actualWeight: set.actualWeight,
-    actualReps: set.actualReps,
-    completed: set.completed,
-  });
 }
 
 export function toHistoryEntry(workout: CompletedStrengthWorkout): HistoryEntry {

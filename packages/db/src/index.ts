@@ -28,6 +28,7 @@ export {
   listWorkoutSummaries,
   getExerciseWeightHistory,
   findLastTrainedProgrammeSession,
+  findLastLoggedStrengthExercises,
   WorkoutStatusRegressionError,
 } from "./repositories/workout-repository.js";
 export {

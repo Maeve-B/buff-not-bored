@@ -7,6 +7,7 @@
  * Server Action calls into, per ARCHITECTURE.md §6.
  */
 
+import type { LastTimeOnExercise } from "@buff-not-bored/domain";
 import { prisma } from "../client.js";
 import { toDomainLoggedWorkout, toWorkoutUpsertInput } from "../mappers/workout-mapper.js";
 import { validateLoggedWorkout } from "../validation/logged-workout.schema.js";
@@ -120,6 +121,46 @@ export async function findLastTrainedProgrammeSession(programmeId: string): Prom
     select: { scheduledWorkoutId: true },
   });
   return row?.scheduledWorkoutId ?? undefined;
+}
+
+/**
+ * For each exercise id: what you did the last time you logged it in a
+ * finished Strength workout (latest session date, then latest started),
+ * with every prescribed set in order. Only finished workouts count, so the
+ * one in progress and abandoned ones never hide an earned nudge.
+ * Exercises never logged are left out. Feeds the "ready to go up" nudge
+ * (DECISIONS.md D-014).
+ */
+export async function findLastLoggedStrengthExercises(exerciseIds: string[]): Promise<Record<string, LastTimeOnExercise>> {
+  const rows = await Promise.all(
+    exerciseIds.map((exerciseId) =>
+      prisma.workoutExercise.findFirst({
+        where: {
+          exerciseId,
+          workout: { workoutType: "classic_strength", status: "completed" },
+          sets: { some: { OR: [{ actualReps: { not: null } }, { actualDuration: { not: null } }] } },
+        },
+        orderBy: [{ workout: { dateIso: "desc" } }, { workout: { createdAt: "desc" } }],
+        include: { sets: { orderBy: { setNumber: "asc" } }, workout: { select: { dateIso: true } } },
+      }),
+    ),
+  );
+
+  const lastTime: Record<string, LastTimeOnExercise> = {};
+  for (const row of rows) {
+    if (!row) continue;
+    lastTime[row.exerciseId] = {
+      workoutId: row.workoutId,
+      dateIso: row.workout.dateIso.toISOString().slice(0, 10),
+      weight: row.baseWeight ?? undefined,
+      sets: row.sets.map((set) => ({
+        actualReps: set.actualReps ?? undefined,
+        actualDuration: set.actualDuration ?? undefined,
+        actualWeight: set.actualWeight ?? undefined,
+      })),
+    };
+  }
+  return lastTime;
 }
 
 /**

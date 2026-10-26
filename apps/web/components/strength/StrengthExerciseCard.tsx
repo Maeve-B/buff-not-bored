@@ -1,6 +1,7 @@
 import type { StrengthExercise } from "@buff-not-bored/domain";
 import { formatEquipment, formatRecommendedRest, formatRestPeriod, formatSetsAndRange } from "@/lib/format";
 import { Card } from "../ui/Card";
+import { LastTimeNudge } from "./LastTimeNudge";
 import { StrengthSetRow } from "./StrengthSetRow";
 
 /**
@@ -37,6 +38,7 @@ export function StrengthExerciseCard({
       </p>
       {showRest && rest && <p className="text-xs text-slate-500">{rest}</p>}
       {cue && <p className="mt-1 text-xs text-slate-400">{cue}</p>}
+      <LastTimeNudge strengthExercise={strengthExercise} />
 
       <div className="mt-3 flex flex-col gap-2">
         {strengthExercise.sets.map((set) => (
