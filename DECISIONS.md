@@ -85,3 +85,13 @@
 - Consequence: a weight entered in lb, viewed in kg, is shown to the nearest 0.25 kg (88 lb reads as 40 kg; stored as 39.916 kg).
 - The ⚙️ button opens Settings (Maeve), which links to Exercises. If the database can't be reached, the app shows kg rather than failing.
 - Alternatives: a per-device setting (no schema change, but phone and laptop could disagree); rounding lb entries to 0.25 kg (45.5 lb would drift).
+
+### D-016 · Scoped generator: the open choices (2026-10-26, Maeve, R-01 item 12)
+- **Impossible patterns:** when equipment or a limitation makes a weekly pattern impossible (for example dumbbells only → no vertical pull), the programme records an explained gap rather than refusing; the rule checker accepts "covered or explained".
+- **Light alternative:** where an exercise has none, the light day uses §6.6's other option, the same exercise with one fewer set, and says so.
+- **Timing:** the engine-only slices start now; the review screens wait until logging is in.
+- **General fitness (§6.3 has no row):** compound 3 × 8–10, isolation 2–3 × 10–15, rest 60–120 s.
+- **Sets by experience:** beginner 2, intermediate 3, advanced 3–4.
+- **Emphasis:** one extra slot per session in the emphasised pattern (glutes → hip extension, core → an extra core slot, pull-up → pull-up work first).
+- **Session length:** caps each session's exercises so the estimated time fits (sets × work + recommended rest); any cut is explained.
+- **Days:** preferred days, spaced per §6.2, become a suggested schedule; the app keeps the next-due rotation (D-011).

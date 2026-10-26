@@ -77,8 +77,63 @@ _Re-planned 2026-10-21 (Maeve): Preset Programme 1 comes forward from Phase 1 an
 - Notes: one unit everywhere, not per exercise. Store kg; convert for display and entry, so nothing saved changes. lb moves in 0.5 lb steps, with jumps such as +0.5 / +1 / +2.5 / +5 lb (confirmed by Maeve).
 - Done when: switching to lb shows and accepts every weight in lb, and switching back shows the same kg values as before.
 
-## Next (epic R-01 · Phase 1)
-_The scoped programme generator (R-01 item 12, spec decision 8) is being broken into slices with /plan-epic; its slices are added here once Maeve approves them. It's built after Preset Programme 1 (done) and logging (R-01 item 3, waiting on Maeve's set-logging design)._
+## Now (epic R-01 · Phase 1 — Scoped programme generator)
+_Spec §12 Phase 1 item 12, §14 decision 8. Breakdown approved 2026-10-26; answers in D-016. Engine-only slices (S-008 to S-011) can start now; the review screens (S-013, S-014) wait until logging (R-01 item 3) is in._
+
+### S-008 · Your training needs (profile) — status: todo
+- Epic: R-01 (items 11–12) · Spec: §6.1, §5.14, §5.1
+- Screens: a needs form: goal, emphasis, experience, days per week and preferred days, session length, equipment, limitations, avoids. Saved and editable.
+- Design-first: yes (onboarding). Working skeleton only.
+- Depends on: nothing
+- Notes: **schema change** (a needs-profile table). The AI chat (item 11) fills in the same profile later. The AI only collects and structures; it never generates (§4.1).
+- Done when: you can enter, save, reload and edit your needs profile.
+
+### S-009 · Library additions for the generator — status: todo
+- Epic: R-01 (item 1, part) · Spec: §10.2, §9.1, §6.6
+- Screens: Exercises list
+- Design-first: no
+- Depends on: nothing
+- Notes: dumbbell, bodyweight and bar-friendly exercises so every pattern has options: goblet squat, DB Romanian deadlift, glute bridge (+ single-leg), reverse lunge, step-up, dead bug, side plank, push-up progression, pull-up, chin-up, negative and band-assisted pull-up, and so on. Light alternatives wherever one exists. Classic Circuit and Strength stay on their own lists (D-012). Data only, no schema change.
+- Done when: a dumbbells-only or knee-limited profile has an option for every pattern the library can reasonably cover.
+
+### S-010 · Programme model and the rule checker — status: todo
+- Epic: R-01 (item 12) · Spec: §9.3, §6.4
+- Screens: none
+- Design-first: no
+- Depends on: nothing
+- Notes: one shape for preset and generated programmes (sessions → slots, source, goal, explanations). An automatic checker for every §6.4 hard rule; a weekly pattern that's impossible for your equipment or limitations counts as an explained gap (D-016).
+- Done when: Preset Programme 1 is expressed in the shared shape and passes the checker.
+
+### S-011 · The generator — status: todo
+- Epic: R-01 (item 12) · Spec: §6.1–§6.6, §4.1, §9.3
+- Screens: none
+- Design-first: no
+- Depends on: S-008, S-009, S-010
+- Notes: profile → programme. Full body, 2–4 days; strength, hypertrophy or general fitness plus emphasis; existing library only; limitations, avoids and equipment respected; plain-language explanations for every choice; choices per D-016. Required tests: the same profile gives the same programme; the rule checker passes across a spread of profiles (2 or 4 days, dumbbells only, knee limitation, beginner, advanced); Maeve's profile is compared side by side with Preset 1.
+- Done when: the required tests pass, and Maeve's generated programme reads as sensible next to Preset 1.
+
+### S-012 · Saved programmes and your active programme — status: todo
+- Epic: R-01 (item 12) · Spec: §9.3, §5.4
+- Screens: Strength overview (shows the active programme's name)
+- Design-first: no
+- Depends on: S-010
+- Notes: **schema change** (programmes table, plus the active programme). Strength runs whichever programme is active, Preset 1 by default, with the same next-due rotation (D-011).
+- Done when: switching the active programme changes what Strength offers, and Preset 1 still works exactly as before.
+
+### S-013 · Review your generated programme — status: todo
+- Epic: R-01 (item 12) · Spec: §12 Phase 1 item 12 (review step), §9.3
+- Screens: review screen: sessions, slots, explanations; accept / regenerate
+- Design-first: yes. Working skeleton only, then stop for Maeve's design.
+- Depends on: S-011, S-012, and logging (R-01 item 3)
+- Done when: you can generate from your profile, read every explanation, regenerate, and accept it as your active programme.
+
+### S-014 · Swap a slot before accepting — status: todo
+- Epic: R-01 (item 12) · Spec: §12 Phase 1 item 12, §9.2, §6.4
+- Screens: the review screen (skeleton)
+- Design-first: yes
+- Depends on: S-013
+- Notes: candidates from the same swap group and pattern, filtered by equipment, limitations and avoids, then re-checked against the hard rules, with the explanation updated.
+- Done when: any slot can be swapped for a valid alternative, and the programme still passes the checker.
 
 ## Discovered (untriaged)
 - Weight history has no pagination yet (from PR #6).
