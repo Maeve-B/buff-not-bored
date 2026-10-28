@@ -33,6 +33,12 @@
 ## Placeholder UI (design-first)
 Home and onboarding are design-first, so this is **proposed, not designed**: plain cards and buttons, and the wording in `apps/web/lib/needs-conversation-copy.ts` is mine, for you to rewrite. The order of questions, the Skip rules and the checks are the engine's, and are tested.
 
+## Fixed after the code review
+- Changing an answer from the summary now asks any question that newly applies (for example the heaviest dumbbell after ticking dumbbells), then returns to the summary. Resuming after a change also returns to the summary.
+- Home's prompt only says "You're nearly done" on the summary; otherwise it names the question.
+- "Carry on" shows "Opening…" and a message if it can't open.
+- A saved conversation is checked when it's read back.
+
 ## Things to know
 - **The rest of Home is unchanged,** including the old "8 Week Strength" card (D-013), until your Home design.
 - **The question count changes with your answers** (13 → 14 if you have dumbbells).
