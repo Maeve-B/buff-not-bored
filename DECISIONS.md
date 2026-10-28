@@ -106,3 +106,9 @@
   - A working skeleton of the home conversation is built now, ahead of the Home design (relaxing D-013 for this part of Home only).
   - The needs form stays in Settings for editing your answers.
 - Spec: §5.1, §5.2, §6.6, §12 Phase 1 items 9, 10 and 13, §14 decision 9.
+
+### D-019 · One programme at a time (2026-10-28, Maeve)
+- Decision: you always have exactly one programme, "your programme". It starts as Preset Programme 1. It changes only when you choose: regenerate from your training needs, review it and accept (replacing it), or swap a slot in the review. There's no free-form editing in Phase 1.
+- Replaced versions are kept for history and progress, and every workout already records which programme and session it came from, but there's no list to switch back from.
+- Check-ins adapt today's session only (light day, pain swaps); they never rewrite your programme (§3.3).
+- Alternatives: a library of saved programmes with an "active" one (the original S-012 plan).

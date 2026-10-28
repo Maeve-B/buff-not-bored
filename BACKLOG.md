@@ -80,7 +80,7 @@ _Re-planned 2026-10-21 (Maeve): Preset Programme 1 comes forward from Phase 1 an
 ## Now (epic R-01 · Phase 1 — Scoped programme generator)
 _Spec §12 Phase 1 item 12, §14 decision 8. Breakdown approved 2026-10-26; answers in D-016. Engine-only slices (S-008 to S-011) can start now; the review screens (S-013, S-014) wait until logging (R-01 item 3) is in._
 
-### S-008 · Your training needs (profile) — status: todo
+### S-008 · Your training needs (profile) — status: in-progress
 - Epic: R-01 (items 11–12) · Spec: §6.1, §5.14, §5.1
 - Screens: a needs form: goal, emphasis, experience, days per week and preferred days, session length, equipment, limitations, avoids. Saved and editable.
 - Design-first: yes (onboarding). Working skeleton only.
@@ -112,20 +112,20 @@ _Spec §12 Phase 1 item 12, §14 decision 8. Breakdown approved 2026-10-26; answ
 - Notes: profile → programme. Full body, 2–4 days; strength, hypertrophy or general fitness plus emphasis; existing library only; limitations, avoids and equipment respected; plain-language explanations for every choice; choices per D-016. Required tests: the same profile gives the same programme; the rule checker passes across a spread of profiles (2 or 4 days, dumbbells only, knee limitation, beginner, advanced); Maeve's profile is compared side by side with Preset 1.
 - Done when: the required tests pass, and Maeve's generated programme reads as sensible next to Preset 1.
 
-### S-012 · Saved programmes and your active programme — status: todo
+### S-012 · Your programme: one at a time — status: todo
 - Epic: R-01 (item 12) · Spec: §9.3, §5.4
-- Screens: Strength overview (shows the active programme's name)
+- Screens: Strength overview (shows your programme's name)
 - Design-first: no
 - Depends on: S-010
-- Notes: **schema change** (programmes table, plus the active programme). Strength runs whichever programme is active, Preset 1 by default, with the same next-due rotation (D-011).
-- Done when: switching the active programme changes what Strength offers, and Preset 1 still works exactly as before.
+- Notes: **schema change** (your programme, stored). You always have exactly one programme, Preset 1 by default; accepting a generated one replaces it (D-019). Replaced versions are kept for history and progress but can't be switched back to from a list. Edits are limited to regenerate and swap-a-slot. Strength runs your programme with the same next-due rotation (D-011).
+- Done when: accepting a new programme changes what Strength offers; what you've already logged is untouched; Preset 1 still works exactly as before.
 
 ### S-013 · Review your generated programme — status: todo
 - Epic: R-01 (item 12) · Spec: §12 Phase 1 item 12 (review step), §9.3
 - Screens: review screen: sessions, slots, explanations; accept / regenerate
 - Design-first: yes. Working skeleton only, then stop for Maeve's design.
 - Depends on: S-011, S-012, and logging (R-01 item 3)
-- Done when: you can generate from your profile, read every explanation, regenerate, and accept it as your active programme.
+- Done when: you can generate from your profile, read every explanation, regenerate, and accept it as your programme (replacing the current one, D-019).
 
 ### S-014 · Swap a slot before accepting — status: todo
 - Epic: R-01 (item 12) · Spec: §12 Phase 1 item 12, §9.2, §6.4
@@ -134,6 +134,49 @@ _Spec §12 Phase 1 item 12, §14 decision 8. Breakdown approved 2026-10-26; answ
 - Depends on: S-013
 - Notes: candidates from the same swap group and pattern, filtered by equipment, limitations and avoids, then re-checked against the hard rules, with the explanation updated.
 - Done when: any slot can be swapped for a valid alternative, and the programme still passes the checker.
+
+## Now (epic R-01 · Phase 1 — Conversation and check-ins)
+_Spec §5.1, §5.2, §6.6, §12 Phase 1 items 9, 10 and 13; decision 9 (D-018). Breakdown approved 2026-10-28. Order: S-008 first, then S-015 → S-016 → S-017 → S-018, interleaved with the engine-only generator slices; S-019 waits for the set-logging design._
+
+### S-015 · Getting to know you: the setup conversation (new users) — status: todo
+- Epic: R-01 (item 9) · Spec: §5.1, §6.1
+- Screens: Home: a scripted conversation, one question at a time, with skip and resume
+- Design-first: yes (Home, onboarding). Working skeleton only.
+- Depends on: S-008
+- Notes: fills in the same needs profile as the Settings form. Scripted first; the AI chat (item 11) comes later. Ends on "Saved. Your programme comes next" until the generator review (S-013) exists, then goes on to generate → review → accept.
+- Done when: a new user can answer every needs question on Home, one at a time, and their profile is saved; skipping and coming back resumes where they left off.
+
+### S-016 · How are you today? The check-in (returning users) — status: todo
+- Epic: R-01 (items 10, 13) · Spec: §5.2, §6.6, §9.4
+- Screens: Home: a check-in conversation, one question at a time (sleep, energy, soreness, pain and where)
+- Design-first: yes (Home). Working skeleton only.
+- Depends on: S-015
+- Notes: **schema change** (check-in answers saved with the day's workout, §9.4). Optional: one tap each, and skippable.
+- Done when: a returning user is checked in on Home, and the answers are saved with that day's workout.
+
+### S-017 · Light day — status: todo
+- Epic: R-01 (item 5) · Spec: §6.6, §9.4
+- Screens: Strength overview (a light-day switch), skeleton
+- Design-first: partly (set logging stays a skeleton)
+- Depends on: nothing
+- Notes: **schema change** (a light-day flag on the workout). Each exercise becomes its light alternative, or keeps the same exercise with one fewer set (D-016). Light days never trigger "ready to go up".
+- Done when: any Strength session can be switched to a light day before starting, and a light day never shows "ready to go up".
+
+### S-018 · Adapting from your check-in — status: todo
+- Epic: R-01 (item 13) · Spec: §6.6, §4.1, §3.3
+- Screens: Home check-in and Strength overview (skeleton)
+- Design-first: yes (Home)
+- Depends on: S-016, S-017
+- Notes: poor answers mean the app *offers* a light day. Pain in a region means exercises that stress it are swapped before you start, with the reason given. Pain reported repeatedly means the app suggests seeing a professional; it never diagnoses. Today's session only: your programme never changes without you (D-019).
+- Done when: a poor check-in offers a light day, and reporting knee pain swaps knee-stressing exercises in today's session, explained.
+
+### S-019 · Two hard sessions in a row — status: todo
+- Epic: R-01 (item 13) · Spec: §6.6, §7.3
+- Screens: Strength summary and the next session (skeleton)
+- Design-first: yes (set logging)
+- Depends on: set logging with Easy…Failed feedback (R-01 item 3, waiting on Maeve's design)
+- Notes: if an exercise is "Too hard" or "Failed" in two consecutive sessions, the app suggests hold, reduce or swap, and you choose.
+- Done when: two hard sessions running on an exercise bring up the three choices, and nothing changes until you pick one.
 
 ## Discovered (untriaged)
 - Weight history has no pagination yet (from PR #6).
