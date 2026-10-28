@@ -253,3 +253,33 @@ model AppSettings {
 
   @@map("app_settings")
 }
+
+/// Your training needs (spec §6.1), from the form or, later, the AI chat.
+/// A single row (id "me") until multi-user accounts exist. Vocabularies are
+/// plain strings, validated by packages/domain (checkNeedsProfile). Training
+/// status isn't stored: it's derived from the three experience answers.
+model NeedsProfile {
+  id                   String   @id @default("me")
+  goal                 String
+  emphasis             String?
+  trainingDuration     String
+  trainingKind         String
+  techniqueConfidence  String
+  daysPerWeek          Int
+  /// ISO weekdays, 1 = Monday.
+  preferredDays        Int[]    @default([])
+  sessionMinutes       Int
+  equipment            String[] @default([])
+  heaviestDumbbellKg   Float?
+  limitations          String[] @default([])
+  limitationNote       String?
+  avoidExerciseIds     String[] @default([])
+  favouriteExerciseIds String[] @default([])
+  likesDislikes        String?
+  /// "form" | "chat"
+  source               String
+  confirmedAt          DateTime
+  updatedAt            DateTime @updatedAt
+
+  @@map("needs_profiles")
+}
