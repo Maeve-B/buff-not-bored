@@ -146,7 +146,7 @@ _Spec §5.1, §5.2, §6.6, §12 Phase 1 items 9, 10 and 13; decision 9 (D-018). 
 - Notes: fills in the same needs profile as the Settings form. Scripted first; the AI chat (item 11) comes later. Ends on "Saved. Your programme comes next" until the generator review (S-013) exists, then goes on to generate → review → accept.
 - Done when: a new user can answer every needs question on Home, one at a time, and their profile is saved; skipping and coming back resumes where they left off.
 
-### S-016 · How are you today? The check-in (returning users) — status: in-progress
+### S-016 · How are you today? The check-in (returning users) — status: in-review (PR #18)
 - Epic: R-01 (items 10, 13) · Spec: §5.2, §6.6, §9.4
 - Screens: Home: a check-in conversation, one question at a time (sleep, energy, soreness, pain and where)
 - Design-first: yes (Home). Working skeleton only.
