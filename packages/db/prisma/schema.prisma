@@ -298,3 +298,24 @@ model NeedsConversationDraft {
 
   @@map("needs_conversation_drafts")
 }
+
+/// One day's check-in (spec §6.6, §9.4; S-016): how you slept, your energy,
+/// soreness and where anything hurts, or that you skipped it ("Not today").
+/// One row per day; the day's session and the adapting rules (S-018) read it.
+model CheckIn {
+  id          String   @id @default(cuid())
+  date        DateTime @unique @db.Date
+  skipped     Boolean  @default(false)
+  /// "poor" | "ok" | "good"
+  sleep       String?
+  /// "low" | "ok" | "high"
+  energy      String?
+  /// "none" | "some" | "very"
+  soreness    String?
+  /// Joint-stress tags (packages/domain JOINT_STRESS_TAGS).
+  painRegions String[] @default([])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("check_ins")
+}

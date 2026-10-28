@@ -21,6 +21,7 @@ export { toDomainLoggedWorkout, toWorkoutUpsertInput } from "./mappers/workout-m
 export { toDomainExerciseCapability, toExerciseCapabilityRow } from "./mappers/exercise-capability-mapper.js";
 
 // Repositories
+export { getCheckIn, saveCheckIn } from "./repositories/check-in-repository.js";
 export {
   getNeedsConversationDraft,
   saveNeedsConversationDraft,

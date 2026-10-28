@@ -20,10 +20,10 @@ import {
 
 const LIBRARY_IDS: ReadonlySet<string> = new Set(EXERCISES.map((exercise) => exercise.id));
 
-/** Whether your training needs are set up, and any conversation in progress. */
-export async function loadSetupState(): Promise<{ hasProfile: boolean; draft?: NeedsConversationDraft }> {
+/** Whether your training needs are set up (and when you confirmed them), and any conversation in progress. */
+export async function loadSetupState(): Promise<{ hasProfile: boolean; confirmedAt?: string; draft?: NeedsConversationDraft }> {
   const [profile, draft] = await Promise.all([getNeedsProfile(), getNeedsConversationDraft()]);
-  return { hasProfile: profile !== undefined, draft };
+  return { hasProfile: profile !== undefined, confirmedAt: profile?.confirmedAt, draft };
 }
 
 /** Keeps your place, so you can pick up where you left off on any device. */
