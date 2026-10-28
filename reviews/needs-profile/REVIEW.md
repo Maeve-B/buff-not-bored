@@ -29,12 +29,15 @@
 This is part of onboarding, so it's **proposed, not designed**: one long plain form built from existing pieces. The order, wording and layout are yours to design.
 
 ## Things to check
-- **How experience is worked out (D-017).** As you approved, it follows training age (under 2 months / 2–12 months / a year or more) and steps down one level if technique confidence is low. **I also step down one level if your training wasn't with free weights**, because the programme is built on free-weight lifts; it never steps down twice. Is that right?
+- **How experience is worked out (D-017, confirmed).** It follows training age (under 2 months / 2–12 months / a year or more), stepping down one level if technique confidence is low or your training wasn't with free weights. It never steps down twice.
 - **"Bodyweight" can be ticked with a pull-up bar or bands.** The spec doesn't say it's exclusive.
 - **Free-text notes are kept to 500 characters.** They'll be passed to the AI chat later.
 
 ## Data
 - **Schema change (approved):** a new one-row `needs_profiles` table. Nothing existing changes. After pulling, run `prisma generate` and `prisma migrate deploy`.
 
+## What's next
+After trying this, Maeve chose a conversational style (D-018): a setup conversation on Home, one question at a time (S-015), fills in this same profile. This form stays in Settings for editing your answers.
+
 ## Questions for you
-1. Should training that wasn't with free weights lower the experience level (see "Things to check")? My suggestion: yes.
+None.
