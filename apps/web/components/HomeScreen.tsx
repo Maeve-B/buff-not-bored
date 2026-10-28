@@ -3,7 +3,10 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import type { CheckIn } from "@buff-not-bored/domain";
 import { resumeConversation } from "@/lib/actions/needs-conversation";
+import { describeCheckIn } from "@/lib/check-in-copy";
+import { CheckInConversation } from "./checkin/CheckInConversation";
 import { getTodaysProgrammePlan } from "@/lib/programme-service";
 import { Badge } from "./ui/Badge";
 import { Button } from "./ui/Button";
@@ -14,8 +17,12 @@ import { Card } from "./ui/Card";
  * to carry on from where you left off. Proposed, not designed (Home is
  * design-first).
  */
-export function HomeScreen({ setupPrompt }: { setupPrompt?: { number: number; of: number } | "nearly_done" } = {}) {
+export function HomeScreen({
+  setupPrompt,
+  checkIn,
+}: { setupPrompt?: { number: number; of: number } | "nearly_done"; checkIn?: CheckIn } = {}) {
   const router = useRouter();
+  const [changingCheckIn, setChangingCheckIn] = useState(false);
   const [resuming, setResuming] = useState(false);
   const [resumeError, setResumeError] = useState(false);
 
@@ -41,6 +48,17 @@ export function HomeScreen({ setupPrompt }: { setupPrompt?: { number: number; of
         <p className="text-xs font-bold uppercase tracking-widest text-accent-600">Buff, Not Bored</p>
         <h1 className="mt-1 text-2xl font-extrabold text-slate-900">What are you training today?</h1>
       </div>
+
+      {/* Today's check-in (S-016). Proposed, not designed. */}
+      {checkIn && changingCheckIn && <CheckInConversation existing={checkIn} onClose={() => setChangingCheckIn(false)} />}
+      {checkIn && !changingCheckIn && (
+        <p className="-mt-4 text-center text-sm text-slate-500">
+          {checkIn.skipped ? "No check-in today" : `Checked in today · ${describeCheckIn(checkIn)}`} ·{" "}
+          <button type="button" onClick={() => setChangingCheckIn(true)} className="font-semibold underline underline-offset-2">
+            {checkIn.skipped ? "Check in" : "Change"}
+          </button>
+        </p>
+      )}
 
       {setupPrompt && (
         <Card className="p-4">

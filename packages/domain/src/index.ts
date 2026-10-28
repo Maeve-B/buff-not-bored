@@ -4,6 +4,7 @@ export * from "./entities/exercise.js";
 export * from "./entities/display-unit.js";
 export * from "./entities/needs-profile.js";
 export * from "./entities/needs-conversation.js";
+export * from "./entities/check-in.js";
 export * from "./entities/exercise-capability.js";
 export * from "./entities/current-weights.js";
 export * from "./entities/muscle-coverage.js";
