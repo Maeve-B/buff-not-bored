@@ -1,23 +1,36 @@
 /**
- * Your needs profile against the local Postgres. This file is the only one
- * that touches needs_profiles, and it puts back whatever was there before.
+ * Your needs profile and the setup conversation's saved place, against the
+ * local Postgres. Saving a profile clears the conversation, so both tables
+ * are tested here, in one file (CLAUDE.md rule 5). This is the only file
+ * that touches needs_profiles or needs_conversation_drafts, and it puts back
+ * whatever was there before.
  */
 
-import { NeedsProfileValidationError, type NeedsProfile } from "@buff-not-bored/domain";
+import { NeedsProfileValidationError, type NeedsConversationDraft, type NeedsProfile } from "@buff-not-bored/domain";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { prisma } from "../src/client.js";
+import {
+  clearNeedsConversationDraft,
+  getNeedsConversationDraft,
+  saveNeedsConversationDraft,
+} from "../src/repositories/needs-conversation-repository.js";
 import { getNeedsProfile, saveNeedsProfile } from "../src/repositories/needs-profile-repository.js";
 
 let before: Awaited<ReturnType<typeof prisma.needsProfile.findUnique>> = null;
+let draftBefore: Awaited<ReturnType<typeof prisma.needsConversationDraft.findUnique>> = null;
 
 beforeAll(async () => {
   before = await prisma.needsProfile.findUnique({ where: { id: "me" } });
+  draftBefore = await prisma.needsConversationDraft.findUnique({ where: { id: "me" } });
   await prisma.needsProfile.deleteMany({ where: { id: "me" } });
+  await prisma.needsConversationDraft.deleteMany({ where: { id: "me" } });
 });
 
 afterAll(async () => {
   await prisma.needsProfile.deleteMany({ where: { id: "me" } });
   if (before) await prisma.needsProfile.create({ data: before });
+  await prisma.needsConversationDraft.deleteMany({ where: { id: "me" } });
+  if (draftBefore) await prisma.needsConversationDraft.create({ data: { ...draftBefore, answers: draftBefore.answers ?? {} } });
   await prisma.$disconnect();
 });
 
@@ -64,5 +77,35 @@ describe("needs profile repository (S-008)", () => {
 
   it("refuses an invalid profile before writing", async () => {
     await expect(saveNeedsProfile({ ...profile, daysPerWeek: 6, preferredDays: [] })).rejects.toBeInstanceOf(NeedsProfileValidationError);
+  });
+});
+
+describe("setup conversation draft (S-015)", () => {
+  const draft: NeedsConversationDraft = {
+    answers: { goal: "strength", daysPerWeek: 3, preferredDays: [1, 3, 5] },
+    stepId: "sessionMinutes",
+    answered: ["goal", "emphasis", "daysPerWeek", "preferredDays"],
+    paused: false,
+  };
+
+  it("keeps your place between visits", async () => {
+    await clearNeedsConversationDraft();
+    expect(await getNeedsConversationDraft()).toBeUndefined();
+    await saveNeedsConversationDraft(draft);
+    expect(await getNeedsConversationDraft()).toEqual(draft);
+    await saveNeedsConversationDraft({ ...draft, paused: true });
+    expect((await getNeedsConversationDraft())?.paused).toBe(true);
+    await clearNeedsConversationDraft();
+    expect(await getNeedsConversationDraft()).toBeUndefined();
+  });
+
+  it("refuses a step it doesn't know", async () => {
+    await expect(saveNeedsConversationDraft({ ...draft, stepId: "nope" as never })).rejects.toThrow(/isn't recognised/);
+  });
+
+  it("ends the conversation once your profile is saved", async () => {
+    await saveNeedsConversationDraft(draft);
+    await saveNeedsProfile(profile);
+    expect(await getNeedsConversationDraft()).toBeUndefined();
   });
 });

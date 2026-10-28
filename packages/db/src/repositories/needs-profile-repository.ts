@@ -21,6 +21,7 @@ import {
 } from "@buff-not-bored/domain";
 import type { NeedsProfile as NeedsProfileRow } from "@prisma/client";
 import { prisma } from "../client.js";
+import { NEEDS_DRAFT_ID } from "./needs-conversation-repository.js";
 
 const PROFILE_ID = "me";
 const LIBRARY_IDS: ReadonlySet<string> = new Set(EXERCISES.map((exercise) => exercise.id));
@@ -53,7 +54,11 @@ export async function getNeedsProfile(): Promise<SavedNeedsProfile | undefined> 
   return row ? toDomain(row) : undefined;
 }
 
-/** Saves (confirms) your needs profile, replacing any earlier one. Throws NeedsProfileValidationError if it isn't valid. */
+/**
+ * Saves (confirms) your needs profile, replacing any earlier one, and ends
+ * any setup conversation in progress (it's done). Throws
+ * NeedsProfileValidationError if it isn't valid.
+ */
 export async function saveNeedsProfile(profile: NeedsProfile): Promise<SavedNeedsProfile> {
   validateNeedsProfile(profile, LIBRARY_IDS);
   const data = {
@@ -75,6 +80,9 @@ export async function saveNeedsProfile(profile: NeedsProfile): Promise<SavedNeed
     source: profile.source,
     confirmedAt: new Date(),
   };
-  const row = await prisma.needsProfile.upsert({ where: { id: PROFILE_ID }, create: { id: PROFILE_ID, ...data }, update: data });
+  const [row] = await prisma.$transaction([
+    prisma.needsProfile.upsert({ where: { id: PROFILE_ID }, create: { id: PROFILE_ID, ...data }, update: data }),
+    prisma.needsConversationDraft.deleteMany({ where: { id: NEEDS_DRAFT_ID } }),
+  ]);
   return toDomain(row);
 }
