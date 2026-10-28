@@ -71,7 +71,7 @@ export const EQUIPMENT_TYPES = ["barbell", "dumbbell", "bodyweight", "cable", "m
 export type Equipment = (typeof EQUIPMENT_TYPES)[number];
 
 /** Where in the gym the exercise is performed — relevant later to equipment/faff optimisation (spec §13). */
-export const LOCATIONS = ["rack", "bench", "standing", "floor", "bench_or_floor", "cable", "machine"] as const;
+export const LOCATIONS = ["rack", "bench", "standing", "floor", "bench_or_floor", "cable", "machine", "pull_up_bar"] as const;
 export type Location = (typeof LOCATIONS)[number];
 
 export const WEIGHT_UNITS = ["kg"] as const;

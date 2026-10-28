@@ -5,6 +5,7 @@ import { CatalogValidationError, exerciseSchema, validateCatalog } from "../src/
 
 const validExercise: Exercise = {
   ...EXERCISE_PROFILES.plank,
+  lightAlternativeIds: [],
   id: "test-exercise",
   name: "Test Exercise",
   programmeGroup: "core",

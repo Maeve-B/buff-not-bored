@@ -1,6 +1,23 @@
 import { describe, expect, it } from "vitest";
 import { EXERCISE_PROFILES } from "../src/data/exercise-profiles.js";
 import { CLASSIC_EXERCISES, EXERCISES } from "../src/data/exercises.js";
+import { refreshWorkout } from "../src/engine/refresh-engine.js";
+import { buildDefaultSession } from "../src/engine/workout-builder.js";
+
+/** The exercises added for Preset Programme 1 (S-003). */
+const PRESET_IDS = [
+  "assisted-pull-up",
+  "assisted-dead-hang",
+  "lat-pulldown",
+  "seated-cable-row",
+  "chest-supported-db-row",
+  "leg-press",
+  "hip-thrust-machine",
+  "leg-curl",
+  "captains-chair-knee-raise",
+  "cable-woodchop",
+  "farmer-carry",
+];
 import { MUSCLES } from "../src/entities/exercise.js";
 import { validateCatalog } from "../src/validation/exercise.schema.js";
 
@@ -13,7 +30,7 @@ describe("exercise library", () => {
   });
 
   it("adds the 11 exercises Preset Programme 1 needs (spec §10.1, S-003)", () => {
-    const presetIds = EXERCISES.filter((e) => !CLASSIC_EXERCISES.includes(e)).map((e) => e.id);
+    const presetIds = EXERCISES.filter((e) => PRESET_IDS.includes(e.id)).map((e) => e.id);
     expect(presetIds).toEqual([
       "assisted-pull-up",
       "assisted-dead-hang",
@@ -29,8 +46,24 @@ describe("exercise library", () => {
     ]);
   });
 
-  it("keeps the classic library self-contained, so Circuit and classic Strength never reach a new exercise", () => {
-    expect(() => validateCatalog(CLASSIC_EXERCISES)).not.toThrow();
+  it("keeps Circuit's own list to the classic 33, consistent on its own apart from library-wide links (D-012, D-022)", () => {
+    expect(CLASSIC_EXERCISES).toHaveLength(33);
+    const classicIds = new Set(CLASSIC_EXERCISES.map((e) => e.id));
+    // Light alternatives and ladder links may point to the whole library; everything else must resolve within the classic list.
+    const inClassic = (id: string | undefined) => (id !== undefined && classicIds.has(id) ? id : undefined);
+    const withinClassic = CLASSIC_EXERCISES.map((e) => ({
+      ...e,
+      lightAlternativeIds: e.lightAlternativeIds.filter((id) => classicIds.has(id)),
+      regressionId: inClassic(e.regressionId),
+      progressionId: inClassic(e.progressionId),
+    }));
+    expect(() => validateCatalog(withinClassic)).not.toThrow();
+  });
+
+  it("never lets a Circuit refresh reach beyond the classic 33", () => {
+    const classicIds = new Set(CLASSIC_EXERCISES.map((e) => e.id));
+    const result = refreshWorkout(buildDefaultSession(CLASSIC_EXERCISES), CLASSIC_EXERCISES);
+    expect(result.session.mainExercises.every((pe) => classicIds.has(pe.exercise.id))).toBe(true);
   });
 
   it("names the existing exercises the way Preset Programme 1 does", () => {
@@ -38,6 +71,24 @@ describe("exercise library", () => {
     expect(nameOf("squats")).toBe("Back Squat");
     expect(nameOf("deadlifts")).toBe("Conventional Deadlift");
     expect(nameOf("flat-db-press")).toBe("DB Bench Press");
+  });
+
+  it("adds the rest of the §10.2 starter library (S-009), every exercise with a swap group", () => {
+    const added = EXERCISES.filter((e) => !CLASSIC_EXERCISES.includes(e) && !PRESET_IDS.includes(e.id));
+    expect(added).toHaveLength(31);
+    expect(added.map((e) => e.id)).toContain("goblet-squat");
+    for (const exercise of added) expect(exercise.swapGroup, exercise.id).toBeDefined();
+  });
+
+  it("links the pull-up ladder in order (§10.3)", () => {
+    const next = (id: string) => EXERCISES.find((e) => e.id === id)?.progressionId;
+    expect([next("dead-hang"), next("scapular-pull-up"), next("band-assisted-pull-up"), next("negative-pull-up")]).toEqual([
+      "scapular-pull-up",
+      "band-assisted-pull-up",
+      "negative-pull-up",
+      "pull-up",
+    ]);
+    expect(EXERCISES.find((e) => e.id === "assisted-pull-up")).toMatchObject({ regressionId: "scapular-pull-up", progressionId: "negative-pull-up" });
   });
 
   it("gives every Preset Programme 1 exercise a swap group (§10.1)", () => {
@@ -234,6 +285,7 @@ describe("exercise library — v2 profile (§9.1, S-001)", () => {
       bench_or_floor: "floor",
       cable: "cable_stack",
       machine: "machine",
+      pull_up_bar: "pull_up_bar",
     };
     for (const exercise of EXERCISES) {
       expect(exercise.station, exercise.id).toBe(stationFor[exercise.location]);
