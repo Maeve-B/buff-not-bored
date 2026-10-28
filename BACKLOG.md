@@ -138,7 +138,7 @@ _Spec §12 Phase 1 item 12, §14 decision 8. Breakdown approved 2026-10-26; answ
 ## Now (epic R-01 · Phase 1 — Conversation and check-ins)
 _Spec §5.1, §5.2, §6.6, §12 Phase 1 items 9, 10 and 13; decision 9 (D-018). Breakdown approved 2026-10-28. Order: S-008 first, then S-015 → S-016 → S-017 → S-018, interleaved with the engine-only generator slices; S-019 waits for the set-logging design._
 
-### S-015 · Getting to know you: the setup conversation (new users) — status: in-progress
+### S-015 · Getting to know you: the setup conversation (new users) — status: in-review (PR #17)
 - Epic: R-01 (item 9) · Spec: §5.1, §6.1
 - Screens: Home: a scripted conversation, one question at a time, with skip and resume
 - Design-first: yes (Home, onboarding). Working skeleton only.
