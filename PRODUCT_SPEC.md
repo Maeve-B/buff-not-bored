@@ -113,14 +113,18 @@ Each feature lists its **end state** and its **MVP slice**. Phase assignments ar
 - **Experienced path → needs analysis** (§6.1), via the form or AI chat (§5.14) → programme creation, or "pick a preset".
 - **Skip** is always available. The user lands on the home screen and can resume onboarding later from settings or a home-screen prompt.
 
-**MVP slice:** beginner path to the MVA with a starting weight; experienced path to a needs analysis (form or AI chat) that saves a needs profile and recommends a preset; skip and resume.
+**Conversational, on the home screen (decision 9).** Onboarding is a conversation on the home screen, **one question at a time**, rather than a long form. New users are asked the full set of needs questions (§6.1). It starts **scripted** (fixed wording, one question per step, deterministic and testable); the AI chat (§5.14) is layered on later for free-text answers, and fills in the same profile. A plain form remains in Settings for editing your answers.
+
+**MVP slice:** a scripted, one-question-at-a-time conversation on the home screen that saves the needs profile; beginner path to the MVA with a starting weight; experienced path to a needs analysis that saves a needs profile and recommends a preset; skip and resume.
 
 **Why (motivation link):** this matches the "preparation" stage of behaviour change (testing the waters), and early easy wins build self-efficacy (§8.1).
 
 ### 5.2 Home screen
 **End state:** always leads with a **motivational message** chosen by rule from the motivation content library (§8.3) based on the user's state. It also shows today's session (or "rest day — rest is training"), quick-start buttons and a progress highlight.
 
-**MVP slice:** motivational message (rule-selected from seed content), today's session and quick start.
+**Returning users get a check-in (decision 9).** When you come back, the home screen opens with a short conversation, one question at a time: how you slept, your energy, soreness, and any pain (§6.6). The engine uses your answers to adapt today's session (light day offer, pain swaps), applying the book's rules; the conversation only asks and explains (§4.1).
+
+**MVP slice:** the onboarding conversation for new users and the check-in conversation for returning users (scripted, design-first), motivational message (rule-selected from seed content), today's session and quick start.
 
 ### 5.3 Exercise library
 **End state:** a structured library big enough for programming, swaps, light days and refresh to be meaningful: at least 6–8 options per movement pattern across equipment types. The data model is in §9.
@@ -284,6 +288,8 @@ Each programme declares one strategy per exercise class:
 - **Pain handling:** when an exercise is flagged as painful, swap it immediately to an alternative that avoids that region, and tag the exercise for review. If the user reports pain repeatedly, suggest seeing a professional. The app never diagnoses.
 - **Repeated failure:** if an exercise is "Failed" or "Too hard" in 2 consecutive sessions, suggest hold, reduce or swap, and the user chooses.
 - **Watch for overreaching:** falling performance across several exercises *plus* poor check-ins leads the app to suggest a deload or extra rest day.
+
+**Phasing (decision 9):** the pre-session check-in, the light-day offer, pain handling and repeated-failure handling are **Phase 1**. Deloads and the overreaching watch stay in Phase 2, since they only matter after several weeks.
 
 ---
 
@@ -488,8 +494,8 @@ Within stage 3, progress is **reducing assistance**. Maeve is currently at stage
 6. Pull-up ladder using Exercise Capability (§10.3).
 7. Quick workouts: circuit (existing) and full body with swap.
 8. History (§5.8 MVP slice) and progress tracking (§5.9 MVP slice).
-9. Onboarding: MVA beginner path, experienced → preset, and skip (§5.1).
-10. Home-screen motivation with seed content and deterministic selection (§8.3).
+9. Onboarding as a scripted conversation on the home screen, one question at a time (§5.1): new users answer the needs questions; MVA beginner path, experienced → preset, and skip.
+10. Home screen (§5.2): the check-in conversation for returning users, plus motivation with seed content and deterministic selection (§8.3).
 11. AI chat for the needs analysis (§5.14 Phase 1): it produces a confirmed, saved needs profile and recommends a preset.
 12. **Scoped programme generator** (§6), built after items 2 and 3 so Maeve can train on the app meanwhile:
     - **Input:** the needs profile (§6.1) from the AI chat or the form. The AI only collects and structures the profile; the deterministic engine generates the programme (§4.1 unchanged).
@@ -501,13 +507,14 @@ Within stage 3, progress is **reducing assistance**. Maeve is currently at stage
     - **Explanations:** every choice recorded in `explanations[]` in plain language (§9.3).
     - **Review step (design-first screen):** Maeve sees the generated programme with its explanations and can accept it, regenerate it, or swap per slot (reusing the swap logic) before it becomes her active programme.
     - **Testing (required):** the same profile always produces the same programme; every generated programme passes every §6.4 hard rule across a spread of profiles (for example 2 or 4 days, dumbbells only, knee limitation, beginner and advanced); Maeve's own profile produces a sensible programme comparable to Preset Programme 1.
+13. **Adapting from your check-in, using the book's rules** (§6.6): pre-session check-in (sleep, energy, soreness, pain) for returning users, offering a light day after poor answers, swapping away from a painful region, and hold / reduce / swap after two failed sessions. Deloads stay in Phase 2.
 
 **MVP is done when** Maeve can (a) generate a programme from her needs profile, with explanations she agrees with, and (b) use the app for a 6-week block with no workarounds.
 
 ### Phase 2 — Programme creation
 - The generator extended beyond the Phase 1 scope: splits (4+ days), the muscular endurance goal.
 - Experienced-user onboarding goes through programme creation.
-- Pre-session check-in, deload offers, pain handling (§6.6).
+- Deload offers and the overreaching watch (§6.6). (The check-in, light-day offer, pain handling and repeated-failure handling moved to Phase 1, decision 9.)
 - Favourite and avoid management screens.
 - The generator keeps consuming the needs profile already saved in Phase 1.
 
@@ -551,3 +558,4 @@ Within stage 3, progress is **reducing assistance**. Maeve is currently at stage
 6. **No body-weight tracking.** "Weight tracking" means load lifted. ✅
 7. **History UX on hold:** the History screen (§5.8) is parked while Maeve rethinks its UX, which may overlap with Progress (§5.9). Session and history data are still captured exactly as specced; no History UI is built for now. ⏸ (2026-10-21)
 8. **Scoped programme generator moved into Phase 1 (MVP):** programming is the most important part of the product, so it is tested early. Full body only, 2–4 days a week, strength / hypertrophy / general fitness plus an optional emphasis, from the existing library only, with plain-language explanations and a review step (accept, regenerate, or swap per slot). Built after Preset Programme 1 and logging. The MVP definition (§12) now requires generating a programme from Maeve's needs profile, with explanations she agrees with. Splits, the endurance goal, check-ins, deloads, pain handling and favourite/avoid screens stay in Phase 2. ✅ (2026-10-26)
+9. **Conversational onboarding and check-ins on the home screen; adaptation in Phase 1:** onboarding is a conversation on the home screen, one question at a time, scripted first (the AI chat comes later and fills the same profile). New users answer the full needs questions; returning users get a check-in (sleep, energy, soreness, pain). The engine adapts using the book's rules (§6.6): the check-in, light-day offer, pain handling and repeated-failure handling move into Phase 1; deloads stay in Phase 2. A working skeleton of the home conversation is built now, ahead of the Home design. The needs form stays in Settings for editing answers. ✅ (2026-10-28)

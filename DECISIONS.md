@@ -67,7 +67,7 @@
 - Decision: the library holds every exercise; Circuit and the classic Strength session draw only on the original 33. Squats, Deadlifts and Flat DB Press are renamed Back Squat, Conventional Deadlift and DB Bench Press (Maeve). Assisted exercises have no separate light alternative: their lighter version is more assistance. Leg Curl is filed under the hinge pattern until the spec has a knee-flexion pattern. Cable and machine stacks offer the barbell jumps, from 0.25 kg (D-007).
 - Revisit if: Phase 1's "quick workout: full body with swap" wants the gym exercises.
 
-### D-013 · Home and Programmes wait for the Home design (2026-10-21, Maeve, S-004)
+### D-013 · Home and Programmes wait for the Home design (2026-10-21, Maeve, S-004) — partly superseded by D-018
 - Context: Home's "Your Programme" card and the Programmes screen run on the old seeded "8 Week Strength" (Mon/Wed) schedule.
 - Decision: leave both untouched until Maeve designs Home. Strength runs Preset 1 on its own rotation, read from saved workouts; Home's Start button still opens Strength.
 - Revisit when: the Home design lands.
@@ -95,3 +95,14 @@
 - **Emphasis:** one extra slot per session in the emphasised pattern (glutes → hip extension, core → an extra core slot, pull-up → pull-up work first).
 - **Session length:** caps each session's exercises so the estimated time fits (sets × work + recommended rest); any cut is explained.
 - **Days:** preferred days, spaced per §6.2, become a suggested schedule; the app keeps the next-due rotation (D-011).
+
+### D-018 · A conversation on the home screen, and adapting from check-ins in Phase 1 (2026-10-28, Maeve)
+- Context: after trying the needs form, Maeve wants a conversational style on the home screen, one question at a time, and the app using the book to adapt the programme.
+- Decision:
+  - New users get a setup conversation on Home that asks the needs questions one at a time and fills in the same profile as the form (S-008).
+  - Returning users get a check-in conversation (sleep, energy, soreness, pain).
+  - It's scripted first; the AI chat comes later for free-text answers. The engine applies the book's rules (§6.6); the conversation only asks and explains (§4.1).
+  - The check-in, light-day offer, pain handling and repeated-failure handling move into Phase 1. Deloads and the overreaching watch stay in Phase 2.
+  - A working skeleton of the home conversation is built now, ahead of the Home design (relaxing D-013 for this part of Home only).
+  - The needs form stays in Settings for editing your answers.
+- Spec: §5.1, §5.2, §6.6, §12 Phase 1 items 9, 10 and 13, §14 decision 9.
