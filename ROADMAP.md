@@ -5,7 +5,7 @@
 ## Direction
 Buff, Not Bored is a programme creation and motivation app: it gets a person onto a strength programme that suits them, makes following it effortless, and keeps them going by showing them that they are progressing and why (spec §1).
 
-**MVP is done when** Maeve can use the app for a full 6-week block of Preset Programme 1 with no workarounds, and the progress view shows each lift's trend.
+**MVP is done when** Maeve can (a) generate a programme from her needs profile, with explanations she agrees with, and (b) use the app for a 6-week block with no workarounds (spec §12, decision 8).
 
 ## Now
 ### R-00 · Phase 0 — Clean-up
@@ -22,17 +22,19 @@ Buff, Not Bored is a programme creation and motivation app: it gets a person ont
 6. Pull-up ladder using Exercise Capability (§10.3).
 7. Quick workouts: circuit (existing) and full body with swap.
 8. History (§5.8 MVP slice) and progress tracking (§5.9 MVP slice).
-9. Onboarding: MVA beginner path, experienced → preset, and skip (§5.1).
-10. Home-screen motivation with seed content and deterministic selection (§8.3).
+9. Onboarding as a scripted conversation on the home screen, one question at a time (§5.1): new users answer the needs questions; MVA beginner path, experienced → preset, and skip. The AI chat (item 11) layers on later.
+10. Home screen (§5.2): the check-in conversation for returning users, plus motivation with seed content and deterministic selection (§8.3). A working skeleton is built now, ahead of the Home design (spec decision 9).
 11. AI chat for the needs analysis (§5.14 Phase 1): a confirmed, saved needs profile that recommends a preset.
+12. **Scoped programme generator** (moved from Phase 2, 2026-10-26): full body, 2–4 days a week; strength, hypertrophy or general fitness plus an optional emphasis; existing library only; §6.2–§6.6 rules, including the §6.3 sets, reps and rest by goal; limitations and avoids respected; plain-language explanations; a review step to accept, regenerate or swap per slot (design-first). Built after items 2 and 3. Spec §12 Phase 1 item 12 has the full scope and the required tests.
+13. **Adapting from your check-in** (moved from Phase 2, 2026-10-28): the check-in, light-day offer, pain swaps and hold / reduce / swap after two failed sessions, using the book's rules (§6.6). Deloads stay in Phase 2.
 
 ## Next
 ### R-02 · Phase 2 — Programme creation
-- Needs-analysis form (§6.1) → deterministic programme generator (§6) with explanations, including the §6.3 rep, set and rest defaults by goal.
+- The generator beyond its Phase 1 scope: splits (4+ days), the muscular endurance goal.
 - Experienced-user onboarding goes through programme creation.
-- Pre-session check-in, deload offers, pain handling (§6.6).
-- Explicit favourite and avoid.
-- The generator consumes the needs profile already saved in Phase 1.
+- Deload offers and the overreaching watch (§6.6).
+- Favourite and avoid management screens.
+- The generator keeps consuming the needs profile already saved in Phase 1.
 
 ## Later
 ### R-03 · Phase 3 — Engagement
