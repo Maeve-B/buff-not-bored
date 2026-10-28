@@ -37,6 +37,7 @@ const LOCATION_LABELS: Record<Location, string> = {
   bench_or_floor: "Bench or floor",
   cable: "Cable stack",
   machine: "Machine",
+  pull_up_bar: "Pull-up bar",
 };
 
 export function formatEquipment(equipment: Equipment): string {
@@ -63,10 +64,12 @@ export function formatTargetWeight(exercise: Exercise, weight?: number, unit: Di
   return `${formatWeight(weight, unit)}${suffix}`;
 }
 
-/** "20 reps" / "12 reps/side" / "45 sec". */
-export function formatTargetVolume(planned: Pick<PlannedExercise, "prescribedReps" | "repsUnit" | "prescribedDuration">): string {
+/** "20 reps" / "12 reps/side" / "45 sec" / "30 sec/side". */
+export function formatTargetVolume(
+  planned: Pick<PlannedExercise, "prescribedReps" | "repsUnit" | "prescribedDuration"> & { exercise?: Pick<Exercise, "perSide"> },
+): string {
   if (planned.prescribedDuration !== undefined) {
-    return `${planned.prescribedDuration} sec`;
+    return planned.exercise?.perSide ? `${planned.prescribedDuration} sec/side` : `${planned.prescribedDuration} sec`;
   }
   if (planned.prescribedReps !== undefined) {
     return planned.repsUnit === "per_side" ? `${planned.prescribedReps} reps/side` : `${planned.prescribedReps} reps`;
@@ -83,7 +86,7 @@ export function formatSetsAndRange(strengthExercise: Pick<StrengthExercise, "exe
   const { exercise, sets, targetRange } = strengthExercise;
   if (!targetRange) return `${sets.length} sets`;
   const timed = sets[0]?.targetDuration !== undefined;
-  const unit = timed ? " s" : sets[0]?.repsUnit === "per_side" ? " per side" : "";
+  const unit = timed ? (exercise.perSide ? " s per side" : " s") : sets[0]?.repsUnit === "per_side" ? " per side" : "";
   return `${sets.length} × ${formatRange(targetRange)}${unit}`;
 }
 

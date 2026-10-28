@@ -88,7 +88,7 @@ _Spec §12 Phase 1 item 12, §14 decision 8. Breakdown approved 2026-10-26; answ
 - Notes: **schema change** (a needs-profile table). The AI chat (item 11) fills in the same profile later. The AI only collects and structures; it never generates (§4.1).
 - Done when: you can enter, save, reload and edit your needs profile.
 
-### S-009 · Library additions for the generator — status: todo
+### S-009 · Library additions for the generator — status: in-progress
 - Epic: R-01 (item 1, part) · Spec: §10.2, §9.1, §6.6
 - Screens: Exercises list
 - Design-first: no
@@ -110,6 +110,7 @@ _Spec §12 Phase 1 item 12, §14 decision 8. Breakdown approved 2026-10-26; answ
 - Design-first: no
 - Depends on: S-008, S-009, S-010
 - Notes: profile → programme. Full body, 2–4 days; strength, hypertrophy or general fitness plus emphasis; existing library only; limitations, avoids and equipment respected; plain-language explanations for every choice; choices per D-016. Required tests: the same profile gives the same programme; the rule checker passes across a spread of profiles (2 or 4 days, dumbbells only, knee limitation, beginner, advanced); Maeve's profile is compared side by side with Preset 1.
+- Notes (S-009 review): count only compound exercises when checking pattern coverage (dead hang and scapular pull-up are filed under vertical pull but don't cover it).
 - Done when: the required tests pass, and Maeve's generated programme reads as sensible next to Preset 1.
 
 ### S-012 · Your programme: one at a time — status: todo
@@ -146,7 +147,7 @@ _Spec §5.1, §5.2, §6.6, §12 Phase 1 items 9, 10 and 13; decision 9 (D-018). 
 - Notes: fills in the same needs profile as the Settings form. Scripted first; the AI chat (item 11) comes later. Ends on "Saved. Your programme comes next" until the generator review (S-013) exists, then goes on to generate → review → accept.
 - Done when: a new user can answer every needs question on Home, one at a time, and their profile is saved; skipping and coming back resumes where they left off.
 
-### S-016 · How are you today? The check-in (returning users) — status: in-review (PR #18)
+### S-016 · How are you today? The check-in (returning users) — status: done (PR #18)
 - Epic: R-01 (items 10, 13) · Spec: §5.2, §6.6, §9.4
 - Screens: Home: a check-in conversation, one question at a time (sleep, energy, soreness, pain and where)
 - Design-first: yes (Home). Working skeleton only.
@@ -160,6 +161,7 @@ _Spec §5.1, §5.2, §6.6, §12 Phase 1 items 9, 10 and 13; decision 9 (D-018). 
 - Design-first: partly (set logging stays a skeleton)
 - Depends on: nothing
 - Notes: **schema change** (a light-day flag on the workout). Each exercise becomes its light alternative, or keeps the same exercise with one fewer set (D-016). Light days never trigger "ready to go up".
+- Notes (S-009): look light alternatives up in the whole library (EXERCISES); they can point beyond the classic 33.
 - Done when: any Strength session can be switched to a light day before starting, and a light day never shows "ready to go up".
 
 ### S-018 · Adapting from your check-in — status: todo
