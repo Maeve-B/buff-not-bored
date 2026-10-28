@@ -88,7 +88,7 @@ _Spec §12 Phase 1 item 12, §14 decision 8. Breakdown approved 2026-10-26; answ
 - Notes: **schema change** (a needs-profile table). The AI chat (item 11) fills in the same profile later. The AI only collects and structures; it never generates (§4.1).
 - Done when: you can enter, save, reload and edit your needs profile.
 
-### S-009 · Library additions for the generator — status: in-progress
+### S-009 · Library additions for the generator — status: in-review (PR #19)
 - Epic: R-01 (item 1, part) · Spec: §10.2, §9.1, §6.6
 - Screens: Exercises list
 - Design-first: no
