@@ -1,6 +1,12 @@
 import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { HomeScreen } from "@/components/HomeScreen";
+import { resumeConversation } from "@/lib/actions/needs-conversation";
+
+const refresh = vi.fn();
+vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh }) }));
+vi.mock("@/lib/actions/needs-conversation", () => ({ resumeConversation: vi.fn(async () => undefined) }));
 
 // The seeded "8 Week Strength" programme starts 2026-09-28 (a Monday) with
 // Monday/Wednesday Classic Strength sessions — pin the clock there so this
@@ -49,5 +55,22 @@ describe("Home screen — the primary entry point", () => {
     vi.setSystemTime(new Date("2026-09-29T12:00:00Z")); // Tuesday — nothing scheduled
     render(<HomeScreen />);
     expect(screen.getByText(/nothing scheduled today/i)).toBeInTheDocument();
+  });
+});
+
+describe("Home: carrying on with setup (S-015)", () => {
+  it("offers to carry on where you stopped, and picks the conversation back up", async () => {
+    vi.useRealTimers();
+    const user = userEvent.setup();
+    render(<HomeScreen setupPrompt={{ number: 5, of: 13 }} />);
+    expect(screen.getByText("You stopped at question 5 of 13.")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Carry on" }));
+    expect(resumeConversation).toHaveBeenCalled();
+    expect(refresh).toHaveBeenCalled();
+  });
+
+  it("shows no prompt once you're set up", () => {
+    render(<HomeScreen />);
+    expect(screen.queryByText(/Finish setting up/)).not.toBeInTheDocument();
   });
 });

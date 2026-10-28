@@ -283,3 +283,18 @@ model NeedsProfile {
 
   @@map("needs_profiles")
 }
+
+/// A setup conversation in progress (S-015, D-020), so you can pick up where
+/// you left off on any device. One row (id "me"); removed once your needs
+/// profile is saved. `answers` holds the partial answers as JSON, checked by
+/// packages/domain when the profile is finally saved.
+model NeedsConversationDraft {
+  id        String   @id @default("me")
+  answers   Json
+  stepId    String
+  answered  String[] @default([])
+  paused    Boolean  @default(false)
+  updatedAt DateTime @updatedAt
+
+  @@map("needs_conversation_drafts")
+}

@@ -21,6 +21,11 @@ export { toDomainLoggedWorkout, toWorkoutUpsertInput } from "./mappers/workout-m
 export { toDomainExerciseCapability, toExerciseCapabilityRow } from "./mappers/exercise-capability-mapper.js";
 
 // Repositories
+export {
+  getNeedsConversationDraft,
+  saveNeedsConversationDraft,
+  clearNeedsConversationDraft,
+} from "./repositories/needs-conversation-repository.js";
 export { getNeedsProfile, saveNeedsProfile } from "./repositories/needs-profile-repository.js";
 export { getAppSettings, saveWeightUnit, type AppSettings } from "./repositories/settings-repository.js";
 export { upsertExercise, findExerciseById, listExercises } from "./repositories/exercise-repository.js";

@@ -80,7 +80,7 @@ _Re-planned 2026-10-21 (Maeve): Preset Programme 1 comes forward from Phase 1 an
 ## Now (epic R-01 · Phase 1 — Scoped programme generator)
 _Spec §12 Phase 1 item 12, §14 decision 8. Breakdown approved 2026-10-26; answers in D-016. Engine-only slices (S-008 to S-011) can start now; the review screens (S-013, S-014) wait until logging (R-01 item 3) is in._
 
-### S-008 · Your training needs (profile) — status: in-progress
+### S-008 · Your training needs (profile) — status: done (PR #16)
 - Epic: R-01 (items 11–12) · Spec: §6.1, §5.14, §5.1
 - Screens: a needs form: goal, emphasis, experience, days per week and preferred days, session length, equipment, limitations, avoids. Saved and editable.
 - Design-first: yes (onboarding). Working skeleton only.
@@ -138,7 +138,7 @@ _Spec §12 Phase 1 item 12, §14 decision 8. Breakdown approved 2026-10-26; answ
 ## Now (epic R-01 · Phase 1 — Conversation and check-ins)
 _Spec §5.1, §5.2, §6.6, §12 Phase 1 items 9, 10 and 13; decision 9 (D-018). Breakdown approved 2026-10-28. Order: S-008 first, then S-015 → S-016 → S-017 → S-018, interleaved with the engine-only generator slices; S-019 waits for the set-logging design._
 
-### S-015 · Getting to know you: the setup conversation (new users) — status: todo
+### S-015 · Getting to know you: the setup conversation (new users) — status: in-review (PR #17)
 - Epic: R-01 (item 9) · Spec: §5.1, §6.1
 - Screens: Home: a scripted conversation, one question at a time, with skip and resume
 - Design-first: yes (Home, onboarding). Working skeleton only.
